@@ -32,4 +32,4 @@ Before deploying for the first time:
 3. Sign up for a Heroku account
 4. Log in to Heroku: `heroku login`
 5. Create a Heroku application: `heroku create <app_name>`
-6. 
+6.

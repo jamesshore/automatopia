@@ -2,6 +2,8 @@
 (function() {
 	"use strict";
 	var child_process = require("child_process");
+	var fs = require("fs");
+	var procfile = require("procfile");
 	var httpUtil = require("./_http_util.js");
 
 	var PORT = "5000";
@@ -10,9 +12,10 @@
 	var child;
 
 	exports.setUp = function(done) {
-		child = child_process.spawn("node", ["src/run.js", PORT], { stdio: "pipe" });
 		var stdout = "";
 
+		var web = parseProcfile();
+		child = child_process.spawn(web.command, web.options, { stdio: "pipe" });
 		child.stdout.setEncoding("utf8");
 		child.stdout.on("data", function(chunk) {
 			if (stdout !== null) stdout += chunk;
@@ -22,6 +25,16 @@
 			}
 		});
 	};
+
+	function parseProcfile() {
+		var file = fs.readFileSync("Procfile", "utf8");
+		var web = procfile.parse(file).web;
+		web.options = web.options.map(function(option) {
+			if (option === "$PORT") return PORT;
+			else return option;
+		});
+		return web;
+	}
 
 	exports.tearDown = function(done) {
 		child.on("exit", function() {
