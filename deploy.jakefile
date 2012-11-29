@@ -20,19 +20,15 @@ var smoketest = require("./src/__smoketest_runner.js");
 	desc("Deploy to production");
 	task("release", ["build", "git"], function() {
 		function success() {
-			console.log("Smoke testing release...");
-			smokeTest(function(passed) {
-				if (passed) {
-					console.log("Smoke test passed. Application successfully deployed.");
-					complete();
-				}
-				else fail("Smoke test failed. APPLICATION OFFLINE! Run rollback target.");
+			runSmokeTests(function(passed) {
+				if (passed) complete();
+				else fail("Smoke test failed. Run rollback target.");
 			});
 		}
 		function failure() {
-			smokeTest(function(passed) {
+			runSmokeTests(function(passed) {
 				if (passed) fail("Deploy failed but application is still online.");
-				else fail("Deploy failed. APPLICATION OFFLINE! Run rollback target.");
+				else fail("Deploy failed and application is offline. Run rollback target.");
 			});
 		}
 
@@ -42,20 +38,17 @@ var smoketest = require("./src/__smoketest_runner.js");
 	desc("Rollback to previous release");
 	task("rollback", function() {
 		function success() {
-			console.log("Rollback complete. Smoke testing release...");
-			smokeTest(function(passed) {
-				if (passed) {
-					console.log("Application online.");
-					complete();
-				}
-				else fail("APPLICATION STILL OFFLINE! Fix manually.");
+			console.log("Rollback complete.");
+			runSmokeTests(function(passed) {
+				if (passed) complete();
+				else fail("Rollback complete but application is still offline! Fix manually.");
 			});
 		}
 		function failure() {
-			console.log("Rollback failed. Smoke testing release...");
-			smokeTest(function(passed) {
+			console.log("Rollback failed.");
+			runSmokeTests(function(passed) {
 				if (passed) fail("Rollback failed but application is online.");
-				else fail("APPLICATION STILL OFFLINE! Fix manually.");
+				else fail("Rollback failed and application is still offline! Fix manually.");
 			});
 		}
 
@@ -64,10 +57,11 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	desc("Smoke test release");
 	task("smoketest", function() {
-		smokeTest(function(passed) {
+		runSmokeTests(function(passed) {
 			if (!passed) fail("Smoke tests failed");
+			complete();
 		});
-	});
+	}, {async:true});
 
 	// Ensure that Git status is clean
 	task("git", function() {
@@ -82,8 +76,13 @@ var smoketest = require("./src/__smoketest_runner.js");
 		shWithErrorMessage([BUILD_COMMAND], complete, "Cannot deploy until build passes.");
 	}, {async:true});
 
-	function smokeTest(callback) {
-		smoketest.runTests(PRODUCTION_URL, callback);
+	function runSmokeTests(callback) {
+		console.log("Testing release...");
+		smoketest.runTests(PRODUCTION_URL, function(passed) {
+			if (passed) console.log("Application online.");
+			else console.log("APPLICATION OFFLINE!");
+			callback(passed);
+		});
 	}
 
 	function sh(commands, callback) {
