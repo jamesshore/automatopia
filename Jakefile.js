@@ -4,6 +4,7 @@
 	"use strict";
 
 	var lint = require("./build/lint/lint_runner.js");
+	var nodeunit = require("./build/nodeunit/nodeunit_runner.js");
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
@@ -18,16 +19,19 @@
 
 	desc("Test everything");
 	task("test", [], function() {
-		var testFiles = new jake.FileList();
-		testFiles.include("**/_*_test.js");
-		testFiles.exclude("node_modules");
-
-		var reporter = require("nodeunit").reporters["default"];
-		reporter.run(testFiles.toArray(), null, function (failures) {
+		nodeunit.runTests(nodeFilesToTest(), function(failures) {
 			if (failures) fail("Tests failed");
 			complete();
 		});
 	}, {async:true});
+
+	function nodeFilesToTest() {
+		var testFiles = new jake.FileList();
+		testFiles.include("**/_*_test.js");
+		testFiles.exclude("node_modules");
+		var tests = testFiles.toArray();
+		return tests;
+	}
 
 	function nodeFilesToLint() {
 		var files = new jake.FileList();
