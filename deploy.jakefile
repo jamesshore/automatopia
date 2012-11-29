@@ -2,10 +2,11 @@
 /*global desc, task, jake, fail, complete */
 
 var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
-var BUILD_COMMAND = "./jake.sh";
 
-var DEPLOY_COMMANDS = [ "git push heroku master" ];
+var DEPLOY_LATEST_COMMANDS = [ "git push heroku master" ];
+var DEPLOY_HEAD_COMMANDS = [ "git push heroku HEAD" ];
 var ROLLBACK_COMMANDS = [ "heroku rollback" ];
+var BUILD_COMMAND = "./jake.sh";
 
 var http = require("http");
 var smoketest = require("./src/__smoketest_runner.js");
@@ -17,23 +18,14 @@ var smoketest = require("./src/__smoketest_runner.js");
 		console.log("This Jakefile deploys the application. Use -T option to see targets.\n");
 	});
 
-	desc("Deploy to production");
-	task("release", ["build", "git"], function() {
-		function success() {
-			runSmokeTests(function(passed) {
-				if (passed) complete();
-				else fail("Smoke test failed. Run rollback target.");
-			});
-		}
-		function failure() {
-			runSmokeTests(function(passed) {
-				if (passed) fail("Deploy failed but application is still online.");
-				else fail("Deploy failed and application is offline. Run rollback target.");
-			});
-		}
-
-		shWithErrorHandler(DEPLOY_COMMANDS, success, failure);
+	desc("Deploy latest known-good integration to production");
+	task("latest", ["git"], function() {
+		deploy(DEPLOY_LATEST_COMMANDS, complete);
 	}, {async:true});
+
+//	task("latest", ["build", "git"], function() {
+//
+//	});
 
 	desc("Rollback to previous release");
 	task("rollback", function() {
@@ -75,6 +67,23 @@ var smoketest = require("./src/__smoketest_runner.js");
 	task("build", function() {
 		shWithErrorMessage([BUILD_COMMAND], complete, "Cannot deploy until build passes.");
 	}, {async:true});
+
+	function deploy(deployCommands, complete) {
+		function onSuccess() {
+			runSmokeTests(function(passed) {
+				if (passed) complete();
+				else fail("Smoke test failed. Run rollback target.");
+			});
+		}
+		function onFailure() {
+			runSmokeTests(function(passed) {
+				if (passed) fail("Deploy failed but application is still online.");
+				else fail("Deploy failed and application is offline. Run rollback target.");
+			});
+		}
+
+		shWithErrorHandler(deployCommands, onSuccess, onFailure);
+	}
 
 	function runSmokeTests(callback) {
 		console.log("Testing release...");
