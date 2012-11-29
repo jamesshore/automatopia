@@ -8,7 +8,7 @@
 	exports.start = function(portNumber, callback) {
 		server = http.createServer();
 		server.on("request", function(request, response) {
-			response.end("Hello World");
+			response.end("Hello World 2");
 		});
 		server.listen(portNumber, callback);
 	};

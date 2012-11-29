@@ -20,7 +20,7 @@
 	exports.test_respondsToRequests = function(test) {
 		httpUtil.getPage("http://localhost:8080", function(error, response, responseText) {
 			test.equals(response.statusCode, 200, "status code");
-			test.equals(responseText, "Hello World", "response text");
+			test.equals(responseText, "Hello World 2", "response text");
 			test.done(error);
 		});
 	};

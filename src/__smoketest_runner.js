@@ -3,7 +3,7 @@
 	"use strict";
 	var httpUtil = require("./__http_util.js");
 
-	var HOME_PAGE_MARKER = "Hello World";
+	var HOME_PAGE_MARKER = "Hello World 2";
 
 	exports.runTests = function(url, callback) {
 		checkMarker(url, HOME_PAGE_MARKER, function(foundMarker) {

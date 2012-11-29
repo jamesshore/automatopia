@@ -21,11 +21,12 @@ var smoketest = require("./src/__smoketest_runner.js");
 	desc("Deploy latest known-good integration to production");
 	task("latest", ["git"], function() {
 		deploy(DEPLOY_LATEST_COMMANDS, complete);
-	}, {async:true});
+	}, {async: true});
 
-//	task("latest", ["build", "git"], function() {
-//
-//	});
+	desc("Deploy git HEAD to production (use for manually fixing release)")
+	task("latest", ["build", "git"], function() {
+		deploy(DEPLOY_HEAD_COMMANDS, complete);
+	}, {async: true});
 
 	desc("Rollback to previous release");
 	task("rollback", function() {
@@ -45,7 +46,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 		}
 
 		shWithErrorMessage(ROLLBACK_COMMANDS, success, failure);
-	}, {async:true});
+	}, {async: true});
 
 	desc("Smoke test release");
 	task("smoketest", function() {
@@ -53,7 +54,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 			if (!passed) fail("Smoke tests failed");
 			complete();
 		});
-	}, {async:true});
+	}, {async: true});
 
 	// Ensure that Git status is clean
 	task("git", function() {
@@ -61,12 +62,12 @@ var smoketest = require("./src/__smoketest_runner.js");
 			if (stdout[0]) fail("Cannot deploy until all files checked into git (or added to .gitignore).");
 			complete();
 		});
-	}, {async:true});
+	}, {async: true});
 
 	// Make sure build is clean
 	task("build", function() {
 		shWithErrorMessage([BUILD_COMMAND], complete, "Cannot deploy until build passes.");
-	}, {async:true});
+	}, {async: true});
 
 	function deploy(deployCommands, complete) {
 		function onSuccess() {
