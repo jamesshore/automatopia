@@ -29,7 +29,10 @@ Deploying
 Before deploying for the first time:
 1. Follow the steps for "Continuous Integration" first.
 2. Install the Heroku Toolbelt [https://toolbelt.heroku.com/]
-3. Sign up for a Heroku account
-4. Log in to Heroku: `heroku login`
-5. Create a Heroku application: `heroku create <app_name>`
-6.
+3. Sign up for a Heroku account [https://api.heroku.com/signup]
+4. Create a Heroku application: `heroku create <app_name>`
+5. Change release smoke test URL to match Heroku application: XXX TODO XXX
+6. Update package.json to match your installed versions of Node and npm
+
+To deploy:
+1. Run `./deploy.sh latest` (Unix/Mac) or `deploy latest` (Windows)
