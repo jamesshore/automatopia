@@ -2,7 +2,7 @@
 (function() {
 	"use strict";
 	var child_process = require("child_process");
-	var http = require("http");
+	var httpUtil = require("./_http_util.js");
 
 	var PORT = "5000";
 	var BASE_URL = "http://localhost:" + PORT;
@@ -15,8 +15,9 @@
 
 		child.stdout.setEncoding("utf8");
 		child.stdout.on("data", function(chunk) {
-			stdout += chunk;
+			if (stdout !== null) stdout += chunk;
 			if (stdout.trim() === "Server started") {
+				stdout = null;
 				done();
 			}
 		});
@@ -37,18 +38,9 @@
 	};
 
 	function checkMarker(url, marker, callback) {
-		var request = http.get(url);
-		request.on("response", function(response) {
-			var data = "";
-			response.setEncoding("utf8");
-
-			response.on("data", function(chunk) {
-				data += chunk;
-			});
-			response.on("end", function() {
-				var foundMarker = data.indexOf(marker) !== -1;
+		httpUtil.getPage(url, function(error, response, responseText) {
+				var foundMarker = responseText.indexOf(marker) !== -1;
 				callback(foundMarker);
-			});
 		});
 	}
 }());
