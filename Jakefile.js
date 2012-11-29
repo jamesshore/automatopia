@@ -6,7 +6,7 @@
 	var lint = require("./build/lint/lint_runner.js");
 
 	desc("Lint and test");
-	task("default", ["lint"], function() {
+	task("default", ["lint", "test"], function() {
 		console.log("\n\nOK");
 	});
 
@@ -16,9 +16,23 @@
 		if (!passed) fail("Lint failed");
 	});
 
+	desc("Test everything");
+	task("test", [], function() {
+		var testFiles = new jake.FileList();
+		testFiles.include("**/_*_test.js");
+		testFiles.exclude("node_modules");
+
+		var reporter = require("nodeunit").reporters["default"];
+		reporter.run(testFiles.toArray(), null, function (failures) {
+			if (failures) fail("Tests failed");
+			complete();
+		});
+	}, {async:true});
+
 	function nodeFilesToLint() {
 		var files = new jake.FileList();
 		files.include("src/**/*.js");
+		files.include("build/**/*.js");
 		files.include("Jakefile.js");
 		var fileList = files.toArray();
 		return fileList;
