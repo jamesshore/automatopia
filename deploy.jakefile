@@ -8,7 +8,7 @@ var DEPLOY_COMMANDS = [ "git push heroku master" ];
 var ROLLBACK_COMMANDS = [ "heroku rollback" ];
 
 var http = require("http");
-var smoketest = require("./build/smoke_test/smoke_test.js");
+var smoketest = require("./src/__smoketest_runner.js");
 
 (function() {
 	"use strict";

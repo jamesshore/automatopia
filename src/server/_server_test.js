@@ -3,7 +3,7 @@
 	"use strict";
 
 	var server = require("./server.js");
-	var httpUtil = require("../_http_util.js");
+	var httpUtil = require("../__http_util.js");
 
 	exports.setUp = function(done) {
 		server.start(8080, function() {

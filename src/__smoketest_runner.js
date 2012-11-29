@@ -1,7 +1,7 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
 (function() {
 	"use strict";
-	var httpUtil = require("../../src/_http_util.js");
+	var httpUtil = require("./__http_util.js");
 
 	var HOME_PAGE_MARKER = "Hello World";
 

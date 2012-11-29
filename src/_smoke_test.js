@@ -4,7 +4,7 @@
 	var child_process = require("child_process");
 	var fs = require("fs");
 	var procfile = require("procfile");
-	var httpUtil = require("./_http_util.js");
+	var smoketest = require("./__smoketest_runner.js");
 
 	var PORT = "5000";
 	var BASE_URL = "http://localhost:" + PORT;
@@ -43,17 +43,11 @@
 		child.kill();
 	};
 
-	exports.test_getHomePage = function(test) {
-		checkMarker(BASE_URL, "Hello World", function(foundMarker) {
-			test.ok(foundMarker, "should have found home page marker");
+	exports.test_localhost = function(test) {
+		smoketest.runTests(BASE_URL, function(success) {
+			if (!success) test.fail("smoke tests failed");
 			test.done();
 		});
 	};
 
-	function checkMarker(url, marker, callback) {
-		httpUtil.getPage(url, function(error, response, responseText) {
-				var foundMarker = responseText.indexOf(marker) !== -1;
-				callback(foundMarker);
-		});
-	}
 }());
