@@ -3,12 +3,12 @@
 
 var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
 var BUILD_COMMAND = "./jake.sh";
-var SMOKE_TEST_MARKER = "Hello World";
 
 var DEPLOY_COMMANDS = [ "git push heroku master" ];
 var ROLLBACK_COMMANDS = [ "heroku rollback" ];
 
 var http = require("http");
+var smoketest = require("./build/smoke_test/smoke_test.js");
 
 (function() {
 	"use strict";
@@ -62,6 +62,13 @@ var http = require("http");
 		shWithErrorMessage(ROLLBACK_COMMANDS, success, failure);
 	}, {async:true});
 
+	desc("Smoke test release");
+	task("smoketest", function() {
+		smokeTest(function(passed) {
+			if (!passed) fail("Smoke tests failed");
+		});
+	});
+
 	// Ensure that Git status is clean
 	task("git", function() {
 		sh(["git status --porcelain"], function(stdout) {
@@ -76,19 +83,7 @@ var http = require("http");
 	}, {async:true});
 
 	function smokeTest(callback) {
-		var request = http.get(PRODUCTION_URL);
-		request.on("response", function(response) {
-			var data = "";
-			response.setEncoding("utf8");
-
-			response.on("data", function(chunk) {
-				data += chunk;
-			});
-			response.on("end", function() {
-				var foundMarker = data.indexOf(SMOKE_TEST_MARKER) !== -1;
-				callback(foundMarker);
-			});
-		});
+		smoketest.runTests(PRODUCTION_URL, callback);
 	}
 
 	function sh(commands, callback) {
