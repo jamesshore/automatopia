@@ -3,8 +3,8 @@
 
 var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
 
-var DEPLOY_LATEST_COMMANDS = [ "git push heroku master" ];
-var DEPLOY_HEAD_COMMANDS = [ "git push heroku HEAD" ];
+var DEPLOY_LATEST_COMMANDS = [ "git push -f heroku master:master" ];
+var DEPLOY_HEAD_COMMANDS = [ "git push -f heroku HEAD:master" ];
 var ROLLBACK_COMMANDS = [ "heroku rollback" ];
 var BUILD_COMMAND = "./jake.sh";
 
