@@ -1,0 +1,136 @@
+// Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+/*global desc, task, jake, fail, complete */
+
+var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
+var BUILD_COMMAND = "./jake.sh";
+var SMOKE_TEST_MARKER = "Hello World";
+
+var DEPLOY_COMMANDS = [ "git push heroku master" ];
+var ROLLBACK_COMMANDS = [ "heroku rollback" ];
+
+var http = require("http");
+
+(function() {
+	"use strict";
+
+	task("default", function() {
+		console.log("This Jakefile deploys the application. Use -T option to see targets.\n");
+	});
+
+	desc("Deploy to production");
+	task("release", ["build", "git"], function() {
+		function success() {
+			console.log("Smoke testing release...");
+			smokeTest(function(passed) {
+				if (passed) {
+					console.log("Smoke test passed. Application successfully deployed.");
+					complete();
+				}
+				else fail("Smoke test failed. APPLICATION OFFLINE! Run rollback target.");
+			});
+		}
+		function failure() {
+			smokeTest(function(passed) {
+				if (passed) fail("Deploy failed but application is still online.");
+				else fail("Deploy failed. APPLICATION OFFLINE! Run rollback target.");
+			});
+		}
+
+		shWithErrorHandler(DEPLOY_COMMANDS, success, failure);
+	}, {async:true});
+
+	desc("Rollback to previous release");
+	task("rollback", function() {
+		function success() {
+			console.log("Rollback complete. Smoke testing release...");
+			smokeTest(function(passed) {
+				if (passed) {
+					console.log("Application online.");
+					complete();
+				}
+				else fail("APPLICATION STILL OFFLINE! Fix manually.");
+			});
+		}
+		function failure() {
+			console.log("Rollback failed. Smoke testing release...");
+			smokeTest(function(passed) {
+				if (passed) fail("Rollback failed but application is online.");
+				else fail("APPLICATION STILL OFFLINE! Fix manually.");
+			});
+		}
+
+		shWithErrorMessage(ROLLBACK_COMMANDS, success, failure);
+	}, {async:true});
+
+	// Ensure that Git status is clean
+	task("git", function() {
+		sh(["git status --porcelain"], function(stdout) {
+			if (stdout[0]) fail("Cannot deploy until all files checked into git (or added to .gitignore).");
+			complete();
+		});
+	}, {async:true});
+
+	// Make sure build is clean
+	task("build", function() {
+		shWithErrorMessage([BUILD_COMMAND], complete, "Cannot deploy until build passes.");
+	}, {async:true});
+
+	function smokeTest(callback) {
+		var request = http.get(PRODUCTION_URL);
+		request.on("response", function(response) {
+			var data = "";
+			response.setEncoding("utf8");
+
+			response.on("data", function(chunk) {
+				data += chunk;
+			});
+			response.on("end", function() {
+				var foundMarker = data.indexOf(SMOKE_TEST_MARKER) !== -1;
+				callback(foundMarker);
+			});
+		});
+	}
+
+	function sh(commands, callback) {
+		shWithErrorMessage(commands, callback, "shell command exited with error code");
+	}
+
+	function shWithErrorMessage(commands, callback, errorMessage) {
+		shWithErrorHandler(commands, callback, function() {
+			fail(errorMessage);
+		});
+	}
+
+	function shWithErrorHandler(commands, successCallback, failureCallback) {
+		var stdout = [];
+		function serializedSh(command) {
+			if (command) {
+				oneSh(command, function(oneStdout) {
+					stdout.push(oneStdout);
+					serializedSh(commands.shift());
+				}, failureCallback);
+			}
+			else {
+				successCallback(stdout);
+			}
+		}
+		serializedSh(commands.shift());
+	}
+
+	function oneSh(oneCommand, successCallback, failureCallback) {
+		var stdout = "";
+		var process = jake.createExec(oneCommand, {printStdout:true, printStderr:true});
+		process.on("stdout", function(data) {
+			stdout += data;
+		});
+		process.on("cmdEnd", function() {
+			successCallback(stdout);
+		});
+		process.on("error", function() {
+			failureCallback(stdout);
+		});
+
+		console.log("> " + oneCommand);
+		process.run();
+	}
+}());

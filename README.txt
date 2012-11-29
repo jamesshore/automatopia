@@ -31,7 +31,7 @@ Before deploying for the first time:
 2. Install the Heroku Toolbelt [https://toolbelt.heroku.com/]
 3. Sign up for a Heroku account [https://api.heroku.com/signup]
 4. Create a Heroku application: `heroku create <app_name>`
-5. Change release smoke test URL to match Heroku application: XXX TODO XXX
+5. Change PRODUCTION_URL at the top of `deploy.jakefile` to match your Heroku application
 6. Update package.json to match your installed versions of Node and npm
 
 To deploy:
