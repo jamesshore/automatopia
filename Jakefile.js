@@ -3,8 +3,8 @@
 (function () {
 	"use strict";
 
-	var lint = require("./build/lint/lint_runner.js");
-	var nodeunit = require("./build/nodeunit/nodeunit_runner.js");
+	var lint = require("./build/lint_runner.js");
+	var nodeunit = require("./build/nodeunit_runner.js");
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
