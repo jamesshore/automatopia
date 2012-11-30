@@ -1,8 +1,7 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
 /*global desc, task, jake, fail, complete */
 
-var BUILD_COMMAND = "./jake.sh";
-
+var build_command = require("./build/util/build_command.js");
 var sh = require("./build/util/sh.js");
 
 (function() {
@@ -123,7 +122,7 @@ var sh = require("./build/util/sh.js");
 			sh.runMany([
 				"git checkout " + branch,
 				"git merge integration --ff-only",   // make sure integration branch has already been merged
-				BUILD_COMMAND
+				build_command.get()
 			], successCallback, failureCallback);
 		}
 		function afterSuccessfulBuild() {

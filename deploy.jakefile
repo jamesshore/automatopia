@@ -9,10 +9,10 @@ var GIT_HEAD = "HEAD";
 var DEPLOY_LATEST = "git push -f heroku " + INTEGRATION_BRANCH + ":master";
 var DEPLOY_HEAD = "git push -f heroku " + GIT_HEAD + ":master";
 var ROLLBACK = "heroku rollback";
-var BUILD = "./jake.sh";
 
 var http = require("http");
 var sh = require("./build/util/sh.js");
+var build_command = require("./build/util/build_command.js");
 var smoketest = require("./src/__smoketest_runner.js");
 
 (function() {
@@ -70,7 +70,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	// Make sure build is clean
 	task("build", function() {
-		run(BUILD, complete, "Cannot deploy until build passes.");
+		run(build_command.get(), complete, "Cannot deploy until build passes.");
 	}, {async: true});
 
 	function deploy(deployCommand, commitToTag, complete) {
