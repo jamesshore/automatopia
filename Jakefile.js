@@ -3,7 +3,7 @@
 (function () {
 	"use strict";
 
-	var TESTED_BROWSERS = [
+	var REQUIRED_BROWSERS = [
 		"Safari 6.0"
 	];
 
@@ -37,35 +37,8 @@
 
 	desc("Test client code");
 	task("testClient", function() {
-		var config = {};
-
-		var output = "";
-		var oldStdout = process.stdout.write;
-		process.stdout.write = function(data) {
-			output += data;
-			oldStdout.apply(this, arguments);
-		};
-
-		require("testacular/lib/runner").run(config, function(exitCode) {
-			process.stdout.write = oldStdout;
-
-			if (exitCode) fail("Client tests failed (to start server, run 'jake testacular')");
-			var browserMissing = false;
-			TESTED_BROWSERS.forEach(function(browser) {
-				browserMissing = checkIfBrowserTested(browser, output) || browserMissing;
-			});
-			if (browserMissing && !process.env.loose) fail("Did not test all supported browsers (use 'loose=true' to suppress error)");
-			if (output.indexOf("TOTAL: 0 SUCCESS") !== -1) fail("Client tests did not run!");
-
-			complete();
-		});
+		testacular.runTests(REQUIRED_BROWSERS, complete, fail);
 	}, {async: true});
-
-	function checkIfBrowserTested(browser, output) {
-		var missing = output.indexOf(browser + ": Executed") === -1;
-		if (missing) console.log(browser + " was not tested!");
-		return missing;
-	}
 
 	function nodeFilesToTest() {
 		var testFiles = new jake.FileList();
