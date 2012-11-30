@@ -26,12 +26,13 @@ Before building for the first time:
 1. Install [Node.js](http://nodejs.org/download/).
 2. Download and unzip source code into "automatopia" directory.
 3. All commands must run from root of source code tree: `cd automatopia`.
+4. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`.
 
 To build (and test):
 
 1. Run `./jake.sh testacular` (Unix/Mac) or `jake testacular` (Windows) to start the Testacular server.
 2. Start Safari or any other browsers you want to test against and point each one at `http://localhost:8080`.
-3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test. The build currently fails unless Safari 6.0 is tested; you can change it by editing `REQUIRED_BROWSERS` at the top of `Jakefile.js`.
+3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test.
 
 
 Continuous Integration
@@ -82,5 +83,5 @@ In case of a bad deployment:
 
 1. On the integration machine, run `./deploy.sh rollback` (Unix/Mac) or `deploy rollback` (Windows) to do a band-aid rollback to the previous Heroku deployment. This rollback won't "stick", so you'll need to deploy new code soon.
 2. If you aren't able to deploy new code right away, choose a previous, good commit to deploy. `gitk` and the `deploy-<timestamp>` tags may be helpful here.
-3. Check out the gocommit: `git checkout <commit_id>`
+3. Check out the commit: `git checkout <commit_id>`
 4. Run `./deploy.sh head` (Unix/Mac) or `deploy head` (Windows) to deploy the commit to Heroku. As above, the script will tag the git repository with `deploy-<timestamp>` if the deploy succeeds and passes the smoke tests.
