@@ -2,7 +2,7 @@
 (function() {
 	"use strict";
 
-	var TESTACULAR = "node_modules/testacular/bin/testacular";
+	var TESTACULAR = "node node_modules/testacular/bin/testacular";
 	var TESTACULAR_START = TESTACULAR + " start build/testacular.conf.js";
 	var CONFIG = {};
 
