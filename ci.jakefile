@@ -3,7 +3,7 @@
 
 var BUILD_COMMAND = "./jake.sh";
 
-var sh = require("./build/sh.js");
+var sh = require("./build/util/sh.js");
 
 (function() {
 	"use strict";

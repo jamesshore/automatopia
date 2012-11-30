@@ -12,7 +12,7 @@ var ROLLBACK = "heroku rollback";
 var BUILD = "./jake.sh";
 
 var http = require("http");
-var sh = require("./build/sh.js");
+var sh = require("./build/util/sh.js");
 var smoketest = require("./src/__smoketest_runner.js");
 
 (function() {
