@@ -12,6 +12,7 @@ var ROLLBACK = "heroku rollback";
 var BUILD = "./jake.sh";
 
 var http = require("http");
+var sh = require("./build/sh.js");
 var smoketest = require("./src/__smoketest_runner.js");
 
 (function() {
@@ -33,14 +34,14 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	desc("Rollback to previous release");
 	task("rollback", function() {
-		function success() {
+		function onSuccess() {
 			console.log("Rollback complete.");
 			runSmokeTests(function(passed) {
 				if (passed) complete();
 				else fail("Rollback complete but application is still offline! Fix manually.");
 			});
 		}
-		function failure() {
+		function onFailure() {
 			console.log("Rollback failed.");
 			runSmokeTests(function(passed) {
 				if (passed) fail("Rollback failed but application is online.");
@@ -48,7 +49,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 			});
 		}
 
-		shWithErrorMessage([ ROLLBACK ], success, failure);
+		sh.run(ROLLBACK, onSuccess, onFailure);
 	}, {async: true});
 
 	desc("Smoke test release");
@@ -61,7 +62,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	// Ensure that Git status is clean
 	task("git", function() {
-		sh(["git status --porcelain"], function(stdout) {
+		run("git status --porcelain", function(stdout) {
 			if (stdout[0]) fail("Cannot deploy until all files checked into git (or added to .gitignore).");
 			complete();
 		});
@@ -69,7 +70,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	// Make sure build is clean
 	task("build", function() {
-		shWithErrorMessage([ BUILD ], complete, "Cannot deploy until build passes.");
+		run(BUILD, complete, "Cannot deploy until build passes.");
 	}, {async: true});
 
 	function deploy(deployCommand, commitToTag, complete) {
@@ -91,12 +92,12 @@ var smoketest = require("./src/__smoketest_runner.js");
 			var tagMessage = "Application successfully deployed at " + deployedAt.toUTCString() + "\nLocal time: " + deployedAt.toLocaleString();
 			var tagCommand = "git tag -a '" + tagName + "' -m '" + tagMessage + "' " + commitToTag;
 
-			shWithErrorHandler([ tagCommand ], complete, function() {
+			sh.run(tagCommand, complete, function() {
 				fail("Application deployed and online, but failed to tag repository.");
 			});
 		}
 
-		shWithErrorHandler([ deployCommand ], onSuccess, onFailure);
+		sh.run(deployCommand, onSuccess, onFailure);
 	}
 
 	function runSmokeTests(callback) {
@@ -108,46 +109,11 @@ var smoketest = require("./src/__smoketest_runner.js");
 		});
 	}
 
-	function sh(commands, callback) {
-		shWithErrorMessage(commands, callback, "shell command exited with error code");
-	}
-
-	function shWithErrorMessage(commands, callback, errorMessage) {
-		shWithErrorHandler(commands, callback, function() {
+	function run(command, callback, errorMessage) {
+		errorMessage = errorMessage || "shell command exited with error code";
+		sh.run(command, callback, function() {
 			fail(errorMessage);
 		});
 	}
 
-	function shWithErrorHandler(commands, successCallback, failureCallback) {
-		var stdout = [];
-		function serializedSh(command) {
-			if (command) {
-				oneSh(command, function(oneStdout) {
-					stdout.push(oneStdout);
-					serializedSh(commands.shift());
-				}, failureCallback);
-			}
-			else {
-				successCallback(stdout);
-			}
-		}
-		serializedSh(commands.shift());
-	}
-
-	function oneSh(oneCommand, successCallback, failureCallback) {
-		var stdout = "";
-		var process = jake.createExec(oneCommand, {printStdout:true, printStderr:true});
-		process.on("stdout", function(data) {
-			stdout += data;
-		});
-		process.on("cmdEnd", function() {
-			successCallback(stdout);
-		});
-		process.on("error", function() {
-			failureCallback(stdout);
-		});
-
-		console.log("> " + oneCommand);
-		process.run();
-	}
 }());
