@@ -11,7 +11,7 @@ files = [
   MOCHA,
   MOCHA_ADAPTER,
   'node_modules/expect.js/expect.js',
-  'src/client/**/*_test.js'
+  'src/client/**/*.js'
 ];
 
 

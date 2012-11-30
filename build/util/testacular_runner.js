@@ -24,6 +24,7 @@
 			if (exitCode) fail("Client tests failed (to start server, run 'jake testacular')");
 			var browserMissing = checkRequiredBrowsers(requiredBrowsers, stdout);
 			if (browserMissing && !process.env.loose) fail("Did not test all supported browsers (use 'loose=true' to suppress error)");
+			if (stdout.capturedOutput.indexOf("TOTAL: 0 SUCCESS") !== -1) fail("No tests were run!");
 
 			success();
 		});
