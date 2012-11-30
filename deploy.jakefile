@@ -3,8 +3,11 @@
 
 var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
 
-var DEPLOY_LATEST_COMMANDS = [ "git push -f heroku master:master" ];
-var DEPLOY_HEAD_COMMANDS = [ "git push -f heroku HEAD:master" ];
+var INTEGRATION_BRANCH = "master";
+var GIT_HEAD = "HEAD";
+
+var DEPLOY_LATEST_COMMANDS = [ "git push -f heroku " + INTEGRATION_BRANCH + ":master" ];
+var DEPLOY_HEAD_COMMANDS = [ "git push -f heroku " + GIT_HEAD + ":master" ];
 var ROLLBACK_COMMANDS = [ "heroku rollback" ];
 var BUILD_COMMAND = "./jake.sh";
 
@@ -20,12 +23,12 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	desc("Deploy latest known-good integration to production");
 	task("latest", ["git"], function() {
-		deploy(DEPLOY_LATEST_COMMANDS, complete);
+		deploy(DEPLOY_LATEST_COMMANDS, INTEGRATION_BRANCH, complete);
 	}, {async: true});
 
 	desc("Deploy git HEAD to production (use for manually fixing release)")
 	task("head", ["build", "git"], function() {
-		deploy(DEPLOY_HEAD_COMMANDS, complete);
+		deploy(DEPLOY_HEAD_COMMANDS, GIT_HEAD, complete);
 	}, {async: true});
 
 	desc("Rollback to previous release");
@@ -69,10 +72,10 @@ var smoketest = require("./src/__smoketest_runner.js");
 		shWithErrorMessage([BUILD_COMMAND], complete, "Cannot deploy until build passes.");
 	}, {async: true});
 
-	function deploy(deployCommands, complete) {
+	function deploy(deployCommands, commitToTag, complete) {
 		function onSuccess() {
 			runSmokeTests(function(passed) {
-				if (passed) complete();
+				if (passed) tagCommit();
 				else fail("Smoke test failed. Run rollback target.");
 			});
 		}
@@ -80,6 +83,16 @@ var smoketest = require("./src/__smoketest_runner.js");
 			runSmokeTests(function(passed) {
 				if (passed) fail("Deploy failed but application is still online.");
 				else fail("Deploy failed and application is offline. Run rollback target.");
+			});
+		}
+		function tagCommit(tagRoot) {
+			var deployedAt = new Date();
+			var tagName = "deploy-" + deployedAt.getTime();
+			var tagMessage = "Application successfully deployed at " + deployedAt.toUTCString() + "\nLocal time: " + deployedAt.toLocaleString();
+			var tagCommand = "git tag -a '" + tagName + "' -m '" + tagMessage + "' " + commitToTag;
+
+			shWithErrorHandler([ tagCommand ], complete, function() {
+				fail("Application deployed and online, but repository tag failed.");
 			});
 		}
 
