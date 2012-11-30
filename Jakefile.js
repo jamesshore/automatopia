@@ -28,7 +28,9 @@
 	});
 
 	desc("Test everything");
-	task("test", ["testClient"], function() {
+	task("test", ["testServer", "testClient"]);
+
+	task("testServer", function() {
 		nodeunit.runTests(nodeFilesToTest(), function(failures) {
 			if (failures) fail("Tests failed");
 			complete();
