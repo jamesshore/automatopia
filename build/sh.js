@@ -2,7 +2,9 @@
 (function() {
 	"use strict";
 
-	var runMany = exports.runMany = function(commands, successCallback, failureCallback) {
+	var jake = require("jake");
+
+	exports.runMany = function(commands, successCallback, failureCallback) {
 		var stdout = [];
 		function serializedSh(command) {
 			if (command) {
@@ -16,7 +18,7 @@
 			}
 		}
 		serializedSh(commands.shift());
-	}
+	};
 
 	var run = exports.run = function(oneCommand, successCallback, failureCallback) {
 		var stdout = "";
@@ -33,6 +35,6 @@
 
 		console.log("> " + oneCommand);
 		process.run();
-	}
+	};
 
 }());
