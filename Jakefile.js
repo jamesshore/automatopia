@@ -53,6 +53,7 @@
 		files.include("src/**/*.js");
 		files.include("build/**/*.js");
 		files.include("Jakefile.js");
+		files.exclude("build/testacular.conf.js");
 		var fileList = files.toArray();
 		return fileList;
 	}

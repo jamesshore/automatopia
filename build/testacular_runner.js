@@ -16,33 +16,46 @@
 	};
 
 	exports.runTests = function(requiredBrowsers, success, fail) {
-		var output = "";
-		var oldStdout = process.stdout.write;
-		process.stdout.write = function(data) {
-			output += data;
-			oldStdout.apply(this, arguments);
-		};
+		var stdout = new CapturedStdout();
 
 		runner.run(CONFIG, function(exitCode) {
-			process.stdout.write = oldStdout;
+			stdout.restore();
 
 			if (exitCode) fail("Client tests failed (to start server, run 'jake testacular')");
-			var browserMissing = false;
-			requiredBrowsers.forEach(function(browser) {
-				browserMissing = checkIfBrowserTested(browser, output) || browserMissing;
-			});
+			var browserMissing = checkRequiredBrowsers(requiredBrowsers, stdout);
 			if (browserMissing && !process.env.loose) fail("Did not test all supported browsers (use 'loose=true' to suppress error)");
-			if (output.indexOf("TOTAL: 0 SUCCESS") !== -1) fail("Client tests did not run!");
 
 			success();
 		});
 	};
 
-	function checkIfBrowserTested(browser, output) {
+	function checkRequiredBrowsers(requiredBrowsers, stdout) {
+		var browserMissing = false;
+		requiredBrowsers.forEach(function(browser) {
+			browserMissing = lookForBrowser(browser, stdout.capturedOutput) || browserMissing;
+		});
+		return browserMissing;
+	}
+
+	function lookForBrowser(browser, output) {
 		var missing = output.indexOf(browser + ": Executed") === -1;
 		if (missing) console.log(browser + " was not tested!");
 		return missing;
 	}
 
+	function CapturedStdout() {
+		var self = this;
+		self.oldStdout = process.stdout.write;
+		self.capturedOutput = "";
+
+		process.stdout.write = function(data) {
+			self.capturedOutput += data;
+			self.oldStdout.apply(this, arguments);
+		};
+	}
+
+	CapturedStdout.prototype.restore = function() {
+		process.stdout.write = this.oldStdout;
+	};
 
 }());

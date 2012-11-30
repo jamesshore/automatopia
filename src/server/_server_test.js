@@ -6,7 +6,7 @@
 	var httpUtil = require("../__http_util.js");
 
 	exports.setUp = function(done) {
-		server.start(8080, function() {
+		server.start(5000, function() {
 			done();
 		});
 	};
@@ -18,7 +18,7 @@
 	};
 
 	exports.test_respondsToRequests = function(test) {
-		httpUtil.getPage("http://localhost:8080", function(error, response, responseText) {
+		httpUtil.getPage("http://localhost:5000", function(error, response, responseText) {
 			test.equals(response.statusCode, 200, "status code");
 			test.equals(responseText, "Hello World", "response text");
 			test.done(error);
