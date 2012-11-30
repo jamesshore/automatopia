@@ -3,7 +3,7 @@
 
 var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
 
-var INTEGRATION_BRANCH = "master";
+var INTEGRATION_BRANCH = "integration";
 var GIT_HEAD = "HEAD";
 
 var DEPLOY_LATEST = "git push -f heroku " + INTEGRATION_BRANCH + ":master";
