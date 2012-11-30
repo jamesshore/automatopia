@@ -7,9 +7,9 @@
 		"Safari 6.0"
 	];
 
-	var lint = require("./build/lint_runner.js");
-	var nodeunit = require("./build/nodeunit_runner.js");
-	var testacular = require("./build/testacular_runner.js");
+	var lint = require("./build/util/lint_runner.js");
+	var nodeunit = require("./build/util/nodeunit_runner.js");
+	var testacular = require("./build/util/testacular_runner.js");
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
@@ -30,7 +30,7 @@
 	desc("Test everything");
 	task("test", ["testServer", "testClient"]);
 
-	desc("Test node.js code")
+	desc("Test node.js code");
 	task("testServer", function() {
 		nodeunit.runTests(nodeFilesToTest(), complete, fail);
 	}, {async: true});
@@ -51,9 +51,8 @@
 	function nodeFilesToLint() {
 		var files = new jake.FileList();
 		files.include("src/**/*.js");
-		files.include("build/**/*.js");
+		files.include("build/util/**/*.js");
 		files.include("Jakefile.js");
-		files.exclude("build/testacular.conf.js");
 		var fileList = files.toArray();
 		return fileList;
 	}
