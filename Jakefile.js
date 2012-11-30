@@ -24,6 +24,7 @@
 	desc("Lint everything");
 	task("lint", [], function () {
 		var passed = lint.validateFileList(nodeFilesToLint(), nodeLintOptions(), {});
+		passed = lint.validateFileList(browserFilesToLint(), browserLintOptions(), {}) && passed;
 		if (!passed) fail("Lint failed");
 	});
 
@@ -42,7 +43,8 @@
 
 	function nodeFilesToTest() {
 		var testFiles = new jake.FileList();
-		testFiles.include("**/_*_test.js");
+		testFiles.include("src/_*_test.js");
+		testFiles.include("src/server/**/_*_test.js");
 		testFiles.exclude("node_modules");
 		var tests = testFiles.toArray();
 		return tests;
@@ -50,14 +52,20 @@
 
 	function nodeFilesToLint() {
 		var files = new jake.FileList();
-		files.include("src/**/*.js");
+		files.include("src/*.js");
+		files.include("src/server/**/*.js");
 		files.include("build/util/**/*.js");
 		files.include("Jakefile.js");
-		var fileList = files.toArray();
-		return fileList;
+		return files.toArray();
 	}
 
-	function nodeLintOptions() {
+	function browserFilesToLint() {
+		var files = new jake.FileList();
+		files.include("src/client/**/*.js");
+		return files.toArray();
+	}
+
+	function globalLintOptions() {
 		return {
 			bitwise:true,
 			curly:false,
@@ -72,8 +80,20 @@
 			regexp:true,
 			undef:true,
 			strict:true,
-			trailing:true,
-			node:true
+			trailing:true
 		};
 	}
+
+	function nodeLintOptions() {
+		var options = globalLintOptions();
+		options.node = true;
+		return options;
+	}
+
+	function browserLintOptions() {
+		var options = globalLintOptions();
+		options.browser = true;
+		return options;
+	}
+
 }());
