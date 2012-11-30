@@ -16,7 +16,7 @@
 		console.log("\n\nOK");
 	});
 
-	desc("Start Testacular server for testing");
+	desc("Start Testacular server -- run this first");
 	task("testacular", function() {
 		testacular.serve(complete, fail);
 	}, {async: true});
@@ -30,14 +30,12 @@
 	desc("Test everything");
 	task("test", ["testServer", "testClient"]);
 
+	desc("Test node.js code")
 	task("testServer", function() {
-		nodeunit.runTests(nodeFilesToTest(), function(failures) {
-			if (failures) fail("Tests failed");
-			complete();
-		});
+		nodeunit.runTests(nodeFilesToTest(), complete, fail);
 	}, {async: true});
 
-	desc("Test client code");
+	desc("Test browser code");
 	task("testClient", function() {
 		testacular.runTests(REQUIRED_BROWSERS, complete, fail);
 	}, {async: true});

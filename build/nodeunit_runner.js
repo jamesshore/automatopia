@@ -6,8 +6,11 @@
 
 	var REPORTER = "default";
 
-	exports.runTests = function(testFiles, callback) {
-		nodeunit.reporters[REPORTER].run(testFiles, null, callback);
+	exports.runTests = function(testFiles, success, fail) {
+		nodeunit.reporters[REPORTER].run(testFiles, null, function(failures) {
+			if (failures) fail("Tests failed");
+			else success();
+		});
 	};
 
 }());
