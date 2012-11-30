@@ -6,10 +6,10 @@ var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
 var INTEGRATION_BRANCH = "master";
 var GIT_HEAD = "HEAD";
 
-var DEPLOY_LATEST_COMMANDS = [ "git push -f heroku " + INTEGRATION_BRANCH + ":master" ];
-var DEPLOY_HEAD_COMMANDS = [ "git push -f heroku " + GIT_HEAD + ":master" ];
-var ROLLBACK_COMMANDS = [ "heroku rollback" ];
-var BUILD_COMMAND = "./jake.sh";
+var DEPLOY_LATEST = "git push -f heroku " + INTEGRATION_BRANCH + ":master";
+var DEPLOY_HEAD = "git push -f heroku " + GIT_HEAD + ":master";
+var ROLLBACK = "heroku rollback";
+var BUILD = "./jake.sh";
 
 var http = require("http");
 var smoketest = require("./src/__smoketest_runner.js");
@@ -23,12 +23,12 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	desc("Deploy latest known-good integration to production");
 	task("latest", ["git"], function() {
-		deploy(DEPLOY_LATEST_COMMANDS, INTEGRATION_BRANCH, complete);
+		deploy(DEPLOY_LATEST, INTEGRATION_BRANCH, complete);
 	}, {async: true});
 
 	desc("Deploy git HEAD to production (use for manually fixing release)")
 	task("head", ["build", "git"], function() {
-		deploy(DEPLOY_HEAD_COMMANDS, GIT_HEAD, complete);
+		deploy(DEPLOY_HEAD, GIT_HEAD, complete);
 	}, {async: true});
 
 	desc("Rollback to previous release");
@@ -48,7 +48,7 @@ var smoketest = require("./src/__smoketest_runner.js");
 			});
 		}
 
-		shWithErrorMessage(ROLLBACK_COMMANDS, success, failure);
+		shWithErrorMessage([ ROLLBACK ], success, failure);
 	}, {async: true});
 
 	desc("Smoke test release");
@@ -69,10 +69,10 @@ var smoketest = require("./src/__smoketest_runner.js");
 
 	// Make sure build is clean
 	task("build", function() {
-		shWithErrorMessage([BUILD_COMMAND], complete, "Cannot deploy until build passes.");
+		shWithErrorMessage([ BUILD ], complete, "Cannot deploy until build passes.");
 	}, {async: true});
 
-	function deploy(deployCommands, commitToTag, complete) {
+	function deploy(deployCommand, commitToTag, complete) {
 		function onSuccess() {
 			runSmokeTests(function(passed) {
 				if (passed) tagCommit();
@@ -92,11 +92,11 @@ var smoketest = require("./src/__smoketest_runner.js");
 			var tagCommand = "git tag -a '" + tagName + "' -m '" + tagMessage + "' " + commitToTag;
 
 			shWithErrorHandler([ tagCommand ], complete, function() {
-				fail("Application deployed and online, but repository tag failed.");
+				fail("Application deployed and online, but failed to tag repository.");
 			});
 		}
 
-		shWithErrorHandler(deployCommands, onSuccess, onFailure);
+		shWithErrorHandler([ deployCommand ], onSuccess, onFailure);
 	}
 
 	function runSmokeTests(callback) {
