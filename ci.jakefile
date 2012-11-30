@@ -3,6 +3,8 @@
 
 var BUILD_COMMAND = "./jake.sh";
 
+var sh = require("./build/sh.js");
+
 (function() {
 	"use strict";
 
@@ -78,7 +80,7 @@ var BUILD_COMMAND = "./jake.sh";
 			fail("Reset not confirmed");
 		}
 
-		sh([
+		run([
 			"git clean -fdx",                           // Remove extraneous files
 			"git fetch origin",                         // Get latest from integration machine
 			"git reset --hard origin/integration"       // Sync with latest position of integration branch
@@ -87,7 +89,7 @@ var BUILD_COMMAND = "./jake.sh";
 
 	desc("Get latest known-good code and merge it into current branch.");
 	task("pull", ["status"], function() {
-		sh([
+		run([
 			"git pull origin integration"
 		], complete);
 	}, {async: true});
@@ -101,7 +103,7 @@ var BUILD_COMMAND = "./jake.sh";
 			);
 			fail("No branch provided");
 		}
-		sh([
+		run([
 			"git push origin " + branch
 		], complete);
 	}, {async: true});
@@ -118,20 +120,20 @@ var BUILD_COMMAND = "./jake.sh";
 		}
 
 		function checkoutAndBuild(successCallback, failureCallback) {
-			shWithErrorHandler([
+			sh.runMany([
 				"git checkout " + branch,
 				"git merge integration --ff-only",   // make sure integration branch has already been merged
 				BUILD_COMMAND
 			], successCallback, failureCallback);
 		}
 		function afterSuccessfulBuild() {
-			sh([
+			run([
 				"git checkout integration",
 				"git merge " + branch + " --no-ff --log"
 			], complete);
 		}
 		function afterFailedBuild() {
-			sh([
+			run([
 				"git checkout integration"
 			], function() {
 				fail("Integration failed. Integration machine reset to known-good state.");
@@ -144,48 +146,16 @@ var BUILD_COMMAND = "./jake.sh";
 
 	// Ensure there aren't any files that need to be checked in or ignored
 	task("status", function() {
-		sh(["git status --porcelain"], function(stdout) {
+		run(["git status --porcelain"], function(stdout) {
 			if (stdout[0]) fail("Working directory contains files to commit or ignore.");
 			complete();
 		});
 	}, {async:true});
 
-	function sh(commands, callback) {
-		shWithErrorHandler(commands, callback, function() {
-			fail("shell command exited with error code");
+	function run(commands, callback, errorMessage) {
+		errorMessage = errorMessage || "shell command exited with error code";
+		sh.runMany(commands, callback, function() {
+			fail(errorMessage);
 		});
-	}
-
-	function shWithErrorHandler(commands, successCallback, failureCallback) {
-		var stdout = [];
-		function serializedSh(command) {
-			if (command) {
-				oneSh(command, function(oneStdout) {
-					stdout.push(oneStdout);
-					serializedSh(commands.shift());
-				}, failureCallback);
-			}
-			else {
-				successCallback(stdout);
-			}
-		}
-		serializedSh(commands.shift());
-	}
-
-	function oneSh(oneCommand, successCallback, failureCallback) {
-		var stdout = "";
-		var process = jake.createExec(oneCommand, {printStdout:true, printStderr:true});
-		process.on("stdout", function(data) {
-			stdout += data;
-		});
-		process.on("cmdEnd", function() {
-			successCallback(stdout);
-		});
-		process.on("error", function() {
-			failureCallback(stdout);
-		});
-
-		console.log("> " + oneCommand);
-		process.run();
 	}
 }());
