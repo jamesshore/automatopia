@@ -5,17 +5,17 @@ This repository contains build and test automation for JavaScript projects. It's
 
 * Automated continuous integration (using Git)
 * Automated deployment (to Heroku)
-* Automated build with:
+* Automated build (using Jake) with:
 	* Linting (using JSHint)
 	* Node.js tests (using NodeUnit)
-	* Cross-browser tests (using Testacular)
+	* Cross-browser tests (using Testacular, Mocha, and expect.js)
 * Example code:
 	* Server-side integration test
 	* Development smoke test
 	* Release smoke test
 	* Client-side DOM test
 
-This code was developed for the "Lessons Learned: Automatopia" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
+This code was developed for the "Lessons Learned 8: Automatopia" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
 
 
 Building and Testing
@@ -24,8 +24,8 @@ Building and Testing
 Before building for the first time:
 
 1. Install [Node.js](http://nodejs.org/download/).
-2. Download and unzip source code into "automatopia" directory.
-3. All commands must run from root of source code tree: `cd automatopia`.
+2. Download and unzip [the source code](https://github.com/jamesshore/automatopia/downloads) into a convenient directory.
+3. All commands must run from the root of the source tree: `cd <directory>`.
 4. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`.
 
 To build (and test):
@@ -38,7 +38,7 @@ To build (and test):
 Continuous Integration
 ----------------------
 
-To set up continuous integration:
+To set up continuous integration for a team of developers:
 
 1. Choose a machine to be the integration machine.
 2. Follow the steps for "Building and Testing" on the integration machine.
@@ -49,8 +49,8 @@ To set up each development workstation:
 
 1. Choose an easy-to-type name for the development workstation, such as `dev1`. Put a label on the machine with this name so you don't forget it--you'll use it when you integrate.
 2. *On the integration machine*, run `git branch <name>` create a branch for the development workstation.
-3. Clone the integration machine's repository to the development workstation. (This depends on your network configuration. Talk to your local Git expert.)
-4. *On the development machine,* run `git checkout <name>` to switch to the development branch.
+3. Clone the integration machine's repository to the development workstation. (The steps here depend on your network configuration. Talk to your local Git expert.)
+4. *On the development workstation,* run `git checkout <name>` to switch to the development branch.
 5. Now you can build and test as described above.
 
 To integrate:
@@ -81,7 +81,7 @@ To deploy:
 
 In case of a bad deployment:
 
-1. On the integration machine, run `./deploy.sh rollback` (Unix/Mac) or `deploy rollback` (Windows) to do a band-aid rollback to the previous Heroku deployment. This rollback won't "stick", so you'll need to deploy new code soon.
+1. *On the integration machine,* run `./deploy.sh rollback` (Unix/Mac) or `deploy rollback` (Windows) to do a band-aid rollback to the previous Heroku deployment. This rollback won't "stick", so you'll need to deploy new code soon.
 2. If you aren't able to deploy new code right away, choose a previous, good commit to deploy. `gitk` and the `deploy-<timestamp>` tags may be helpful here.
 3. Check out the commit: `git checkout <commit_id>`
 4. Run `./deploy.sh head` (Unix/Mac) or `deploy head` (Windows) to deploy the commit to Heroku. As above, the script will tag the git repository with `deploy-<timestamp>` if the deploy succeeds and passes the smoke tests.
