@@ -23,8 +23,8 @@ Building and Testing
 
 Before building for the first time:
 
-1. Install [Node.js](http://nodejs.org/download/).
-2. Download and unzip [the source code](https://github.com/jamesshore/automatopia/downloads) into a convenient directory.
+1. Install [Node.js](http://nodejs.org/download/). (Note: The included version of Jake may not work with Node.js v0.10.x.)
+2. Download and unzip [the source code](https://github.com/jamesshore/automatopia/archive/master.zip) into a convenient directory.
 3. All commands must run from the root of the source tree: `cd <directory>`.
 4. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`.
 
