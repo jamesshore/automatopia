@@ -30,7 +30,7 @@ Before building for the first time:
 
 To build (and test):
 
-1. Run `./jake.sh testacular` (Unix/Mac) or `jake testacular` (Windows) to start the Testacular server.
+1. Run `./jake.sh karma` (Unix/Mac) or `jake karma` (Windows) to start the Karma server.
 2. Start Safari or any other browsers you want to test against and point each one at `http://localhost:8080`.
 3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test.
 

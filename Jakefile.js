@@ -13,7 +13,7 @@
 
 	var lint = require("./build/util/lint_runner.js");
 	var nodeunit = require("./build/util/nodeunit_runner.js");
-	var testacular = require("./build/util/testacular_runner.js");
+	var karma = require("./build/util/karma_runner.js");
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
@@ -21,8 +21,8 @@
 	});
 
 	desc("Start Testacular server -- run this first");
-	task("testacular", function() {
-		testacular.serve(complete, fail);
+	task("karma", function() {
+		karma.serve(complete, fail);
 	}, {async: true});
 
 	desc("Lint everything");
@@ -42,7 +42,7 @@
 
 	desc("Test browser code");
 	task("testClient", function() {
-		testacular.runTests(REQUIRED_BROWSERS, complete, fail);
+		karma.runTests(REQUIRED_BROWSERS, complete, fail);
 	}, {async: true});
 
 	function nodeFilesToTest() {
