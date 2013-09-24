@@ -4,12 +4,12 @@
 	"use strict";
 
 	var REQUIRED_BROWSERS = [
-		"IE 8.0 (Windows)",
-		"IE 9.0 (Windows)",
-		"Firefox 22.0 (Mac)",
-		"Chrome 28.0 (Mac)",
-		"Safari 6.0 (Mac)",
-		"Safari 6.0 (iOS)"
+		"IE 8.0.0 (Windows XP)",
+		"IE 9.0.0 (Windows 7)",
+		"Firefox 23.0.0 (Mac OS X 10.8)",
+		"Chrome 29.0.1547 (Mac OS X 10.8.5)",
+		"Safari 6.0.5 (Mac OS X 10.8.5)",
+		"Mobile Safari 6.0.0 (iOS 6.1)"
 	];
 
 	var lint = require("./build/util/lint_runner.js");
