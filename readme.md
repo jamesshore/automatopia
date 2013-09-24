@@ -22,8 +22,8 @@ To Use
 ------
 To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
 
-Latest changes:
-* 24 Sept 2013: Upgraded to Karma 0.10
+Latest major changes:
+* 24 Sept 2013: Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
 
 
 Building and Testing
