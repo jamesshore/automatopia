@@ -15,7 +15,7 @@ This repository contains build and test automation for JavaScript projects. It's
 	* Release smoke test
 	* Client-side DOM test
 
-This code was developed for the "Lessons Learned 8: Automatopia" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
+This code was developed for the "[Lessons Learned 8: Automatopia](http://www.letscodejavascript.com/v3/episodes/lessons_learned/8)" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
 
 __Change History:__
 
