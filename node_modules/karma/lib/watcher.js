@@ -8,9 +8,9 @@ var DIR_SEP = require('path').sep;
 
 // Get parent folder, that be watched (does not contain any special globbing character)
 var baseDirFromPattern = function(pattern) {
-  return pattern.replace(/\/[^\/]*\*.*$/, '')           // remove parts with *
-                .replace(/\/[^\/]*[\!\+]\(.*$/, '')     // remove parts with !(...) and +(...)
-                .replace(/\/[^\/]*\)\?.*$/, '') || '/'; // remove parts with (...)?
+  return pattern.replace(/[\/\\][^\/\\]*\*.*$/, '')           // remove parts with *
+                .replace(/[\/\\][^\/\\]*[\!\+]\(.*$/, '')     // remove parts with !(...) and +(...)
+                .replace(/[\/\\][^\/\\]*\)\?.*$/, '') || DIR_SEP; // remove parts with (...)?
 };
 
 var watchPatterns = function(patterns, watcher) {
@@ -73,9 +73,10 @@ var getWatchedPatterns = function(patternObjects) {
   });
 };
 
-exports.watch = function(patterns, excludes, fileList) {
+exports.watch = function(patterns, excludes, fileList, usePolling) {
   var watchedPatterns = getWatchedPatterns(patterns);
   var options = {
+    usePolling: usePolling,
     ignorePermissionErrors: true,
     ignoreInitial: true,
     ignored: createIgnore(watchedPatterns, excludes)
@@ -93,9 +94,14 @@ exports.watch = function(patterns, excludes, fileList) {
   // register events
   chokidarWatcher.on('add', bind(fileList.addFile))
                  .on('change', bind(fileList.changeFile))
-                 .on('unlink', bind(fileList.removeFile));
+                 .on('unlink', bind(fileList.removeFile))
+                 // If we don't subscribe; unhandled errors from Chokidar will bring Karma down
+                 // (see GH Issue #959)
+                 .on('error', function(e) {
+                    log.debug(e);
+                  });
 
   return chokidarWatcher;
 };
 
-exports.watch.$inject = ['config.files', 'config.exclude', 'fileList'];
+exports.watch.$inject = ['config.files', 'config.exclude', 'fileList', 'config.usePolling'];
