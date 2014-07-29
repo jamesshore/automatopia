@@ -14,7 +14,7 @@
 	];
 
 	var jshint = require("simplebuild-jshint");
-	var nodeunit = require("./build/util/nodeunit_runner.js");
+	var mocha = require("./build/util/mocha_runner.js");
 	var karma = require("./build/util/karma_runner.js");
 
 	desc("Lint and test");
@@ -34,7 +34,8 @@
 		process.stdout.write("Linting Node.js code: ");
 		jshint.checkFiles({
 			files: [ "Jakefile.js", "src/*.js", "src/server/**/*.js", "build/util/**/ *.js" ],
-			options: nodeLintOptions()
+			options: nodeLintOptions(),
+			globals: nodeLintGlobals()
 		}, complete, fail);
 	}, { async: true });
 
@@ -50,7 +51,7 @@
 	task("test", ["testServer", "testClient"]);
 
 	task("testServer", function() {
-		nodeunit.runTests(nodeFilesToTest(), complete, fail);
+		mocha.runTests(nodeFilesToTest(), complete, fail);
 	}, { async: true} );
 
 	task("testClient", function() {
@@ -95,6 +96,16 @@
 		var options = globalLintOptions();
 		options.browser = true;
 		return options;
+	}
+
+	function nodeLintGlobals() {
+		return {
+			// Mocha globals
+			beforeEach: false,
+			afterEach: false,
+			describe: false,
+			it: false
+		};
 	}
 
 }());

@@ -5,7 +5,7 @@ This repository contains build and test automation for JavaScript projects. It's
 
 * Automated build (using Jake) with:
 	* Linting (using JSHint)
-	* Node.js tests (using NodeUnit)
+	* Node.js tests (using Mocha)
 	* Cross-browser tests (using Karma, Mocha, and expect.js)
 * Automated continuous integration (using Git)
 * Automated deployment (to Heroku)
@@ -23,7 +23,7 @@ To Use
 To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
 
 Latest major changes:
-* 29 Jul 2014: Documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint 
+* 29 Jul 2014: Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * 22 Dec 2013: Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * 24 Sept 2013: Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
 

@@ -2,26 +2,32 @@
 (function () {
 	"use strict";
 
+	var expect = require("expect.js");
 	var server = require("./server.js");
 	var httpUtil = require("../__http_util.js");
 
-	exports.setUp = function(done) {
-		server.start(5000, function() {
-			done();
-		});
-	};
+	describe("Server", function() {
 
-	exports.tearDown = function(done) {
-		server.stop(function() {
-			done();
+		beforeEach(function(done) {
+			server.start(5000, function() {
+				done();
+			});
 		});
-	};
 
-	exports.test_respondsToRequests = function(test) {
-		httpUtil.getPage("http://localhost:5000", function(error, response, responseText) {
-			test.equals(response.statusCode, 200, "status code");
-			test.equals(responseText, "Hello World", "response text");
-			test.done(error);
+		afterEach(function(done) {
+			server.stop(function() {
+				done();
+			});
 		});
-	};
+
+		it("responds to requests", function(done) {
+			httpUtil.getPage("http://localhost:5000", function(error, response, responseText) {
+				expect(response.statusCode).to.equal(200);
+				expect(responseText).to.equal("Hello World");
+				done(error);
+			});
+		});
+
+	});
+
 }());
