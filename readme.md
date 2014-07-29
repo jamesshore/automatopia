@@ -30,16 +30,34 @@ To Use
 To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
 
 
+Download and Setup
+------------------
+
+To download the project:
+
+1. Install [Git](http://git-scm.com/downloads).
+2. Clone the latest code only (to save time): `git clone --depth 1 https://github.com/jamesshore/automatopia.git`
+3. Delete the `.git` directory so you start fresh
+4. Run `git init`, `git add .`, and `git commit -am "Initial commit"` to initialize the git repository.
+5. Follow the instructions under "Building and Testing" to make sure everything works.
+
+(Note: You can also download [a zip file of the source code](https://github.com/jamesshore/automatopia/archive/master.zip), but that won't preserve permissions like Git does.)
+
+To customize the project for your needs:
+
+1. Modify `LICENSE.TXT` to contain your copyright and license. 
+2. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`. Otherwise, comment those lines out.
+3. See `Jakefile.js` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
+
+
 Building and Testing
 --------------------
 
 Before building for the first time:
 
 1. Install [Node.js](http://nodejs.org/download/).
-2. Download and unzip [the source code](https://github.com/jamesshore/automatopia/archive/master.zip) into a convenient directory.
-3. All commands must run from the root of the source tree: `cd <directory>`.
-4. Modify LICENSE.TXT to contain your copyright and license. 
-5. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`. Otherwise, comment those lines out.
+2. Download the project as described above.
+3. All commands must run from the root of the source tree.
 
 To build (and test):
 
@@ -67,8 +85,7 @@ To set up continuous integration for a team of developers:
 
 1. Choose a machine to be the integration machine.
 2. Follow the steps for "Building and Testing" on the integration machine.
-3. Run `git init`, `git add .`, and `git commit -a -m "Initial Commit"` to initialize the git repository.
-4. Run `git checkout -b integration` to create and checkout the integration branch.
+3. Run `git checkout -b integration` to create and checkout the integration branch.
 
 To set up each development workstation:
 
