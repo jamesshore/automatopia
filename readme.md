@@ -17,15 +17,17 @@ This repository contains build and test automation for JavaScript projects. It's
 
 This code was developed for the "Lessons Learned 8: Automatopia" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
 
+### Major Changes
+
+* *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
+* *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
+* *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
+
+
 
 To Use
 ------
 To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
-
-Latest major changes:
-* 29 Jul 2014: Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
-* 22 Dec 2013: Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
-* 24 Sept 2013: Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
 
 
 Building and Testing
