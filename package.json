@@ -16,5 +16,8 @@
     "karma-mocha": "~0.1.1",
     "nodeunit": "~0.8.2",
     "procfile": "~0.1.1"
+  },
+  "devDependencies": {
+    "simplebuild-jshint": "^0.3.0"
   }
 }

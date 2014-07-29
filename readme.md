@@ -23,7 +23,7 @@ To Use
 To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
 
 Latest major changes:
-* 29 Jul 2014: Documented process for installing npm packages
+* 29 Jul 2014: Documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint 
 * 22 Dec 2013: Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * 24 Sept 2013: Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
 
@@ -95,7 +95,7 @@ Before deploying for the first time:
 2. *On the integration machine,* install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
 4. Create a Heroku application: `heroku create <app_name>`.
 5. *On a development machine,* change `PRODUCTION_URL` at the top of `deploy.jakefile` to `http://<app_name>.herokuapp.com`.
-6. Update `package.json` to match your installed versions of Node and npm. (Use `node --version` and `npm --version` to get the version numbers.)
+6. Update the `engines` section of `package.json` to match your installed versions of Node and npm. (Use `node --version` and `npm --version` to get the version numbers.)
 7. Integrate as described above.
 
 To deploy:

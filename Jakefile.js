@@ -13,7 +13,7 @@
 //		"Mobile Safari 6.0.0 (iOS 6.1)"
 	];
 
-	var lint = require("./build/util/lint_runner.js");
+	var jshint = require("simplebuild-jshint");
 	var nodeunit = require("./build/util/nodeunit_runner.js");
 	var karma = require("./build/util/karma_runner.js");
 
@@ -28,24 +28,34 @@
 	}, {async: true});
 
 	desc("Lint everything");
-	task("lint", [], function () {
-		var passed = lint.validateFileList(nodeFilesToLint(), nodeLintOptions(), {});
-		passed = lint.validateFileList(browserFilesToLint(), browserLintOptions(), {}) && passed;
-		if (!passed) fail("Lint failed");
-	});
+	task("lint", ["lintNode", "lintClient"]);
+
+	task("lintNode", function() {
+		process.stdout.write("Linting Node.js code: ");
+		jshint.checkFiles({
+			files: [ "Jakefile.js", "src/*.js", "src/server/**/*.js", "build/util/**/ *.js" ],
+			options: nodeLintOptions()
+		}, complete, fail);
+	}, { async: true });
+
+	task("lintClient", function() {
+		process.stdout.write("Linting browser code: ");
+		jshint.checkFiles({
+			files: [ "src/client/**/*.js" ],
+			options: browserLintOptions()
+		}, complete, fail);
+	}, { async: true });
 
 	desc("Test everything");
 	task("test", ["testServer", "testClient"]);
 
-	desc("Test node.js code");
 	task("testServer", function() {
 		nodeunit.runTests(nodeFilesToTest(), complete, fail);
-	}, {async: true});
+	}, { async: true} );
 
-	desc("Test browser code");
 	task("testClient", function() {
 		karma.runTests(REQUIRED_BROWSERS, complete, fail);
-	}, {async: true});
+	}, { async: true} );
 
 	function nodeFilesToTest() {
 		var testFiles = new jake.FileList();
@@ -54,21 +64,6 @@
 		testFiles.exclude("node_modules");
 		var tests = testFiles.toArray();
 		return tests;
-	}
-
-	function nodeFilesToLint() {
-		var files = new jake.FileList();
-		files.include("src/*.js");
-		files.include("src/server/**/*.js");
-		files.include("build/util/**/*.js");
-		files.include("Jakefile.js");
-		return files.toArray();
-	}
-
-	function browserFilesToLint() {
-		var files = new jake.FileList();
-		files.include("src/client/**/*.js");
-		return files.toArray();
 	}
 
 	function globalLintOptions() {
