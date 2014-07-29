@@ -9,7 +9,6 @@
   "dependencies": {
     "jake": "~0.7.6",
     "jshint": "~2.3.0",
-    "karma-expect": "~1.0.0",
     "mocha": "~1.16.1",
     "karma-mocha": "~0.1.1",
     "nodeunit": "~0.8.2",
@@ -18,6 +17,7 @@
   "devDependencies": {
     "simplebuild-jshint": "^0.3.0",
     "karma": "^0.12.19",
-    "expect.js": "^0.3.1"
+    "expect.js": "^0.3.1",
+    "karma-expect": "^1.1.0"
   }
 }
