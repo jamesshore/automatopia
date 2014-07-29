@@ -1,14 +1,14 @@
 Automatopia
-=============
+===========
 
 This repository contains build and test automation for JavaScript projects. It's intended as a starting point for your own JavaScript projects. It includes:
 
-* Automated continuous integration (using Git)
-* Automated deployment (to Heroku)
 * Automated build (using Jake) with:
 	* Linting (using JSHint)
 	* Node.js tests (using NodeUnit)
 	* Cross-browser tests (using Karma, Mocha, and expect.js)
+* Automated continuous integration (using Git)
+* Automated deployment (to Heroku)
 * Example code (in the `src` directory):
 	* Server-side integration test
 	* Development smoke test
@@ -23,6 +23,7 @@ To Use
 To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
 
 Latest major changes:
+* 29 Jul 2014: Documented process for installing npm packages
 * 22 Dec 2013: Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * 24 Sept 2013: Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
 
@@ -40,8 +41,20 @@ Before building for the first time:
 To build (and test):
 
 1. Run `./jake.sh karma` (Unix/Mac) or `jake karma` (Windows) to start the Karma server.
-2. Start the browsers you want to test and point each one at `http://localhost:8080`.
+2. Start the browsers you want to test and point each one at `http://localhost:9876`.
 3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test.
+
+
+Installing and Updating npm Packages
+------------------------------------
+
+This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/03/the_npm_debacle)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
+ 
+1. Install the package without building it: `npm install <package> --ignore-scripts`
+2. Check in the new module: `git add . && git commit -a`
+3. Build the package: `npm rebuild`
+4. Check for files created by the npm build: `git status`
+5. Add any new files from step 4 to the .gitignore file.  
 
 
 Continuous Integration
