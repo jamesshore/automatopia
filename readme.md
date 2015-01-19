@@ -22,7 +22,7 @@ __Change History:__
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
-
+* *30 Nov 2012:* Initial release
 
 
 To Use
