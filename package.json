@@ -7,9 +7,9 @@
     "npm": "1.4.3"
   },
   "dependencies": {
-    "procfile": "~0.1.1"
   },
   "devDependencies": {
+    "procfile": "^0.1.1",
     "simplebuild-jshint": "^0.3.0",
     "karma": "^0.12.19",
     "expect.js": "^0.3.1",
