@@ -17,6 +17,8 @@ This repository contains build and test automation for JavaScript projects. It's
 
 This code was developed for the "[Lessons Learned 8: Automatopia](http://www.letscodejavascript.com/v3/episodes/lessons_learned/8)" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
 
+You may wonder why this repository includes dependencies (in `node_modules`) and IDE settings (in `.idea`). The reasoning is explained in my essay, "[The Reliable Build](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)." If you prefer not to include these sorts of things in your repo, you can remove them.
+
 __Change History:__
 
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
@@ -48,7 +50,6 @@ To customize the project for your needs:
 1. Modify `LICENSE.TXT` to contain your copyright and license. 
 2. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`. Otherwise, comment those lines out.
 3. See `Jakefile.js` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
-
 
 Building and Testing
 --------------------
