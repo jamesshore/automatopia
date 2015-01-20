@@ -22,17 +22,17 @@ var smoketest = require("./src/__smoketest_runner.js");
 		console.log("This Jakefile deploys the application. Use -T option to see targets.\n");
 	});
 
-	desc("Deploy latest known-good integration to production");
+	desc("Deploy integration branch to Heroku");
 	task("latest", ["git"], function() {
 		deploy(DEPLOY_LATEST, INTEGRATION_BRANCH, complete);
 	}, {async: true});
 
-	desc("Deploy git HEAD to production (use for manually fixing release)")
+	desc("Deploy git HEAD to Heroku (for fixing bad release)")
 	task("head", ["build", "git"], function() {
 		deploy(DEPLOY_HEAD, GIT_HEAD, complete);
 	}, {async: true});
 
-	desc("Rollback to previous release");
+	desc("Tell Heroku to rollback to previous release");
 	task("rollback", function() {
 		function onSuccess() {
 			console.log("Rollback complete.");
