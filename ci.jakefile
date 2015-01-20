@@ -11,13 +11,17 @@ var sh = require("./build/util/sh.js");
 	task("default", function() {
 		console.log(
 			"Integration quick reference:\n" +
-			"   1. Confirm good build\n" +
-			"   2. 'pull' (and confirm good build)\n" +
-			"   3. 'push[<workstation_name>]'\n" +
-			"   4. On integration machine: 'promote[<workstation_name>]'\n" +
+			"   On development machine:\n" +
+			"     1. Confirm good build\n" +
+			"     2. 'pull', then confirm good build\n" +
+			"     3. 'push[<workstation_name>]'\n" +
+			"   On integration machine:\n" +
+			"     4. 'promote[<workstation_name>]'\n" +
 			"\n" +
 			"Start over if someone else integrates after you 'pull' and before you finish.\n" +
-			"For full usage instructions, run 'usage' target.\n"
+			"\n" +
+			"For full usage instructions, run `ci usage`.\n" +
+			"For setup instructions, run `ci init`."
 		);
 	});
 
@@ -28,23 +32,26 @@ var sh = require("./build/util/sh.js");
 			"For instructions on setting up your repository, run the 'init' target.\n" +
 			"\n" +
 			"To reset your repository to known-good state:\n" +
-			"   1. Run 'reset' target with 'y' parameter. (WARNING: deletes ALL changes\n" +
-			"       on the machine since the last successful integration, INCLUDING commits.)\n" +
+			"   1. Run the 'reset' target with 'y' parameter, like this: `ci reset[y]`.\n" +
+			"      (WARNING: deletes ALL changes on your machine since the last successful\n" +
+			"      integration, INCLUDING commits.)\n" +
 			"\n" +
 			"To integrate your changes:\n" +
-			"   1. Confirm the code builds clean.\n" +
-			"   2. Commit your changes.\n" +
-			"   3. Run `ci pull` to merge the latest known-good code into your local copy.\n" +
-			"      ==> If there's a merge conflict, fix it and commit.\n" +
-			"   4. Confirm the merged code builds clean.\n" +
-			"      ==> If it doesn't, fix the problem and start over.\n" +
-			"   5. Confirm that the integration machine is available and no one has\n" +
-			"      integrated since you pulled.\n" +
-			"      ==> If they have, start over when they're done integrating.\n" +
-			"   6. Run `ci push` to copy your code to the integration machine.\n" +
-			"   7. Run `ci promote` on the integration machine to build the code and merge it\n" +
-			"      into the integration branch.\n" +
-			"      ==> If the build fails, fix the problem on your machine and start over.\n"
+			"  On your development machine:\n" +
+			"    1. Confirm the code builds clean.\n" +
+			"    2. Commit your changes.\n" +
+			"    3. Run `ci pull` to merge the latest known-good code into your local copy.\n" +
+			"       ==> If there's a merge conflict, fix it and commit.\n" +
+			"    4. Confirm the merged code builds clean.\n" +
+			"       ==> If it doesn't, fix the problem and start over.\n" +
+			"    5. Confirm that the integration machine is available and no one has\n" +
+			"       integrated since you pulled.\n" +
+			"       ==> If they have, start over when they're done integrating.\n" +
+			"    6. Run `ci push` to copy your code to the integration machine.\n" +
+			"  On the integration machine:\n" +
+			"    7. Run `ci promote` to build the code and merge it into the integration\n" +
+			"       branch.\n" +
+			"       ==> If the build fails, fix the problem on your machine and start over.\n"
 		);
 	});
 
@@ -65,16 +72,17 @@ var sh = require("./build/util/sh.js");
 			"   running 'git clone <integration_repository_url>' on each dev machine.\n" +
 			"8. Switch each development workstation to use its own branch by running\n" +
 			"   'git checkout <workstation_name>' on each one.\n" +
-			"9. That's it!\n"
+			"9. Start developing. Integrate every few hours. When you're ready to integrate,\n" +
+			"   run `ci usage` for instructions, or `ci` for a quick reference.\n"
 		);
 	});
 
-	desc("Reset repository to last known-good integration. DESTRUCTIVE.");
+	desc("Reset repository to integration branch. DESTRUCTIVE.");
 	task("reset", function(confirm) {
 		if (confirm !== "y") {
 			console.log(
-				"WARNING: This command will erase all your un-integrated work.\n" +
-				"To confirm, run using 'reset[y]'\n"
+				"WARNING: This command will erase all your un-integrated work, INCLUDING\n" +
+				"any un-integrated commits. To confirm, run using 'reset[y].'\n"
 			);
 			fail("Reset not confirmed");
 		}
@@ -86,7 +94,7 @@ var sh = require("./build/util/sh.js");
 		], complete);
 	}, {async: true});
 
-	desc("Get latest known-good code and merge it into current branch.");
+	desc("Merge integration branch into current branch.");
 	task("pull", ["status"], function() {
 		run([
 			"git pull origin integration"
@@ -107,7 +115,7 @@ var sh = require("./build/util/sh.js");
 		], complete);
 	}, {async: true});
 
-	desc("Merge code into integration branch. INTEGRATION BOX ONLY.");
+	desc("Merge to integration branch. INTEGRATION BOX ONLY.");
 	task("promote", ["status"], function(branch) {
 		if (!branch) {
 			console.log(

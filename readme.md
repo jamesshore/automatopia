@@ -66,6 +66,8 @@ In the repository root, you'll find the following scripts. For each script, ther
 
 For all these scripts, use `-T` to see the available build targets and their documentation. If no target is provided, the script will run `default`. Use `--help` for additional options.
 
+The `watch` script will pass any arguments it receives to `jake`.
+
 
 Download and Setup
 ------------------
