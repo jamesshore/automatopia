@@ -14,8 +14,8 @@
 	];
 
 	var jshint = require("simplebuild-jshint");
-	var mocha = require("./build/util/mocha_runner.js");
-	var karma = require("./build/util/karma_runner.js");
+	var mocha = require("../util/mocha_runner.js");
+	var karma = require("../util/karma_runner.js");
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {

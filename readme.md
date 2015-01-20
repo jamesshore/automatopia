@@ -21,7 +21,7 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
-* *19 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation
+* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
@@ -66,8 +66,6 @@ In the repository root, you'll find the following scripts. For each script, ther
 
 For all these scripts, use `-T` to see the available build targets and their documentation. If no target is provided, the script will run `default`. Use `--help` for additional options.
 
-The `jake` build script is in `Jakefile.js`. The remaining scripts are in `build/scripts`.
-
 
 Download and Setup
 ------------------
@@ -86,7 +84,7 @@ To customize the project for your needs:
 
 1. Modify `LICENSE.TXT` to contain your copyright and license. 
 2. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`. Otherwise, comment those lines out.
-3. See `Jakefile.js` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
+3. See `build/scripts` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
 
 
 Installing and Updating npm Packages
