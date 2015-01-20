@@ -1,21 +1,16 @@
 // Copyright (c) 2012-2014 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
 /*global desc, task, jake, fail, complete, directory, require, console, process */
-(function () {
-	"use strict";
 
-	// Uncomment and modify the following list to cause the build to fail unless these browsers are tested.
-	var REQUIRED_BROWSERS = [
-//		"IE 8.0.0 (Windows XP)",
-//		"IE 9.0.0 (Windows 7)",
-//		"Firefox 23.0.0 (Mac OS X 10.8)",
-//		"Chrome 29.0.1547 (Mac OS X 10.8.5)",
-//		"Safari 6.0.5 (Mac OS X 10.8.5)",
-//		"Mobile Safari 6.0.0 (iOS 6.1)"
-	];
+// Main build file. Contains all tasks needed for normal development.
+
+(function() {
+	"use strict";
 
 	var jshint = require("simplebuild-jshint");
 	var mocha = require("../util/mocha_runner.js");
 	var karma = require("../util/karma_runner.js");
+
+	var TESTED_BROWSERS = require("../config/tested_browsers.js");
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
@@ -55,7 +50,7 @@
 	}, { async: true} );
 
 	task("testClient", function() {
-		karma.runTests(REQUIRED_BROWSERS, complete, fail);
+		karma.runTests(TESTED_BROWSERS, complete, fail);
 	}, { async: true} );
 
 	function nodeFilesToTest() {

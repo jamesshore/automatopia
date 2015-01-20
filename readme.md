@@ -83,7 +83,7 @@ To download the project:
 To customize the project for your needs:
 
 1. Modify `LICENSE.TXT` to contain your copyright and license. 
-2. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`. Otherwise, comment those lines out.
+2. To cause the build to fail unless certain browsers are tested, edit `build/config/tested_browsers.js`. Otherwise, comment those lines out.
 3. See `build/scripts` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
 
 
