@@ -62,11 +62,11 @@ In the repository root, you'll find the following scripts. For each script, ther
 * `ci`: Continuous integration automation.
 * `deploy`: Automated deployment to Heroku.
 * `jake`: Build and test automation.
-* `watch`: Uses [nodemon](https://github.com/remy/nodemon) to automatically run `jake` when any files change.
+* `watch`: Automatically runs `jake` when any files change. Any arguments are passed through.
 
 For all these scripts, use `-T` to see the available build targets and their documentation. If no target is provided, the script will run `default`. Use `--help` for additional options.
 
-The `watch` script will pass any arguments it receives to `jake`.
+The `jake` build script is in `Jakefile.js`. The remaining scripts are in `build/scripts`.
 
 
 Download and Setup
