@@ -10,7 +10,8 @@ nodemon({
 	script: buildCommand.get(),
 	execMap: {
 		sh: "/bin/sh",
-		bat: "cmd.exe"
+		bat: "cmd.exe /c",
+		cmd: "cmd.exe /c"
 	},
 	quiet: false
 });
