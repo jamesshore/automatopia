@@ -64,6 +64,7 @@ In the repository root, you'll find the following scripts. For each script, ther
 * `jake`: Build and test automation.
 * `watch`: Uses [nodemon](https://github.com/remy/nodemon) to automatically run `jake` when any files change.
 
+For all these scripts, use `-T` to see the available build targets and their documentation. If no target is provided, the script will run `default`. Use `--help` for additional options.
 
 
 Download and Setup
