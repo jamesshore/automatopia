@@ -1,1 +1,1 @@
-./jake.sh -f build/scripts/ci.jakefile $*
+./jake.sh -f build/scripts/ci.jakefile.js $*

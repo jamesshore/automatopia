@@ -1,1 +1,1 @@
-call jake -f deploy.jakefile %*
+@call jake -f build\scripts\deploy.jakefile.js %*

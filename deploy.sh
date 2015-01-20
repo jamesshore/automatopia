@@ -1,1 +1,1 @@
-./jake.sh -f deploy.jakefile $*
+./jake.sh -f build/scripts/deploy.jakefile.js $*

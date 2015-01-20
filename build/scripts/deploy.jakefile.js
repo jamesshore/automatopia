@@ -11,9 +11,9 @@ var DEPLOY_HEAD = "git push -f heroku " + GIT_HEAD + ":master";
 var ROLLBACK = "heroku rollback";
 
 var http = require("http");
-var sh = require("./build/util/sh.js");
-var build_command = require("./build/util/build_command.js");
-var smoketest = require("./src/__smoketest_runner.js");
+var sh = require("./../util/sh.js");
+var build_command = require("./../util/build_command.js");
+var smoketest = require("./../../src/__smoketest_runner.js");
 
 (function() {
 	"use strict";
