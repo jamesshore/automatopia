@@ -21,6 +21,7 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
+* *19 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
@@ -29,7 +30,40 @@ __Change History:__
 
 To Use
 ------
-To use this repository as a starting point for a personal project, follow the steps under "Building and Testing," below. For a team of developers using the continuous integration script, follow the steps under "Continuous Integration." For a team of developers using the Heroku deployment script, follow the steps under "Deploying to Heroku."
+
+Start out by downloading the code as described in "Download and Setup," below. Then:
+
+* If you're a solo developer using this repository as a starting point for a personal project, follow the steps under "Building and Testing."
+
+* If you're part of a team and planning to use the continuous integration script, follow the steps under "Continuous Integration." (Otherwise, follow the steps under "Building and Testing" and supply your own CI tooling.)
+
+* If you're part of a team and planning to use the Heroku deployment script, follow the steps under "Deploying to Heroku."
+
+Once you have it working, delete anything you don't need and modify anything you like. Make it your own.
+
+
+Finding Your Way Around
+-----------------------
+
+This repository consists of the following directories:
+
+* `.idea`: WebStorm IDE settings. (Optional.)
+* `build`: Build, CI, and deployment automation.
+* `build/config`: Build configuration.
+* `build/scripts`: Build scripts. Don't run them directly; they're used by the scripts in the root directory.
+* `build/util`: Modules used by the build scripts.
+* `node_modules`: npm dependencies.
+* `src`: Example code.
+* `src/client`: Front-end code.
+* `src/server`: Node.js server code.
+
+In the repository root, you'll find the following scripts. For each script, there's a `.sh` version for Unix and Mac and a `.bat` version for Windows:
+
+* `ci`: Continuous integration automation.
+* `deploy`: Automated deployment to Heroku.
+* `jake`: Build and test automation.
+* `watch`: Uses [nodemon](https://github.com/remy/nodemon) to automatically run `jake` when any files change.
+
 
 
 Download and Setup
@@ -51,6 +85,19 @@ To customize the project for your needs:
 2. To cause the build to fail unless certain browsers are tested, edit `REQUIRED_BROWSERS` at the top of `Jakefile.js`. Otherwise, comment those lines out.
 3. See `Jakefile.js` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
 
+
+Installing and Updating npm Packages
+------------------------------------
+
+This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
+
+1. Install the package without building it: `npm install <package> --ignore-scripts`
+2. Check in the new module: `git add . && git commit -a`
+3. Build the package: `npm rebuild`
+4. Check for files created by the npm build: `git status`
+5. Add any new files from step 4 to the .gitignore file.
+
+
 Building and Testing
 --------------------
 
@@ -64,19 +111,7 @@ To build (and test):
 
 1. Run `./jake.sh karma` (Unix/Mac) or `jake karma` (Windows) to start the Karma server.
 2. Start the browsers you want to test and point each one at `http://localhost:9876`.
-3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test.
-
-
-Installing and Updating npm Packages
-------------------------------------
-
-This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/03/the_npm_debacle)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
- 
-1. Install the package without building it: `npm install <package> --ignore-scripts`
-2. Check in the new module: `git add . && git commit -a`
-3. Build the package: `npm rebuild`
-4. Check for files created by the npm build: `git status`
-5. Add any new files from step 4 to the .gitignore file.  
+3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test. Alternatively, use `./watch.sh` (Unix/Mac) or `watch` (Windows) to automatically run `jake` whenever files change.
 
 
 Continuous Integration
