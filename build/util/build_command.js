@@ -3,7 +3,7 @@
 	"use strict";
 
 	var UNIX_BUILD_COMMAND = "./jake.sh";
-	var WINDOWS_BUILD_COMMAND = "jake";
+	var WINDOWS_BUILD_COMMAND = "jake.bat";
 
 	var os = require("os");
 
