@@ -1,4 +1,7 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+
+// A cross-platform mechanism for determining how to run the build
+
 (function() {
 	"use strict";
 

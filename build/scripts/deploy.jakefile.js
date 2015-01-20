@@ -1,22 +1,24 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
 /*global desc, task, jake, fail, complete */
 
-var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
-
-var INTEGRATION_BRANCH = "integration";
-var GIT_HEAD = "HEAD";
-
-var DEPLOY_LATEST = "git push -f heroku " + INTEGRATION_BRANCH + ":master";
-var DEPLOY_HEAD = "git push -f heroku " + GIT_HEAD + ":master";
-var ROLLBACK = "heroku rollback";
-
-var http = require("http");
-var sh = require("./../util/sh.js");
-var build_command = require("./../util/build_command.js");
-var smoketest = require("./../../src/__smoketest_runner.js");
+// Release build file. Automates our deployment process.
 
 (function() {
 	"use strict";
+
+	var PRODUCTION_URL = "http://tdjs-ll8.herokuapp.com";
+
+	var INTEGRATION_BRANCH = "integration";
+	var GIT_HEAD = "HEAD";
+
+	var DEPLOY_LATEST = "git push -f heroku " + INTEGRATION_BRANCH + ":master";
+	var DEPLOY_HEAD = "git push -f heroku " + GIT_HEAD + ":master";
+	var ROLLBACK = "heroku rollback";
+
+	var http = require("http");
+	var sh = require("./../util/sh.js");
+	var build_command = require("./../util/build_command.js");
+	var smoketest = require("./../../src/__smoketest_runner.js");
 
 	task("default", function() {
 		console.log("This Jakefile deploys the application. Use -T option to see targets.\n");
@@ -27,7 +29,7 @@ var smoketest = require("./../../src/__smoketest_runner.js");
 		deploy(DEPLOY_LATEST, INTEGRATION_BRANCH, complete);
 	}, {async: true});
 
-	desc("Deploy git HEAD to Heroku (for fixing bad release)")
+	desc("Deploy git HEAD to Heroku (for fixing bad release)");
 	task("head", ["build", "git"], function() {
 		deploy(DEPLOY_HEAD, GIT_HEAD, complete);
 	}, {async: true});

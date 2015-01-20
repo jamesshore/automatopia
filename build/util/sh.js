@@ -1,4 +1,7 @@
-// Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+// Copyright (c) 2012-2015 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+
+// Helper functions for running processes.
+
 (function() {
 	"use strict";
 

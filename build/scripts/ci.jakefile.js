@@ -1,11 +1,14 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
 /*global desc, task, jake, fail, complete */
 
-var build_command = require("./../util/build_command.js");
-var sh = require("./../util/sh.js");
+// Integration build file. Automates the continuous integration process.
 
 (function() {
 	"use strict";
+
+	var build_command = require("./../util/build_command.js");
+	var sh = require("./../util/sh.js");
+
 
 	desc("Quick reference");
 	task("default", function() {

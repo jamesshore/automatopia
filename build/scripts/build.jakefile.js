@@ -28,7 +28,7 @@
 	task("lintNode", function() {
 		process.stdout.write("Linting Node.js code: ");
 		jshint.checkFiles({
-			files: [ "Jakefile.js", "src/*.js", "src/server/**/*.js", "build/util/**/ *.js" ],
+			files: [ "src/*.js", "src/server/**/*.js", "build/**/*.js" ],
 			options: nodeLintOptions(),
 			globals: nodeLintGlobals()
 		}, complete, fail);

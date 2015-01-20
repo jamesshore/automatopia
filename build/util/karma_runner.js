@@ -1,4 +1,7 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+
+// Helper functions for running Karma
+
 (function() {
 	"use strict";
 
