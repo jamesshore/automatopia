@@ -7,11 +7,13 @@ var buildCommand = require("../util/build_command.js");
 console.log("*** Using nodemon to run " + buildCommand.get() + ". Type 'rs<enter>' to force restart.");
 nodemon({
 	ext: "sh bat json js html css",
-	script: buildCommand.get(),
+	exec: buildCommand.get() + " " + process.argv.slice(2).join(" "),
 	execMap: {
 		sh: "/bin/sh",
 		bat: "cmd.exe /c",
 		cmd: "cmd.exe /c"
 	},
 	quiet: false
+}).on("restart", function(files) {
+	console.log("*** Restarting due to", files);
 });

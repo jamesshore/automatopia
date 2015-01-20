@@ -1,3 +1,3 @@
 #!/bin/sh
 
-node build/scripts/watch.js
+node build/scripts/watch.js $*
