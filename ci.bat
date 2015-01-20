@@ -1,1 +1,1 @@
-call jake -f ci.jakefile %*
+call jake -f build\scripts\ci.jakefile %*
