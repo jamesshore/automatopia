@@ -136,12 +136,7 @@ To set up each development workstation:
 
 To integrate:
 
-1. On the development workstation, get to a clean build and commit your code.
-2. Run `./ci.sh pull` (Unix/Mac) or `ci pull` (Windows) to integrate the latest changes from the integration machine.
-3. Run the build to make sure the integration didn't break anything.
-4. Run `./ci.sh push[<name>]` (Unix/Mac) or `ci push[<name>]` (Windows) to push your changes to your workstation's branch on the integration machine.
-5. *On the integration machine,* run `./ci.sh promote[<name>]` (Unix/Mac) or `ci promote[<name>]` (Windows) to double-check your build and merge it into the known-good integration branch.
-6. Start over on your development machine if anything breaks or if someone else integrates before you're done.
+1. Run `./ci.sh usage` (Unix/Mac) or `ci usage` (Windows) for instructions.
 
 
 Deploying to Heroku
@@ -153,7 +148,7 @@ Before deploying for the first time:
 3. Sign up for a [Heroku account](https://api.heroku.com/signup).
 2. *On the integration machine,* install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
 4. Create a Heroku application: `heroku create <app_name>`.
-5. *On a development machine,* change `PRODUCTION_URL` at the top of `deploy.jakefile` to `http://<app_name>.herokuapp.com`.
+5. *On a development machine,* change `PRODUCTION_URL` at the top of `build/scripts/deploy.jakefile` to `http://<app_name>.herokuapp.com`.
 6. Update the `engines` section of `package.json` to match your installed versions of Node and npm. (Use `node --version` and `npm --version` to get the version numbers.)
 7. Integrate as described above.
 
