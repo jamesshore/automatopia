@@ -6,6 +6,6 @@
 	var port = process.argv[2];
 
 	server.start(port, function() {
-		console.log("Server started");
+		console.log("Server started on port " + port);
 	});
 }());

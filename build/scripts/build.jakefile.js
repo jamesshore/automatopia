@@ -27,6 +27,12 @@
 		console.log("\n\nBUILD OK  (" + elapsedSeconds.toFixed(2) + "s)");
 	});
 
+	desc("Start server (for manual testing)");
+	task("run", function() {
+		console.log("Starting server. Press Ctrl-C to exit.");
+		jake.exec("node src/run.js 5000", { interactive: true }, complete);
+	}, { async: true });
+
 
 	//*** LINT
 

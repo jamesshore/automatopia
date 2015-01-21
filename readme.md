@@ -21,7 +21,7 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
-* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory
+* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory; added `run` target to build;
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
@@ -96,7 +96,7 @@ Installing and Updating npm Packages
 
 This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
 
-1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or maybe `--save` instead of `--save-dev`)
+1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or `--save` instead of `--save-dev`)
 2. Check in the new module: `git add . && git commit -a`
 3. Build the package: `npm rebuild`
 4. Check for files created by the npm build: `git status`
