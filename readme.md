@@ -21,7 +21,7 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
-* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory; added `run` target to build;
+* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory; added `run` target to build; updated npm dependencies to latest versions
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
@@ -100,12 +100,22 @@ This repository assumes you check your npm modules into git. (Why? [See here.](h
 2. Check in the new module: `git add . && git commit -a`
 3. Build the package: `npm rebuild`
 4. Check for files created by the npm build: `git status`
-5. Add any new files from step 4 to the .gitignore file.
+5. Add any new files from the previous step to the `.gitignore` file and check it in.
+
+To update all npm dependencies at once:
+
+1. Delete the `node_modules` directory.
+2. Modify `.gitignore` and remove all references to npm module binaries.
+3. Install dependencies without building them: `npm install --ignore-scripts`
+4. Check everything in: `git add . && git commit -am "Updated npm dependencies"`
+5. Rebuild everything: `npm rebuild`
+6. Check for files created by the npm build: `git status`
+7. Add any new files from the previous step to the `.gitignore` file and check it in.
 
 If you would rather not check your npm modules into git, you can remove them like this:
 
 1. Delete the node_modules directory.
-2. Add `node_modules/` to the `.gitignore` file.
+2. Modify `.gitignore` and replace the references to npm module binaries with `node_modules/`.
 3. Modify `build/scripts/run_jake.sh` and `build/scripts/run_jake.bat` to say `npm install` instead of `npm rebuild`.
 4. Check everything in: `git add . && git commit -am "Removed node_modules"`.
 
