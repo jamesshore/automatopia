@@ -6,6 +6,8 @@
 (function() {
 	"use strict";
 
+	var startTime = Date.now();
+
 	var jshint = require("simplebuild-jshint");
 	var mocha = require("../util/mocha_runner.js");
 	var karma = require("../util/karma_runner.js");
@@ -18,7 +20,8 @@
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
-		console.log("\n\nOK");
+		var elapsedSeconds = (Date.now() - startTime) / 1000;
+		console.log("\n\nBUILD OK  (" + elapsedSeconds.toFixed(2) + "s)");
 	});
 
 
