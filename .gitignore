@@ -5,6 +5,7 @@
 # npm module binaries (built by 'npm rebuild' and similar)
 node_modules/karma/node_modules/chokidar/node_modules/fsevents/build/
 node_modules/karma/node_modules/socket.io/node_modules/socket.io-client/node_modules/ws/build/
+node_modules/karma/node_modules/socket.io/node_modules/socket.io-client/node_modules/ws/builderror.log
 
 # The 'fsevents' module doesn't build on vanilla Windows because it requires Python. It's optional, so we ignore it:
 node_modules/karma/node_modules/chokidar/node_modules/fsevents/
