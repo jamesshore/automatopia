@@ -6,9 +6,11 @@
 	"use strict";
 
 	var Mocha = require("mocha");
+	var jake = require("jake");
 
-	exports.runTests = function runTests(files, success, failure) {
-		var mocha = new Mocha({ui: "bdd"});
+	exports.runTests = function runTests(options, success, failure) {
+		var mocha = new Mocha(options.options);
+		var files = deglob(options.files);
 		files.forEach(mocha.addFile.bind(mocha));
 
 		mocha.run(function(failures) {
@@ -16,5 +18,9 @@
 			else return success();
 		});
 	};
+
+	function deglob(globs) {
+		return new jake.FileList(globs).toArray();
+	}
 
 }());

@@ -62,8 +62,14 @@
 	task("test", ["testServer", "testClient"]);
 
 	task("testServer", function() {
-		console.log("Testing Node.js code: ");
-		mocha.runTests(nodeFilesToTest(), complete, fail);
+		process.stdout.write("Testing Node.js code: ");
+		mocha.runTests({
+			files: [ "src/_*_test.js", "src/server/**/_*_test.js" ],
+			options: {
+				ui: "bdd",
+				reporter: "dot"
+			}
+		}, complete, fail);
 	}, { async: true });
 
 	task("testClient", function() {
@@ -93,15 +99,6 @@
 
 
 	//*** Helpers
-
-	function nodeFilesToTest() {
-		var testFiles = new jake.FileList();
-		testFiles.include("src/_*_test.js");
-		testFiles.include("src/server/**/_*_test.js");
-		testFiles.exclude("node_modules");
-		var tests = testFiles.toArray();
-		return tests;
-	}
 
 	function globalLintOptions() {
 		return {

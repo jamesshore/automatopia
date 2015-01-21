@@ -62,7 +62,7 @@ In the repository root, you'll find the following scripts. For each script, ther
 * `ci`: Continuous integration automation.
 * `deploy`: Automated deployment to Heroku.
 * `jake`: Build and test automation.
-* `watch`: Automatically runs `jake` when any files change. Any arguments are passed through.
+* `watch`: Automatically runs `jake` when any files change. Any arguments are passed through to jake.
 
 For all these scripts, use `-T` to see the available build targets and their documentation. If no target is provided, the script will run `default`. Use `--help` for additional options.
 
