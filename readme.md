@@ -21,7 +21,7 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
-* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory; added `run` target to build; updated npm dependencies to latest versions
+* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory; added `run` target to build; updated npm dependencies to latest versions; CI script prompts for integration messages
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)

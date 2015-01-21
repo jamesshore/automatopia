@@ -151,7 +151,7 @@
 		function afterSuccessfulBuild() {
 			run([
 				"git checkout integration",
-				"git merge " + branch + " --no-ff --log"
+				"git merge " + branch + " --no-ff --log=500 -m INTEGRATE: --edit"
 			], function() {
 				console.log("\nINTEGRATION OK. " + branch + " has been merged into integration branch.");
 				complete();
