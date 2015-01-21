@@ -79,6 +79,8 @@
 
 	desc("Check Node version");
 	task("version", function() {
+		console.log("Checking Node.js version: .");
+
 		var deployedVersion = "v" + require("./../../package.json").engines.node;
 		version.check("Node", !process.env.loose, deployedVersion, process.version, fail);
 	});
