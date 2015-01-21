@@ -16,6 +16,8 @@
 
 	var KARMA_CONFIG = "./build/config/karma.conf.js";
 
+	var strict = !process.env.loose;
+
 
 	//*** GENERAL
 
@@ -54,7 +56,7 @@
 	desc("Start Karma server -- run this first");
 	task("karma", function() {
 		karma.serve(KARMA_CONFIG, complete, fail);
-	}, {async: true});
+	}, { async: true });
 
 	desc("Run tests");
 	task("test", ["testServer", "testClient"]);
@@ -62,16 +64,16 @@
 	task("testServer", function() {
 		console.log("Testing Node.js code: ");
 		mocha.runTests(nodeFilesToTest(), complete, fail);
-	}, { async: true} );
+	}, { async: true });
 
 	task("testClient", function() {
 		console.log("Testing browser code: ");
 		karma.runTests({
 			configFile: KARMA_CONFIG,
 			browsers: browsers,
-			strict: !process.env.loose
+			strict: strict
 		}, complete, fail);
-	}, { async: true} );
+	}, { async: true });
 
 
 	//*** VERSIONS
@@ -80,9 +82,13 @@
 	task("version", function() {
 		console.log("Checking Node.js version: .");
 
-		var deployedVersion = require("./../../package.json").engines.node;
-		version.check("Node", !process.env.loose, deployedVersion, process.version, fail);
-	});
+		version.check({
+			name: "Node",
+			expected: require("../../package.json").engines.node,
+			actual: process.version,
+			strict: strict
+		}, complete, fail);
+	}, { async: true });
 
 
 

@@ -4,19 +4,20 @@
 
 	var semver = require("semver");
 
-	exports.check = function(name, strict, expected, actual, fail) {
-		if (strict) {
-			if (semver.neq(expected, actual)) return failWithQualifier("exactly");
+	exports.check = function(options, success, fail) {
+		if (options.strict) {
+			if (semver.neq(options.actual, options.expected)) return failWithQualifier("exactly");
 		}
 		else {
-			if (semver.lt(actual, expected)) return failWithQualifier("at least");
-			if (semver.neq(expected, actual)) console.log("Warning: Newer " + name + " version than expected. Expected " +
-				expected + ", but was " + actual + ".");
+			if (semver.lt(options.actual, options.expected)) return failWithQualifier("at least");
+			if (semver.neq(options.actual, options.expected)) console.log("Warning: Newer " + options.name +
+				" version than expected. Expected " + options.expected + ", but was " + options.actual + ".");
 		}
+		return success();
 
 		function failWithQualifier(qualifier) {
-			return fail("Incorrect " + name + " version. Expected " + qualifier +
-				" " + expected + ", but was " + actual + ".");
+			return fail("Incorrect " + options.name + " version. Expected " + qualifier +
+				" " + options.expected + ", but was " + options.actual + ".");
 		}
 	};
 
