@@ -66,7 +66,6 @@
 
 	task("testClient", function() {
 		console.log("Testing browser code: ");
-
 		karma.runTests({
 			configFile: KARMA_CONFIG,
 			browsers: browsers,
@@ -81,7 +80,7 @@
 	task("version", function() {
 		console.log("Checking Node.js version: .");
 
-		var deployedVersion = "v" + require("./../../package.json").engines.node;
+		var deployedVersion = require("./../../package.json").engines.node;
 		version.check("Node", !process.env.loose, deployedVersion, process.version, fail);
 	});
 
