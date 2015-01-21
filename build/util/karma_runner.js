@@ -34,12 +34,12 @@
 		runKarma(config, function(exitCode) {
 			stdout.restore();
 
-			if (exitCode) fail("Client tests failed (did you start the Karma server?)");
+			if (exitCode) return fail("Client tests failed (did you start the Karma server?)");
 			var browserMissing = checkRequiredBrowsers(options.browsers, stdout);
-			if (browserMissing && options.strict) fail("Did not test all browsers");
-			if (stdout.capturedOutput.indexOf("TOTAL: 0 SUCCESS") !== -1) fail("No tests were run!");
+			if (browserMissing && options.strict) return fail("Did not test all browsers");
+			if (stdout.capturedOutput.indexOf("TOTAL: 0 SUCCESS") !== -1) return fail("No tests were run!");
 
-			success();
+			return success();
 		});
 	};
 
