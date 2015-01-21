@@ -9,18 +9,20 @@
 	var jshint = require("simplebuild-jshint");
 	var mocha = require("../util/mocha_runner.js");
 	var karma = require("../util/karma_runner.js");
+	var browsers = require("../config/tested_browsers.js");
 
-	var TESTED_BROWSERS = require("../config/tested_browsers.js");
+	var KARMA_CONFIG = "./build/config/karma.conf.js";
+
+
+	//*** GENERAL
 
 	desc("Lint and test");
 	task("default", ["lint", "test"], function() {
 		console.log("\n\nOK");
 	});
 
-	desc("Start Karma server -- run this first");
-	task("karma", function() {
-		karma.serve(complete, fail);
-	}, {async: true});
+
+	//*** LINT
 
 	desc("Lint everything");
 	task("lint", ["lintNode", "lintClient"]);
@@ -42,16 +44,34 @@
 		}, complete, fail);
 	}, { async: true });
 
-	desc("Test everything");
+
+	//*** TEST
+
+	desc("Start Karma server -- run this first");
+	task("karma", function() {
+		karma.serve(KARMA_CONFIG, complete, fail);
+	}, {async: true});
+
+	desc("Run tests");
 	task("test", ["testServer", "testClient"]);
 
 	task("testServer", function() {
+		console.log("Testing Node.js code: ");
 		mocha.runTests(nodeFilesToTest(), complete, fail);
 	}, { async: true} );
 
 	task("testClient", function() {
-		karma.runTests(TESTED_BROWSERS, complete, fail);
+		console.log("Testing browser code: ");
+
+		karma.runTests({
+			configFile: KARMA_CONFIG,
+			browsers: browsers,
+			strict: !process.env.loose
+		}, complete, fail);
 	}, { async: true} );
+
+
+	//*** Helpers
 
 	function nodeFilesToTest() {
 		var testFiles = new jake.FileList();
