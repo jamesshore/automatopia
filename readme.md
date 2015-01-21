@@ -1,7 +1,7 @@
 Automatopia
 ===========
 
-This repository contains build and test automation for JavaScript projects. It's intended as a starting point for your own JavaScript projects. It includes:
+This repository contains build and test automation for JavaScript applications. It's intended as a starting point for your own JavaScript projects. It includes:
 
 * Automated build (using Jake) with:
 	* Linting (using JSHint)
@@ -17,7 +17,7 @@ This repository contains build and test automation for JavaScript projects. It's
 
 This code was developed for the "[Lessons Learned 8: Automatopia](http://www.letscodejavascript.com/v3/episodes/lessons_learned/8)" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
 
-You may wonder why this repository includes dependencies (in `node_modules`) and IDE settings (in `.idea`). The reasoning is explained in my essay, "[The Reliable Build](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)." If you prefer not to include these sorts of things in your repo, you can remove them.
+You may wonder why this repository includes dependencies (in `node_modules`) and IDE settings (in `.idea`). The reasoning is explained in my essay, "[The Reliable Build](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)." If you prefer not to include these sorts of things in your repo, it's fine to remove them.
 
 __Change History:__
 
