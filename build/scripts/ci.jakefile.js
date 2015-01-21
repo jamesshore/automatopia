@@ -50,10 +50,11 @@
 			"    5. Confirm that the integration machine is available and no one has\n" +
 			"       integrated since you pulled.\n" +
 			"       ==> If they have, start over when they're done integrating.\n" +
-			"    6. Run `ci push` to copy your code to the integration machine.\n" +
+			"    6. Run `ci push[<workstation_name>]` to copy your code to the integration\n" +
+			"       machine.\n" +
 			"  On the integration machine:\n" +
-			"    7. Run `ci promote` to build the code and merge it into the integration\n" +
-			"       branch.\n" +
+			"    7. Run `ci promote[<workstation_name>]` to build the code and merge it into\n" +
+			"       the integration branch.\n" +
 			"       ==> If the build fails, fix the problem on your machine and start over.\n"
 		);
 	});
@@ -94,14 +95,20 @@
 			"git clean -fdx",                           // Remove extraneous files
 			"git fetch origin",                         // Get latest from integration machine
 			"git reset --hard origin/integration"       // Sync with latest position of integration branch
-		], complete);
+		], function() {
+			console.log("\nOK. Current branch has been reset to match integration branch.");
+			complete();
+		});
 	}, {async: true});
 
 	desc("Merge integration branch into current branch.");
 	task("pull", ["status"], function() {
 		run([
 			"git pull origin integration"
-		], complete);
+		], function() {
+			console.log("\nOK. Integration branch has been merged into current branch.");
+			complete();
+		});
 	}, {async: true});
 
 	desc("Push commits to integration machine for validation.");
@@ -115,7 +122,10 @@
 		}
 		run([
 			"git push origin " + branch
-		], complete);
+		], function() {
+			console.log("\nOK. Current branch has been copied to integration machine.");
+			complete();
+		});
 	}, {async: true});
 
 	desc("Merge to integration branch. INTEGRATION BOX ONLY.");
@@ -129,6 +139,8 @@
 			fail("No branch provided");
 		}
 
+		checkoutAndBuild(afterSuccessfulBuild, afterFailedBuild);
+
 		function checkoutAndBuild(successCallback, failureCallback) {
 			sh.runMany([
 				"git checkout " + branch,
@@ -140,24 +152,24 @@
 			run([
 				"git checkout integration",
 				"git merge " + branch + " --no-ff --log"
-			], complete);
+			], function() {
+				console.log("\nINTEGRATION OK. " + branch + " has been merged into integration branch.");
+				complete();
+			});
 		}
 		function afterFailedBuild() {
 			run([
 				"git checkout integration"
 			], function() {
-				fail("Integration failed. Integration machine reset to known-good state.");
-				complete();
+				fail("Integration failed.");
 			});
 		}
-
-		checkoutAndBuild(afterSuccessfulBuild, afterFailedBuild);
 	}, {async:true});
 
 	// Ensure there aren't any files that need to be checked in or ignored
 	task("status", function() {
 		run(["git status --porcelain"], function(stdout) {
-			if (stdout[0]) fail("Working directory contains files to commit or ignore.");
+			if (stdout[0]) fail("Working directory contains changes. Commit or ignore them first.");
 			complete();
 		});
 	}, {async:true});
