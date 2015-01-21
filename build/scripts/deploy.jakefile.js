@@ -17,7 +17,7 @@
 
 	var http = require("http");
 	var sh = require("./../util/sh.js");
-	var build_command = require("./../util/build_command.js");
+	var build_command = require("./../config/build_command.js");
 	var smoketest = require("./../../src/__smoketest_runner.js");
 
 	task("default", function() {

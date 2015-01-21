@@ -6,7 +6,7 @@
 (function() {
 	"use strict";
 
-	var build_command = require("./../util/build_command.js");
+	var build_command = require("./../config/build_command.js");
 	var sh = require("./../util/sh.js");
 
 

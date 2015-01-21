@@ -6,7 +6,7 @@
 	"use strict";
 
 	var nodemon = require("nodemon");
-	var buildCommand = require("../util/build_command.js");
+	var buildCommand = require("../config/build_command.js");
 
 	console.log("*** Using nodemon to run " + buildCommand.get() + ". Type 'rs<enter>' to force restart.");
 	nodemon({
