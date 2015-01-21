@@ -53,7 +53,7 @@
 
 	function lookForBrowser(browser, output) {
 		var missing = output.indexOf(browser + ": Executed") === -1;
-		if (missing) console.log(browser + " was not tested!");
+		if (missing) console.log("Warning: " + browser + " was not tested!");
 		return missing;
 	}
 

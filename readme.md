@@ -68,7 +68,7 @@ For all these scripts, use `-T` to see the available build targets and their doc
 
 The `jake` script has this additional option:
 
-* `loose=true`: Disable strict browser version checks.
+* `loose=true`: Disable strict browser and version checks.
 
 
 Download and Setup
@@ -88,7 +88,7 @@ To customize the project for your needs:
 
 1. Modify `LICENSE.TXT` to contain your copyright and license. 
 2. To cause the build to fail unless certain browsers are tested, edit `build/config/tested_browsers.js`. Otherwise, comment those lines out.
-3. See `build/scripts` for build automation, `src/server` for example back-end code, and `src/client` for example front-end code.
+3. Modify `package.json` to include your Node version.
 
 
 Installing and Updating npm Packages
