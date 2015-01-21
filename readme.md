@@ -96,11 +96,18 @@ Installing and Updating npm Packages
 
 This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
 
-1. Install the package without building it: `npm install <package> --ignore-scripts`
+1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or maybe `--save` instead of `--save-dev`)
 2. Check in the new module: `git add . && git commit -a`
 3. Build the package: `npm rebuild`
 4. Check for files created by the npm build: `git status`
 5. Add any new files from step 4 to the .gitignore file.
+
+If you would rather not check your npm modules into git, you can remove them like this:
+
+1. Delete the node_modules directory.
+2. Add `node_modules/` to the `.gitignore` file.
+3. Modify `build/scripts/run_jake.sh` and `build/scripts/run_jake.bat` to say `npm install` instead of `npm rebuild`.
+4. Check everything in: `git add . && git commit -am "Removed node_modules"`.
 
 
 Building and Testing
