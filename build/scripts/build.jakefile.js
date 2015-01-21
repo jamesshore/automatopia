@@ -1,5 +1,4 @@
 // Copyright (c) 2012-2014 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
-/*global desc, task, jake, fail, complete, directory, require, console, process */
 
 // Main build file. Contains all tasks needed for normal development.
 
@@ -13,6 +12,7 @@
 	var karma = require("../util/karma_runner.js");
 	var version = require("../util/version_checker.js");
 	var browsers = require("../config/tested_browsers.js");
+	var jshintConfig = require("../config/jshint.conf.js");
 
 	var KARMA_CONFIG = "./build/config/karma.conf.js";
 
@@ -43,8 +43,8 @@
 		process.stdout.write("Linting Node.js code: ");
 		jshint.checkFiles({
 			files: [ "src/*.js", "src/server/**/*.js", "build/**/*.js" ],
-			options: nodeLintOptions(),
-			globals: nodeLintGlobals()
+			options: jshintConfig.nodeOptions,
+			globals: jshintConfig.nodeGlobals
 		}, complete, fail);
 	}, { async: true });
 
@@ -52,7 +52,8 @@
 		process.stdout.write("Linting browser code: ");
 		jshint.checkFiles({
 			files: [ "src/client/**/*.js" ],
-			options: browserLintOptions()
+			options: jshintConfig.clientOptions,
+			globals: jshintConfig.clientGlobals
 		}, complete, fail);
 	}, { async: true });
 
@@ -101,50 +102,5 @@
 			strict: strict
 		}, complete, fail);
 	}, { async: true });
-
-
-
-	//*** Helpers
-
-	function globalLintOptions() {
-		return {
-			bitwise:true,
-			curly:false,
-			eqeqeq:true,
-			forin:true,
-			immed:true,
-			latedef:false,
-			newcap:true,
-			noarg:true,
-			noempty:true,
-			nonew:true,
-			regexp:true,
-			undef:true,
-			strict:true,
-			trailing:true
-		};
-	}
-
-	function nodeLintOptions() {
-		var options = globalLintOptions();
-		options.node = true;
-		return options;
-	}
-
-	function browserLintOptions() {
-		var options = globalLintOptions();
-		options.browser = true;
-		return options;
-	}
-
-	function nodeLintGlobals() {
-		return {
-			// Mocha globals
-			beforeEach: false,
-			afterEach: false,
-			describe: false,
-			it: false
-		};
-	}
-
+	
 }());
