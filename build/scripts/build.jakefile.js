@@ -98,7 +98,8 @@
 		}, complete, fail);
 	}, { async: true });
 
-	//*** VERSIONS
+
+	//*** CHECK VERSIONS
 
 	desc("Check Node version");
 	task("version", function() {
@@ -112,7 +113,7 @@
 	}, { async: true });
 
 
-	//*** DIRECTORIES
+	//*** CREATE DIRECTORIES
 
 	directory(dirs.test);
 
