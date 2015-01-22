@@ -6,7 +6,7 @@
 	"use strict";
 	var httpUtil = require("./__http_util.js");
 
-	var HOME_PAGE_MARKER = "Hello World";
+	var HOME_PAGE_MARKER = "automatopia home page";
 
 	exports.runTests = function(url, callback) {
 		checkMarker(url, HOME_PAGE_MARKER, function(foundMarker) {
@@ -17,8 +17,8 @@
 
 	function checkMarker(url, marker, callback) {
 		httpUtil.getPage(url, function(error, response, responseText) {
-				var foundMarker = responseText.indexOf(marker) !== -1;
-				callback(foundMarker);
+			var foundMarker = responseText.indexOf(marker) !== -1;
+			callback(foundMarker);
 		});
 	}
 }());

@@ -24,7 +24,6 @@
 
 			child.stdout.setEncoding("utf8");
 			child.stdout.on("data", function(chunk) {
-				process.stdout.write(chunk);
 				if (chunk.trim().indexOf("Server started") !== -1) return done();
 			});
 
@@ -36,7 +35,9 @@
 		afterEach(function(done) {
 			if (child === null) return done();
 
-			child.once("exit", done);
+			child.once("exit", function() {
+				done();
+			});
 			child.kill();
 		});
 

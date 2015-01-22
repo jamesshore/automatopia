@@ -91,7 +91,7 @@
 	}, { async: true });
 
 	task("testSmoke", function() {
-		console.log("Running smoke tests: ");
+		process.stdout.write("Running smoke tests: ");
 		mocha.runTests({
 			files: [ "src/_smoke_test.js" ],
 			options: MOCHA_CONFIG
@@ -103,7 +103,6 @@
 	desc("Check Node version");
 	task("version", function() {
 		console.log("Checking Node.js version: .");
-
 		version.check({
 			name: "Node",
 			expected: require("../../package.json").engines.node,
