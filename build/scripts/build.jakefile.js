@@ -16,6 +16,10 @@
 	var dirs = require("../config/dirs.js");
 
 	var KARMA_CONFIG = "./build/config/karma.conf.js";
+	var MOCHA_CONFIG = {
+		ui: "bdd",
+		reporter: "dot"
+	};
 
 	var strict = !process.env.loose;
 
@@ -67,16 +71,13 @@
 	}, { async: true });
 
 	desc("Run tests");
-	task("test", ["testServer", "testClient"]);
+	task("test", ["testServer", "testClient", "testSmoke"]);
 
 	task("testServer", [ dirs.test ], function() {
 		process.stdout.write("Testing Node.js code: ");
 		mocha.runTests({
-			files: [ "src/_*_test.js", "src/server/**/_*_test.js" ],
-			options: {
-				ui: "bdd",
-				reporter: "dot"
-			}
+			files: [ "src/server/**/_*_test.js" ],
+			options: MOCHA_CONFIG
 		}, complete, fail);
 	}, { async: true });
 
@@ -89,6 +90,13 @@
 		}, complete, fail);
 	}, { async: true });
 
+	task("testSmoke", function() {
+		console.log("Running smoke tests: ");
+		mocha.runTests({
+			files: [ "src/_smoke_test.js" ],
+			options: MOCHA_CONFIG
+		}, complete, fail);
+	}, { async: true });
 
 	//*** VERSIONS
 

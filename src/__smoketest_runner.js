@@ -1,4 +1,7 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+
+// Basic end-to-end test of server to make sure everything's hooked up.
+
 (function() {
 	"use strict";
 	var httpUtil = require("./__http_util.js");
