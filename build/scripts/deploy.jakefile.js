@@ -18,6 +18,7 @@
 	var http = require("http");
 	var sh = require("./../util/sh.js");
 	var build_command = require("./../config/build_command.js");
+	var paths = require("../config/paths.js");
 	var smoketest = require("./../../src/__smoketest_runner.js");
 
 	task("default", function() {
@@ -25,14 +26,20 @@
 	});
 
 	desc("Deploy integration branch to Heroku");
-	task("latest", ["git"], function() {
-		deploy(DEPLOY_LATEST, INTEGRATION_BRANCH, complete);
-	}, {async: true});
+	task("latest", [ "git", "commitDist" ], function() {
+		deploy(DEPLOY_LATEST, INTEGRATION_BRANCH, function() {
+			console.log("\nDEPLOY OK.");
+			complete();
+		});
+	}, { async: true });
 
 	desc("Deploy git HEAD to Heroku (for fixing bad release)");
 	task("head", ["build", "git"], function() {
-		deploy(DEPLOY_HEAD, GIT_HEAD, complete);
-	}, {async: true});
+		deploy(DEPLOY_HEAD, GIT_HEAD, function() {
+			console.log("\nDEPLOY OK.");
+			complete();
+		});
+	}, { async: true });
 
 	desc("Tell Heroku to rollback to previous release");
 	task("rollback", function() {
@@ -52,7 +59,7 @@
 		}
 
 		sh.run(ROLLBACK, onSuccess, onFailure);
-	}, {async: true});
+	}, { async: true });
 
 	desc("Smoke test release");
 	task("smoketest", function() {
@@ -60,7 +67,7 @@
 			if (!passed) fail("Smoke tests failed");
 			complete();
 		});
-	}, {async: true});
+	}, { async: true });
 
 	// Ensure that Git status is clean
 	task("git", function() {
@@ -68,38 +75,59 @@
 			if (stdout[0]) fail("Cannot deploy until all files checked into git (or added to .gitignore).");
 			complete();
 		});
-	}, {async: true});
+	}, { async: true });
+
+	// Check in 'dist' directory
+	task("commitDist", [ "build" ], function() {
+		console.log("Checking in distribution files...");
+		sh.runMany([
+			"git add -f " + paths.distDir,
+			'git commit --allow-empty -m "Commit distribution files"'
+		], complete, onFailure);
+
+		function onFailure() {
+			fail("Unable to check in distribution files. Must be cleaned up manually.");
+		}
+	}, { async: true });
 
 	// Make sure build is clean
 	task("build", function() {
 		run(build_command.get(), complete, "Cannot deploy until build passes.");
-	}, {async: true});
+	}, { async: true });
 
 	function deploy(deployCommand, commitToTag, complete) {
+		console.log("Deploying...");
+		sh.run(deployCommand, onSuccess, onFailure);
+
 		function onSuccess() {
 			runSmokeTests(function(passed) {
 				if (passed) tagCommit();
 				else fail("Smoke test failed. Run rollback target.");
 			});
 		}
+
 		function onFailure() {
 			runSmokeTests(function(passed) {
 				if (passed) fail("Deploy failed but application is still online.");
 				else fail("Deploy failed and application is offline. Run rollback target.");
 			});
 		}
+
 		function tagCommit(tagRoot) {
 			var deployedAt = new Date();
-			var tagName = "deploy-" + deployedAt.getTime();
 			var tagMessage = "Application successfully deployed at " + deployedAt.toUTCString() + "\nLocal time: " + deployedAt.toLocaleString();
-			var tagCommand = "git tag -a '" + tagName + "' -m '" + tagMessage + "' " + commitToTag;
+			var tagCommand = "git tag -a '" + tagName(deployedAt) + "' -m '" + tagMessage + "' " + commitToTag;
 
 			sh.run(tagCommand, complete, function() {
 				fail("Application deployed and online, but failed to tag repository.");
 			});
 		}
 
-		sh.run(deployCommand, onSuccess, onFailure);
+		function tagName(date) {
+			var humanReadableDate = date.getFullYear() + "." + (date.getMonth() + 1) + "." + date.getDate() + "-";
+			var timestamp = date.getTime();
+			return "deploy-" + humanReadableDate + timestamp;
+		}
 	}
 
 	function runSmokeTests(callback) {

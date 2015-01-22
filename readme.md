@@ -7,9 +7,10 @@ This repository contains build and test automation for JavaScript applications. 
 	* Linting (using JSHint)
 	* Node.js tests (using Mocha)
 	* Cross-browser tests (using Karma, Mocha, and expect.js)
+	* Front-end modules (using Browserify)
 * Automated continuous integration (using Git)
 * Automated deployment (to Heroku)
-* Example code (in the `src` directory):
+t* Example code (in the `src` directory):
 	* Server-side integration test
 	* Development smoke test
 	* Release smoke test
@@ -166,7 +167,7 @@ Before deploying for the first time:
 1. Follow the steps for "Continuous Integration" first.
 3. Sign up for a [Heroku account](https://api.heroku.com/signup).
 2. *On the integration machine,* install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
-4. Create a Heroku application: `heroku create <app_name>`.
+4. Create a Heroku application: `heroku create <app_name>`. If you've already created the application, you can reconnect to it with `heroku git:remote --app <app_name>`.
 5. *On a development machine,* change `PRODUCTION_URL` at the top of `build/scripts/deploy.jakefile` to `http://<app_name>.herokuapp.com`.
 6. Update the `engines` section of `package.json` to match your installed versions of Node and npm. (Use `node --version` and `npm --version` to get the version numbers.)
 7. Integrate as described above.
