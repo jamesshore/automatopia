@@ -36,9 +36,9 @@
 	});
 
 	desc("Start server (for manual testing)");
-	task("run", function() {
+	task("run", [ "build" ], function() {
 		console.log("Starting server. Press Ctrl-C to exit.");
-		jake.exec("node src/run.js 5000", { interactive: true }, complete);
+		jake.exec("node " + paths.distDir + "/run.js 5000", { interactive: true }, complete);
 	}, { async: true });
 
 	desc("Delete generated files");

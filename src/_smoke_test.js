@@ -11,7 +11,7 @@
 	var procfile = require("procfile");
 	var smoketest = require("./__smoketest_runner.js");
 
-	var PORT = "5000";
+	var PORT = "5020";
 	var BASE_URL = "http://localhost:" + PORT;
 
 	describe("Localhost server", function() {

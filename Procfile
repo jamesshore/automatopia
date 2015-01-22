@@ -1,1 +1,1 @@
-web: node src/run.js $PORT
+web: node generated/dist/run.js $PORT
