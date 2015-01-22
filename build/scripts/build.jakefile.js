@@ -7,10 +7,13 @@
 
 	var startTime = Date.now();
 
+	var shell = require("shelljs");
 	var jshint = require("simplebuild-jshint");
 	var mocha = require("../util/mocha_runner.js");
 	var karma = require("../util/karma_runner.js");
+	var browserify = require("../util/browserify_runner.js");
 	var version = require("../util/version_checker.js");
+
 	var browsers = require("../config/tested_browsers.js");
 	var jshintConfig = require("../config/jshint.conf.js");
 	var paths = require("../config/paths.js");
@@ -37,6 +40,11 @@
 		console.log("Starting server. Press Ctrl-C to exit.");
 		jake.exec("node src/run.js 5000", { interactive: true }, complete);
 	}, { async: true });
+
+	desc("Delete generated files");
+	task("clean", function() {
+		shell.rm("-rf", paths.generatedDir);
+	});
 
 
 	//*** LINT
@@ -71,7 +79,7 @@
 	}, { async: true });
 
 	desc("Run tests");
-	task("test", ["testServer", "testClient", "testSmoke"]);
+	task("test", [ "testServer", "testClient", "testSmoke" ]);
 
 	task("testServer", [ paths.testDir ], function() {
 		process.stdout.write("Testing Node.js code: ");
@@ -90,13 +98,45 @@
 		}, complete, fail);
 	}, { async: true });
 
-	task("testSmoke", function() {
-		process.stdout.write("Running smoke tests: ");
+	task("testSmoke", [ "build" ], function() {
+		process.stdout.write("Running local smoke tests: ");
 		mocha.runTests({
 			files: [ "src/_smoke_test.js" ],
 			options: MOCHA_CONFIG
 		}, complete, fail);
 	}, { async: true });
+
+
+	//*** BUILD
+
+	desc("Build distribution package");
+	task("build", [ "prepDistDir", "buildClient", "buildServer" ]);
+
+	task("prepDistDir", function() {
+		shell.rm("-rf", paths.distDir);
+	});
+
+	task("buildClient", [ paths.clientDistDir, "bundleClientJs" ], function() {
+		console.log("Copying client code: .");
+		shell.cp(paths.clientDir + "/*.html", paths.clientDir + "/*.css", paths.clientDistDir);
+	});
+
+	task("bundleClientJs", [ paths.clientDistDir ], function() {
+		console.log("Bundling browser code with Browserify: .");
+		browserify.bundle({
+			entry: paths.clientEntryPoint,
+			outfile: paths.clientDistBundle,
+			options: {
+				standalone: "example",
+				debug: true
+			}
+		}, complete, fail);
+	}, { async: true });
+
+	task("buildServer", function() {
+		console.log("Copying server code: .");
+		shell.cp("-R", paths.serverDir, paths.serverEntryPoint, paths.distDir);
+	});
 
 
 	//*** CHECK VERSIONS
@@ -116,5 +156,6 @@
 	//*** CREATE DIRECTORIES
 
 	directory(paths.testDir);
+	directory(paths.clientDistDir);
 
 }());
