@@ -16,7 +16,7 @@ This repository contains build and test automation for JavaScript applications. 
 	* Release smoke test
 	* Client-side DOM test
 
-This code was developed for the "[Lessons Learned 8: Automatopia](http://www.letscodejavascript.com/v3/episodes/lessons_learned/8)" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
+This code was originally developed for the "[Lessons Learned 8: Automatopia](http://www.letscodejavascript.com/v3/episodes/lessons_learned/8)" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
 
 You may wonder why this repository includes dependencies (in `node_modules`) and IDE settings (in `.idea`). The reasoning is explained in my essay, "[The Reliable Build](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)." If you prefer not to include these sorts of things in your repo, it's fine to remove them.
 
@@ -38,7 +38,7 @@ Start out by downloading the code as described in "Download and Setup," below. T
 
 * If you're part of a team and planning to use the continuous integration script, follow the steps under "Continuous Integration." (If you *don't* plan to use the CI script, follow the steps under "Building and Testing" and supply your own CI tool.)
 
-* If you're part of a team and planning to use the Heroku deployment script, follow the steps under "Deploying to Heroku."
+* If you're part of a team and planning to use the Heroku deployment script, follow the steps under "Deploying to Heroku." Note that the deployment script assumes you're also using the CI script.
 
 Once you have it working, delete anything you don't need and modify anything you like. Make it your own.
 
@@ -135,6 +135,10 @@ To build (and test):
 1. Run `./jake.sh karma` (Unix/Mac) or `jake karma` (Windows) to start the Karma server.
 2. Start the browsers you want to test and point each one at `http://localhost:9876`.
 3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test. Alternatively, use `./watch.sh` (Unix/Mac) or `watch` (Windows) to automatically run `jake` whenever files change.
+
+To run the app for manual testing:
+
+1. Run `./jake.sh run` (Unix/Mac) or `jake run` (Windows).
 
 
 Continuous Integration
