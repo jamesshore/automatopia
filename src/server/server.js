@@ -1,19 +1,21 @@
-// Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+// Copyright (c) 2012-2015 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
 (function() {
 	"use strict";
 
-	var http = require("http");
+	var httpServer = require("http-server");
 	var server;
 
 	exports.start = function(portNumber, dirToServe, callback) {
-		server = http.createServer();
-		server.on("request", function(request, response) {
-			response.end("Hello World");
+		server = httpServer.createServer({
+			root: dirToServe
 		});
 		server.listen(portNumber, callback);
 	};
 
 	exports.stop = function(callback) {
-		server.close(callback);
+		// Technically, we're poking into HttpServer's private data here. Bad us. The http-server module is just a
+		// placeholder, and it doesn't have a callback for server.close(). Bad http-server. So don't use this code.
+		// Write something better.
+		server.server.close(callback);
 	};
 }());
