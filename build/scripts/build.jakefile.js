@@ -13,6 +13,7 @@
 	var version = require("../util/version_checker.js");
 	var browsers = require("../config/tested_browsers.js");
 	var jshintConfig = require("../config/jshint.conf.js");
+	var dirs = require("../config/dirs.js");
 
 	var KARMA_CONFIG = "./build/config/karma.conf.js";
 
@@ -68,7 +69,7 @@
 	desc("Run tests");
 	task("test", ["testServer", "testClient"]);
 
-	task("testServer", function() {
+	task("testServer", [ dirs.test ], function() {
 		process.stdout.write("Testing Node.js code: ");
 		mocha.runTests({
 			files: [ "src/_*_test.js", "src/server/**/_*_test.js" ],
@@ -77,6 +78,7 @@
 				reporter: "dot"
 			}
 		}, complete, fail);
+		console.log("testServer done");
 	}, { async: true });
 
 	task("testClient", function() {
@@ -102,5 +104,10 @@
 			strict: strict
 		}, complete, fail);
 	}, { async: true });
-	
+
+
+	//*** DIRECTORIES
+
+	directory(dirs.test);
+
 }());

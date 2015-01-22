@@ -5,7 +5,7 @@
 	var http = require("http");
 	var server;
 
-	exports.start = function(portNumber, callback) {
+	exports.start = function(portNumber, dirToServe, callback) {
 		server = http.createServer();
 		server.on("request", function(request, response) {
 			response.end("Hello World");
