@@ -4,7 +4,7 @@
 <head>
     <title>DOM Testing Example</title>
 
-    <script src="example.js" type="text/javascript"></script>
+    <script src="bundle.js" type="text/javascript"></script>
 
     <style type="text/css">
         .example-required {
@@ -17,7 +17,12 @@
 
     <p><label for="textField">Example field (required): </label><input id="textField" type="text" /></p>
 
-    <p><input type="submit" value="Validate" onclick="example.validateTextField(document.getElementById('textField'));"/></p>
+    <p><input type="submit" value="Validate" onclick="validate();" /></p>
 
+    <script type="text/javascript">
+        function validate() {
+            example.validateTextField(document.getElementById('textField'));
+        }
+    </script>
 </body>
 </html>
