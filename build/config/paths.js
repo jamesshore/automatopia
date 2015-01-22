@@ -7,7 +7,7 @@
 
 	module.exports = {
 		generated: "generated",
-		test: "generated/test"
+		testDir: "generated/test"
 	};
 
 }());

@@ -1,4 +1,7 @@
 // Copyright (c) 2012-2015 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+
+// An example server. Just a placeholder.
+
 (function() {
 	"use strict";
 
@@ -18,4 +21,5 @@
 		// Write something better.
 		server.server.close(callback);
 	};
+
 }());

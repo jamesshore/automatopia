@@ -6,16 +6,16 @@
 	var expect = require("expect.js");
 	var server = require("./server.js");
 	var httpUtil = require("../__http_util.js");
-	var dirs = require("../../build/config/dirs.js");
+	var paths = require("../../build/config/paths.js");
 
-	var TEST_FILE = dirs.test + "/file.txt";
+	var TEST_FILE = paths.testDir + "/file.txt";
 	var TEST_DATA = "Hello Test";
 
 	describe("Server", function() {
 
 		beforeEach(function(done) {
 			fs.writeFile(TEST_FILE, TEST_DATA, function(err) {
-				server.start(5000, dirs.test, function() {
+				server.start(5000, paths.testDir, function() {
 					done(err);
 				});
 			});

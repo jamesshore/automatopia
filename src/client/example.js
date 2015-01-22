@@ -1,17 +1,18 @@
 // Copyright (c) 2012 Titanium I.T. LLC. All rights reserved. See LICENSE.txt for details.
+
+// A silly little validator function. Just an example.
+
 (function() {
 	"use strict";
 
-	var example = window.example = {};
+	var constants = require("./constants.js");
 
-	example.REQUIRED_FIELD_CLASS = "example-required";
-
-	example.validateTextField = function(field) {
+	exports.validateTextField = function validateTextField(field) {
 		if (field.value) {
 			field.removeAttribute("class");
 		}
 		else {
-			field.setAttribute("class", example.REQUIRED_FIELD_CLASS);
+			field.setAttribute("class", constants.REQUIRED_FIELD_CLASS);
 		}
 	};
 
