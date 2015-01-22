@@ -35,7 +35,7 @@ Start out by downloading the code as described in "Download and Setup," below. T
 
 * If you're a solo developer using this repository as a starting point for a personal project, follow the steps under "Building and Testing."
 
-* If you're part of a team and planning to use the continuous integration script, follow the steps under "Continuous Integration." (Otherwise, follow the steps under "Building and Testing" and supply your own CI tooling.)
+* If you're part of a team and planning to use the continuous integration script, follow the steps under "Continuous Integration." (If you *don't* plan to use the CI script, follow the steps under "Building and Testing" and supply your own CI tool.)
 
 * If you're part of a team and planning to use the Heroku deployment script, follow the steps under "Deploying to Heroku."
 
