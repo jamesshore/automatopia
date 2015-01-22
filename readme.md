@@ -10,7 +10,7 @@ This repository contains build and test automation for JavaScript applications. 
 	* Front-end modules (using Browserify)
 * Automated continuous integration (using Git)
 * Automated deployment (to Heroku)
-t* Example code (in the `src` directory):
+* Example code (in the `src` directory):
 	* Server-side integration test
 	* Development smoke test
 	* Release smoke test
@@ -22,7 +22,7 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
-* *20 Jan 2015:* Added `watch` to automatically run jake when files change; improved documentation; moved scripts into build directory; added `run` target to build; updated npm dependencies to latest versions; CI script prompts for integration messages
+* *22 Jan 2015:* Front-end modules; `watch` script; improved documentation; `jake run`; latest npm dependencies; integration commit messages; general script improvements
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
 * *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
