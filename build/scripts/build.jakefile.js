@@ -78,7 +78,6 @@
 				reporter: "dot"
 			}
 		}, complete, fail);
-		console.log("testServer done");
 	}, { async: true });
 
 	task("testClient", function() {

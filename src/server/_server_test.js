@@ -31,14 +31,9 @@
 
 		it("responds to requests", function(done) {
 			httpUtil.getPage("http://localhost:5000/file.txt", function(error, response, responseText) {
-				//try {
-					expect(response.statusCode).to.equal(200);
-					expect(responseText).to.equal(TEST_DATA);
-					done(error);
-				//}
-				//catch (exc) {
-				//	done(exc);
-				//}
+				expect(response.statusCode).to.equal(200);
+				expect(responseText).to.equal(TEST_DATA);
+				done(error);
 			});
 		});
 
