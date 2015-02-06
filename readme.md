@@ -16,7 +16,7 @@ This repository contains build and test automation for JavaScript applications. 
 	* Release smoke test
 	* Client-side DOM test
 
-This code was originally developed for the "[Lessons Learned 8: Automatopia](http://www.letscodejavascript.com/v3/episodes/lessons_learned/8)" episode of James Shore's *Let's Code: Test-Driven JavaScript* screencast. For details, the video, and a transcript, see [letscodejavascript.com](http://www.letscodejavascript.com).
+This code was originally developed for James Shore's [Let's Code: Test-Driven JavaScript](http://www.letscodejavascript.com) screencast. See Lessons Learned #16, [JavaScript Workflow 2015](http://www.letscodejavascript.com/v3/episodes/lessons_learned/16), for a detailed description of the front-end and continuous integration workflow.
 
 You may wonder why this repository includes dependencies (in `node_modules`) and IDE settings (in `.idea`). The reasoning is explained in my essay, "[The Reliable Build](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)." If you prefer not to include these sorts of things in your repo, it's fine to remove them.
 
@@ -53,7 +53,7 @@ This repository consists of the following directories:
 * `build/config`: Build configuration.
 * `build/scripts`: Build scripts. Don't run them directly; they're used by the scripts in the root directory.
 * `build/util`: Modules used by the build scripts.
-* `node_modules`: npm dependencies.
+* `node_modules`: npm dependencies. (Optional. See "Installing, Updating, and Removing npm Packages" below.)
 * `src`: Example code.
 * `src/client`: Front-end code.
 * `src/server`: Node.js server code.
@@ -90,35 +90,6 @@ To customize the project for your needs:
 1. Modify `LICENSE.TXT` to contain your copyright and license. 
 2. To cause the build to fail unless certain browsers are tested, edit `build/config/tested_browsers.js`. Otherwise, comment those lines out.
 3. Modify `package.json` to include your Node version.
-
-
-Installing and Updating npm Packages
-------------------------------------
-
-This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
-
-1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or `--save` instead of `--save-dev`)
-2. Check in the new module: `git add . && git commit -a`
-3. Build the package: `npm rebuild`
-4. Check for files created by the npm build: `git status`
-5. Add any new files from the previous step to the `.gitignore` file and check it in.
-
-To update all npm dependencies at once:
-
-1. Delete the `node_modules` directory.
-2. Modify `.gitignore` and remove all references to npm module binaries.
-3. Install dependencies without building them: `npm install --ignore-scripts`
-4. Check everything in: `git add . && git commit -am "Updated npm dependencies"`
-5. Rebuild everything: `npm rebuild`
-6. Check for files created by the npm build: `git status`
-7. Add any new files from the previous step to the `.gitignore` file and check it in.
-
-If you would rather not check your npm modules into git, you can remove them like this:
-
-1. Delete the node_modules directory.
-2. Modify `.gitignore` and replace the references to npm module binaries with `node_modules/`.
-3. Modify `build/scripts/run_jake.sh` and `build/scripts/run_jake.bat` to say `npm install` instead of `npm rebuild`.
-4. Check everything in: `git add . && git commit -am "Removed node_modules"`.
 
 
 Building and Testing
@@ -186,6 +157,35 @@ In case of a bad deployment:
 2. If you aren't able to deploy new code right away, choose a previous, good commit to deploy. `gitk` and the `deploy-<timestamp>` tags may be helpful here.
 3. Check out the commit: `git checkout <commit_id>`
 4. Run `./deploy.sh head` (Unix/Mac) or `deploy head` (Windows) to deploy the commit to Heroku. As above, the script will tag the git repository with `deploy-<timestamp>` if the deploy succeeds and passes the smoke tests.
+
+
+Installing, Updating, and Removing npm Packages
+-----------------------------------------------
+
+This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
+
+1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or `--save` instead of `--save-dev`)
+2. Check in the new module: `git add . && git commit -a`
+3. Build the package: `npm rebuild`
+4. Check for files created by the npm build: `git status`
+5. Add any new files from the previous step to the `.gitignore` file and check it in.
+
+To update all npm dependencies at once:
+
+1. Delete the `node_modules` directory.
+2. Modify `.gitignore` and remove all references to npm module binaries.
+3. Install dependencies without building them: `npm install --ignore-scripts`
+4. Check everything in: `git add . && git commit -am "Updated npm dependencies"`
+5. Rebuild everything: `npm rebuild`
+6. Check for files created by the npm build: `git status`
+7. Add any new files from the previous step to the `.gitignore` file and check it in.
+
+If you would rather not check your npm modules into git, you can remove them like this:
+
+1. Delete the node_modules directory.
+2. Modify `.gitignore` and replace the references to npm module binaries with `node_modules/`.
+3. Modify `build/scripts/run_jake.sh` and `build/scripts/run_jake.bat` to say `npm install` instead of `npm rebuild`.
+4. Check everything in: `git add . && git commit -am "Removed node_modules"`.
 
 
 License
