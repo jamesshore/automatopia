@@ -1,7 +1,7 @@
 Automatopia
 ===========
 
-This repository contains build and test automation for JavaScript applications. It's intended as a starting point for your own JavaScript projects. It includes:
+This repository contains build and test automation for JavaScript applications. It's intended as a starting point for your own JavaScript projects. It's best for standalone applications, not npm modules. It includes:
 
 * Automated build (using Jake) with:
 	* Linting (using JSHint)
@@ -79,9 +79,10 @@ To download the project:
 
 1. Install [Git](http://git-scm.com/downloads).
 2. Clone the latest code only (to save time): `git clone --depth 1 https://github.com/jamesshore/automatopia.git`
-3. Delete the `.git` directory so you start fresh
-4. Run `git init`, `git add .`, and `git commit -am "Initial commit"` to initialize the git repository.
-5. Follow the instructions under "Building and Testing" to make sure everything works.
+3. Modify `package.json` to use your Node version in the `engines.node` line. (Run `node --version` to determine your Node version.)
+4. Delete the `.git` directory so you start fresh
+5. Run `git init`, `git add .`, and `git commit -am "Initial commit"` to initialize the git repository.
+6. Follow the instructions under "Building and Testing" to make sure everything works.
 
 (Note: You can also download [a zip file of the source code](https://github.com/jamesshore/automatopia/archive/master.zip), but that won't preserve permissions like Git does.)
 
@@ -89,7 +90,35 @@ To customize the project for your needs:
 
 1. Modify `LICENSE.TXT` to contain your copyright and license. 
 2. To cause the build to fail unless certain browsers are tested, edit `build/config/tested_browsers.js`. Otherwise, comment those lines out.
-3. Modify `package.json` to include your Node version.
+
+
+Installing, Updating, and Removing npm Packages
+-----------------------------------------------
+
+This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
+
+1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or `--save` instead of `--save-dev`)
+2. Check in the new module: `git add . && git commit -a`
+3. Build the package: `npm rebuild`
+4. Check for files created by the npm build: `git status`
+5. Add any new files from the previous step to the `.gitignore` file and check it in.
+
+To update all npm dependencies at once:
+
+1. Delete the `node_modules` directory.
+2. Modify `.gitignore` and remove all references to npm module binaries.
+3. Install dependencies without building them: `npm install --ignore-scripts`
+4. Check everything in: `git add . && git commit -am "Updated npm dependencies"`
+5. Rebuild everything: `npm rebuild`
+6. Check for files created by the npm build: `git status`
+7. Add any new files from the previous step to the `.gitignore` file and check it in.
+
+If you would rather not check your npm modules into git, you can remove them like this:
+
+1. Delete the node_modules directory.
+2. Modify `.gitignore` and replace the references to npm module binaries with `node_modules/`.
+3. Modify `build/scripts/run_jake.sh` and `build/scripts/run_jake.bat` to say `npm install` instead of `npm rebuild`.
+4. Check everything in: `git add . && git commit -am "Removed node_modules"`.
 
 
 Building and Testing
@@ -106,6 +135,8 @@ To build (and test):
 1. Run `./jake.sh karma` (Unix/Mac) or `jake karma` (Windows) to start the Karma server.
 2. Start the browsers you want to test and point each one at `http://localhost:9876`.
 3. Run `./jake.sh` (Unix/Mac) or `jake` (Windows) every time you want to build and test. Alternatively, use `./watch.sh` (Unix/Mac) or `watch` (Windows) to automatically run `jake` whenever files change.
+
+Add the `loose=true` parameter to relax Node and browser version checking.
 
 To run the app for manual testing:
 
@@ -157,35 +188,6 @@ In case of a bad deployment:
 2. If you aren't able to deploy new code right away, choose a previous, good commit to deploy. `gitk` and the `deploy-<timestamp>` tags may be helpful here.
 3. Check out the commit: `git checkout <commit_id>`
 4. Run `./deploy.sh head` (Unix/Mac) or `deploy head` (Windows) to deploy the commit to Heroku. As above, the script will tag the git repository with `deploy-<timestamp>` if the deploy succeeds and passes the smoke tests.
-
-
-Installing, Updating, and Removing npm Packages
------------------------------------------------
-
-This repository assumes you check your npm modules into git. (Why? [See here.](http://www.letscodejavascript.com/v3/blog/2014/12/the_reliable_build)) Some modules come pre-installed. To update those packages, or install new ones, use the following process to ensure that you don't check in binaries:
-
-1. Install the package without building it: `npm install <package> --ignore-scripts --save-dev` (or `--save` instead of `--save-dev`)
-2. Check in the new module: `git add . && git commit -a`
-3. Build the package: `npm rebuild`
-4. Check for files created by the npm build: `git status`
-5. Add any new files from the previous step to the `.gitignore` file and check it in.
-
-To update all npm dependencies at once:
-
-1. Delete the `node_modules` directory.
-2. Modify `.gitignore` and remove all references to npm module binaries.
-3. Install dependencies without building them: `npm install --ignore-scripts`
-4. Check everything in: `git add . && git commit -am "Updated npm dependencies"`
-5. Rebuild everything: `npm rebuild`
-6. Check for files created by the npm build: `git status`
-7. Add any new files from the previous step to the `.gitignore` file and check it in.
-
-If you would rather not check your npm modules into git, you can remove them like this:
-
-1. Delete the node_modules directory.
-2. Modify `.gitignore` and replace the references to npm module binaries with `node_modules/`.
-3. Modify `build/scripts/run_jake.sh` and `build/scripts/run_jake.bat` to say `npm install` instead of `npm rebuild`.
-4. Check everything in: `git add . && git commit -am "Removed node_modules"`.
 
 
 License
