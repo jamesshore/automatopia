@@ -3,11 +3,10 @@
 
 // Messages
 exports.VALIDATION_FAILED = "JSHint failed.";
-exports.OPTIONS_MUST_BE_OBJECT = "Options parameter must be an object.";
-exports.OPTIONS_MUST_NOT_BE_NULL = "Options parameter must not be null.";
-exports.NO_FILE_OPTION = "Need 'file' option containing path to file to check.";
-exports.NO_FILES_OPTION = "Need 'files' option containing array of filenames (or globs) to check.";
-exports.NO_CODE_OPTION = "Need 'code' option containing source code to check.";
+
+
+
+/* Descriptors -- not currently used; may be added in the future */
 
 exports.MODULE_DESCRIPTORS = {
 	name: "simplebuild-jshint",
