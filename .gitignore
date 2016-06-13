@@ -9,6 +9,7 @@ node_modules/karma/node_modules/socket.io/node_modules/socket.io-client/node_mod
 
 # The 'fsevents' module doesn't build on vanilla Windows because it requires Python. It's optional, so we've removed it from the repo and ignored it:
 node_modules/karma/node_modules/chokidar/node_modules/fsevents/
+node_modules/nodemon/node_modules/chokidar/node_modules/fsevents
 
 # 'builderror.log' is modified by vanilla Windows because it doesn't have Python. It's not important, so we've removed it from the repo and ignored it:
 node_modules/karma/node_modules/socket.io/node_modules/socket.io-client/node_modules/ws/builderror.log
