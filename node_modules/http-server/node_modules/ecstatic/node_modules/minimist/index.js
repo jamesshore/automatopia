@@ -65,7 +65,32 @@ module.exports = function (args, opts) {
             setKey(argv, x.split('.'), value);
         });
     }
+
+    function setKey (obj, keys, value) {
+        var o = obj;
+        keys.slice(0,-1).forEach(function (key) {
+            if (o[key] === undefined) o[key] = {};
+            o = o[key];
+        });
+
+        var key = keys[keys.length - 1];
+        if (o[key] === undefined || flags.bools[key] || typeof o[key] === 'boolean') {
+            o[key] = value;
+        }
+        else if (Array.isArray(o[key])) {
+            o[key].push(value);
+        }
+        else {
+            o[key] = [ o[key], value ];
+        }
+    }
     
+    function aliasIsBoolean(key) {
+      return aliases[key].some(function (x) {
+          return flags.bools[x];
+      });
+    }
+
     for (var i = 0; i < args.length; i++) {
         var arg = args[i];
         
@@ -74,7 +99,12 @@ module.exports = function (args, opts) {
             // 'dotall' regex modifier. See:
             // http://stackoverflow.com/a/1068308/13216
             var m = arg.match(/^--([^=]+)=([\s\S]*)$/);
-            setArg(m[1], m[2], arg);
+            var key = m[1];
+            var value = m[2];
+            if (flags.bools[key]) {
+                value = value !== 'false';
+            }
+            setArg(key, value, arg);
         }
         else if (/^--no-.+/.test(arg)) {
             var key = arg.match(/^--no-(.+)/)[1];
@@ -86,7 +116,7 @@ module.exports = function (args, opts) {
             if (next !== undefined && !/^-/.test(next)
             && !flags.bools[key]
             && !flags.allBools
-            && (aliases[key] ? !flags.bools[aliases[key]] : true)) {
+            && (aliases[key] ? !aliasIsBoolean(key) : true)) {
                 setArg(key, next, arg);
                 i++;
             }
@@ -110,6 +140,12 @@ module.exports = function (args, opts) {
                     continue;
                 }
                 
+                if (/[A-Za-z]/.test(letters[j]) && /=/.test(next)) {
+                    setArg(letters[j], next.split('=')[1], arg);
+                    broken = true;
+                    break;
+                }
+                
                 if (/[A-Za-z]/.test(letters[j])
                 && /-?\d+(\.\d*)?(e-?\d+)?$/.test(next)) {
                     setArg(letters[j], next, arg);
@@ -131,7 +167,7 @@ module.exports = function (args, opts) {
             if (!broken && key !== '-') {
                 if (args[i+1] && !/^(-|--)[^-]/.test(args[i+1])
                 && !flags.bools[key]
-                && (aliases[key] ? !flags.bools[aliases[key]] : true)) {
+                && (aliases[key] ? !aliasIsBoolean(key) : true)) {
                     setArg(key, args[i+1], arg);
                     i++;
                 }
@@ -190,25 +226,6 @@ function hasKey (obj, keys) {
 
     var key = keys[keys.length - 1];
     return key in o;
-}
-
-function setKey (obj, keys, value) {
-    var o = obj;
-    keys.slice(0,-1).forEach(function (key) {
-        if (o[key] === undefined) o[key] = {};
-        o = o[key];
-    });
-    
-    var key = keys[keys.length - 1];
-    if (o[key] === undefined || typeof o[key] === 'boolean') {
-        o[key] = value;
-    }
-    else if (Array.isArray(o[key])) {
-        o[key].push(value);
-    }
-    else {
-        o[key] = [ o[key], value ];
-    }
 }
 
 function isNumber (x) {
