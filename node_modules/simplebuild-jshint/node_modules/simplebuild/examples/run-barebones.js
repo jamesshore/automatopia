@@ -2,10 +2,7 @@
 (function() {
 	"use strict";
 
-	var extensions = require("../mappers/simplebuild-map-header.js")
-		.map("../mappers/simplebuild-map-running.js");
-
-	var barebones = extensions.map("../examples/simplebuild-barebones.js");
+	var barebones = require("./tasks/simplebuild-barebones.js");
 
 	barebones.succeed({}, success, failure);
 	barebones.fail({}, success, failure);
@@ -13,10 +10,12 @@
 
 	function success() {
 		console.log("Succeeded!");
+		console.log();
 	}
 
 	function failure(message) {
-		console.log("Failed! " + message);
+		console.log("Failed! Message: [" + message + "]");
+		console.log();
 	}
 
 }());
