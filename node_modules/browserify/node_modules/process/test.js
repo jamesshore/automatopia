@@ -1,16 +1,16 @@
 var assert = require('assert');
 var ourProcess = require('./browser');
-describe('test against process', function () {
-    test(process);
+describe('test against our process', function () {
+    test(ourProcess);
 });
 if (!process.browser) {
-  describe('test against our shim', function () {
-    test(ourProcess);
+  describe('test against node', function () {
+    test(process);
   });
   vmtest();
 }
 function test (ourProcess) {
-    describe('test arguments', function (t) {
+    describe('test arguments', function () {
         it ('works', function (done) {
           var order = 0;
 
@@ -37,7 +37,7 @@ function test (ourProcess) {
           }, 2);
         });
     });
-
+if (!process.browser) {
     describe('test errors', function (t) {
         it ('works', function (done) {
         var order = 0;
@@ -64,7 +64,7 @@ function test (ourProcess) {
         });
         });
     });
-
+}
     describe('rename globals', function (t) {
       var oldTimeout = setTimeout;
       var oldClear = clearTimeout;
@@ -75,17 +75,21 @@ function test (ourProcess) {
         clearTimeout = function () {
           ok = false;
         }
+        var ran = false;
+        function cleanup() {
+          clearTimeout = oldClear;
+          var err;
+          try {
+            assert.ok(ok, 'fake clearTimeout ran');
+            assert.ok(ran, 'should have run');
+          } catch (e) {
+            err = e;
+          }
+          done(err);
+        }
+        setTimeout(cleanup, 1000);
         ourProcess.nextTick(function () {
-          setTimeout(function () {
-            clearTimeout = oldClear;
-            var err;
-            try {
-              assert.ok(ok, 'fake clearTimeout ran');
-            } catch (e) {
-              err = e;
-            }
-            done(err);
-          }, 50);
+          ran = true;
         });
       });
       it('just setTimeout', function (done){
@@ -138,6 +142,58 @@ function vmtest() {
       script.runInNewContext(context);
       assert.ok(context.works);
       done();
+    });
+    it('should generally work', function (done) {
+      var str = '"use strict";var module = {exports:{}};';
+      str += process;
+      str += 'process.nextTick(function () {assert.ok(true);done();})';
+      var script = new vm.Script(str);
+      var context = {
+        clearTimeout: clearTimeout,
+        setTimeout: setTimeout,
+        done: done,
+        assert: assert
+      };
+      script.runInNewContext(context);
+    });
+    it('late defs setTimeout', function (done) {
+      var str = '"use strict";var module = {exports:{}};';
+      str += process;
+      str += 'var setTimeout = hiddenSetTimeout;process.nextTick(function () {assert.ok(true);done();})';
+      var script = new vm.Script(str);
+      var context = {
+        clearTimeout: clearTimeout,
+        hiddenSetTimeout: setTimeout,
+        done: done,
+        assert: assert
+      };
+      script.runInNewContext(context);
+    });
+    it('late defs clearTimeout', function (done) {
+      var str = '"use strict";var module = {exports:{}};';
+      str += process;
+      str += 'var clearTimeout = hiddenClearTimeout;process.nextTick(function () {assert.ok(true);done();})';
+      var script = new vm.Script(str);
+      var context = {
+        hiddenClearTimeout: clearTimeout,
+        setTimeout: setTimeout,
+        done: done,
+        assert: assert
+      };
+      script.runInNewContext(context);
+    });
+    it('late defs setTimeout and then redefine', function (done) {
+      var str = '"use strict";var module = {exports:{}};';
+      str += process;
+      str += 'var setTimeout = hiddenSetTimeout;process.nextTick(function () {setTimeout = function (){throw new Error("foo")};hiddenSetTimeout(function(){process.nextTick(function (){assert.ok(true);done();});});});';
+      var script = new vm.Script(str);
+      var context = {
+        clearTimeout: clearTimeout,
+        hiddenSetTimeout: setTimeout,
+        done: done,
+        assert: assert
+      };
+      script.runInNewContext(context);
     });
   });
 }
