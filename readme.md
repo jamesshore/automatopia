@@ -22,12 +22,12 @@ You may wonder why this repository includes dependencies (in `node_modules`) and
 
 __Change History:__
 
-* *21 Sept 2016:* Latest npm dependencies; Node LTS v4.5.0
+* *21 Sep 2016:* Latest npm dependencies; Node LTS v4.5.0
 * *13 Jun 2016:* Latest npm dependencies; Node LTS v4.4.5
 * *22 Jan 2015:* Front-end modules; `watch` script; improved documentation; `jake run`; latest npm dependencies; integration commit messages; general script improvements
 * *29 Jul 2014:* Replaced NodeUnit with Mocha; updated npm dependencies to latest versions; documented process for installing npm packages; replaced JSHint runner with simplebuild-jshint module
 * *22 Dec 2013:* Removed unneeded Karma plugins; cleaned up package.json; updated npm dependencies to latest versions
-* *24 Sept 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
+* *24 Sep 2013:* Upgraded to Karma 0.10 (also updated all other npm dependencies to latest versions)
 * *30 Nov 2012:* Initial release
 
 
