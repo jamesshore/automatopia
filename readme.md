@@ -125,6 +125,10 @@ If you would rather not check your npm modules into git, you can remove them lik
 Building and Testing
 --------------------
 
+This project tests front-end code inside real browsers using a tool called Karma. When you start your work day, you'll start the Karma server and the test browsers, then use a different command prompt to run the tests.
+
+Some browsers are designed to de-prioritize JavaScript if the associated tab isn't visible on-screen. If your tests run very slowly, make sure the Karma tab is selected and visible (not covered up by other windows) in every browser.
+
 Before building for the first time:
 
 1. Install [Node.js](http://nodejs.org/download/).
