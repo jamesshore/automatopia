@@ -90,6 +90,21 @@ function FSWatcher(_opts) {
     opts.usePolling = process.platform === 'darwin';
   }
 
+  // Global override (useful for end-developers that need to force polling for all
+  // instances of chokidar, regardless of usage/dependency depth)
+  var envPoll = process.env.CHOKIDAR_USEPOLLING;
+  if (envPoll !== undefined) {
+    var envLower = envPoll.toLowerCase();
+
+    if (envLower === 'false' || envLower === '0') {
+      opts.usePolling = false;
+    } else if (envLower === 'true' || envLower === '1') {
+      opts.usePolling = true;
+    } else {
+      opts.usePolling = !!envLower
+    }
+  }
+
   // Editor atomic write normalization enabled by default with fs.watch
   if (undef('atomic')) opts.atomic = !opts.usePolling && !opts.useFsEvents;
   if (opts.atomic) this._pendingUnlinks = Object.create(null);
