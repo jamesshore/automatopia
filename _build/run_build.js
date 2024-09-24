@@ -9,6 +9,5 @@ runAsync().then(result => {
 });
 
 async function runAsync() {
-	const build = await Build.createAsync();
-	return await build.runAsync();
+	return await Build.create().runAsync();
 }

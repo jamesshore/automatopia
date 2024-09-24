@@ -16,7 +16,7 @@ const lintConfig = require("./config/eslint.conf");
 
 module.exports = class Build {
 
-	static createAsync() {
+	static create() {
 		ensure.signature(arguments, []);
 
 		return new Build();

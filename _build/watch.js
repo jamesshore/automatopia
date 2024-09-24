@@ -27,7 +27,7 @@ let fileTreeChanged = false;
 runAsync();
 
 async function runAsync() {
-	const build = await Build.createAsync();
+	const build = await Build.create();
 	const fileSystem = FileSystem.create(Paths.rootDir, Paths.timestampsBuildDir);
 
 	// run all of these functions in the background, in parallel
