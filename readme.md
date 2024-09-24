@@ -32,7 +32,7 @@ To see the example build in action, run `./build.sh` or `./watch.sh quick` from 
 
 ## Examples
 
-You can find example source code in the other [_build](_build) directory. Check out [watch.js](_build/watch.js) and [build.js](_build/build.js) in particular.
+You can find example source code in the [_build](_build) directory. Check out [watch.js](_build/watch.js) and [build.js](_build/build.js) in particular.
 
 The above examples are full-featured and derived from production builds. See below for simpler but complete examples:
 
@@ -140,10 +140,10 @@ async function main() {
   const build = Build.create();
 
   while (true) {
+    console.log("\n*** Building...\n");
     const waitPromise = fileSystem.waitForChangeAsync(watchGlobs);
     await build.runAsync();
     await waitPromise;
-    console.log("\n*** Build queued");
   }
 }
 ```
