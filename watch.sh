@@ -1,3 +1,6 @@
 #!/bin/sh
 
-node build/scripts/watch.js $*
+. _build/prebuild.sh
+while node _build/watch.js "$@"; do
+	echo "Restarting..."
+done
