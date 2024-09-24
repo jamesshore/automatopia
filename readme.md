@@ -1,7 +1,6 @@
-Automatopia
-===========
+# Automatopia
 
-This repository contains tools for creating high-performance task and build automation. It's a set of libraries you can call from JavaScript. Here are some of the highlights:
+This repository contains JavaScript classes for creating high-performance task and build automation. Here are some of the highlights:
 
 * **Task Automation**
   * [Tasks](_build/node_modules/tasks/tasks.js) - Define and run tasks
@@ -150,13 +149,12 @@ async function main() {
 ```
 
 
-License
--------
+## License
 
 MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 
-__Change History:__
+## Change History
 
 * *23 Sep 2024:* Rebuild from current production codebase
 * *21 Sep 2016:* Latest npm dependencies; Node LTS v4.5.0
