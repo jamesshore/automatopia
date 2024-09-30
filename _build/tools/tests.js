@@ -67,7 +67,7 @@ async function runTestsAsync(reporter, description, testRunner, filesToRun, conf
 			config,
 			notifyFn: testResult => {
 				report.progress({ text: testResult.renderCharacter() });
-				if (testResult.isSkip()) report.footer(testResult.renderSingleLine());
+				// if (testResult.isSkip()) report.footer(testResult.renderSingleLine());
 			},
 		});
 		const testCount = testResult.count();

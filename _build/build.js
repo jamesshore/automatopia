@@ -6,13 +6,16 @@ const Tasks = require("tasks/tasks");
 const TaskCli = require("tasks/task_cli");
 const Reporter = require("tasks/reporter");
 const FileSystem = require("infrastructure/file_system");
-const Shell = require("infrastructure/shell");
 const Version = require("./tools/version");
 const Lint = require("./tools/lint");
 const Tests = require("./tools/tests");
+const TypeScript = require("./tools/typescript");
 const Paths = require("./config/paths");
 const testConfig = require("./config/tests.conf");
-const lintConfig = require("./config/eslint.conf");
+const lintJavascriptConfig = require("./config/eslint.javascript.config");
+const lintTypescriptConfig = require("./config/eslint.typescript.config");
+const swcConfig = require("./config/swc.conf");
+const path = require("node:path");
 
 module.exports = class Build {
 
@@ -41,11 +44,13 @@ module.exports = class Build {
 			this._tasks = defineTasks(this);
 			this._tasks.setDescriptions({
 				default: "Clean and rebuild",
-				clean: "Erase all generated and incremental files",
+				clean: "Erase all generated files (resets incremental build)",
 				quick: "Perform an incremental build",
 				version: "Check Node.js version",
 				lint: "Lint JavaScript code (incremental)",
 				unittest: "Run unit tests (incremental)",
+				compile: "Compile TypeScript (incremental)",
+				typecheck: "Type-check TypeScript and create declaration files",
 			});
 		}
 
@@ -64,12 +69,13 @@ async function scanFileTreeAsync(fileSystem, reporter) {
 
 function defineTasks(self) {
 	const tasks = Tasks.create({ fileSystem: self._fileSystem, incrementalDir: self._paths.tasksDir });
-	const lint = Lint.create(self._fileSystem);
-	const tests = Tests.create(self._fileSystem, Paths.universalGlobsToExclude);
 	const version = Version.create(self._fileSystem);
+	const lint = Lint.create(self._fileSystem);
+	const tests = Tests.create(self._fileSystem, Paths.dependencyTreeGlobsToExclude);
+	const typescript = TypeScript.create(self._fileSystem);
 
 	tasks.defineTask("default", async() => {
-		await tasks.runTasksAsync([ "clean", "quick" ]);
+		await tasks.runTasksAsync([ "clean", "quick", "typecheck" ]);
 	});
 
 	tasks.defineTask("clean", async () => {
@@ -92,17 +98,58 @@ function defineTasks(self) {
 	tasks.defineTask("lint", async () => {
 		await lint.validateAsync({
 			description: "JavaScript",
-			files: self._paths.lintFiles(),
-			config: lintConfig,
+			files: self._paths.lintJavascriptFiles(),
+			config: lintJavascriptConfig,
+			reporter: self._reporter,
+		});
+
+		await lint.validateAsync({
+			description: "TypeScript",
+			files: self._paths.lintTypescriptFiles(),
+			config: lintTypescriptConfig,
 			reporter: self._reporter,
 		});
 	});
 
 	tasks.defineTask("unittest", async () => {
 		await tests.runAsync({
-			description: "unit tests",
-			files: self._paths.unitTestFiles(),
+			description: "JavaScript tests",
+			files: self._paths.buildTestFiles(),
 			config: testConfig,
+			reporter: self._reporter,
+		});
+
+		await tasks.runTasksAsync([ "compile" ]);
+
+		await tests.runAsync({
+			description: "TypeScript tests",
+			files: typescript.mapTsToJs({
+				files: self._paths.srcTestFiles(),
+				sourceDir: Paths.typescriptSrcDir,
+				outputDir: Paths.typescriptTargetDir,
+			}),
+			config: testConfig,
+			reporter: self._reporter,
+		});
+	});
+
+	tasks.defineTask("compile", async () => {
+		await typescript.compileAsync({
+			description: "TypeScript tree",
+			files: self._paths.typescriptFiles(),
+			sourceDir: Paths.typescriptSrcDir,
+			outputDir: Paths.typescriptTargetDir,
+			config: swcConfig,
+			reporter: self._reporter,
+		});
+	});
+
+	tasks.defineTask("typecheck", async () => {
+		await typescript.typecheckAndEmitDeclarationFilesAsync({
+			description: "TypeScript",
+			tscBinary: Paths.tscBinary,
+			typescriptConfigFile: Paths.typescriptConfigFile,
+			outputDir: Paths.typescriptTargetDir,
 			reporter: self._reporter,
 		});
 	});

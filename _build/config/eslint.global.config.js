@@ -2,14 +2,13 @@
 "use strict";
 
 const globals = require("globals");
-
 const ERROR = "error";
 const IGNORE = "off";
 
-exports.options = {
+module.exports = [{
+	name: "global config",
+
 	"languageOptions": {
-		ecmaVersion: 2022,
-		sourceType: "commonjs",
 		globals: {
 			...globals.node,
 			globals: false,
@@ -100,4 +99,4 @@ exports.options = {
 		"no-var": ERROR,
 		"require-yield": ERROR
 	}
-};
+}];

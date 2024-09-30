@@ -28,14 +28,21 @@ module.exports = class Paths {
 	static get scratchDir() { return `${generatedDir}/scratch`; }
 	static get packageJson() { return `${rootDir}/package.json`; }
 	static get timestampsBuildDir() { return `${incrementalBuildDir}/timestamps`; }
+
+	static get tscBinary() { return `${rootDir}/node_modules/typescript/bin/tsc`; }
+	static get typescriptConfigFile() { return `${rootDir}/tsconfig.json`; }
+
+	static get typescriptSrcDir() { return `${rootDir}/src`; }
+	static get typescriptTargetDir() { return `${generatedDir}/src`; }
+
 	static get successSound() { return `${rootDir}/_build/sounds/success.mp3`; }
 	static get failSound() { return `${rootDir}/_build/sounds/fail.m4a`; }
 	static get lintErrorSound() { return `${rootDir}/_build/sounds/lint_error.mp3`; }
 
 	static get buildWatchGlobs() {
 		return [
-			`${rootDir}/_build/**`,
 			`${rootDir}/src/**`,
+			`${rootDir}/tsconfig.json`,
 		];
 	}
 
@@ -50,16 +57,47 @@ module.exports = class Paths {
 		return [
 			`${rootDir}/node_modules/**`,
 			`${rootDir}/_build/node_modules/tests/vendor/**`,
+			`${rootDir}/src/node_modules/tests/vendor/**`,
+			`${rootDir}/generated/**`,
 		];
 	}
 
-	lintFiles() {
-		return this._files.matchingFiles("**/*.js");
+	static get dependencyTreeGlobsToExclude() {
+		return [
+			`${rootDir}/node_modules/**`,
+			`${rootDir}/_build/node_modules/tests/vendor/**`,
+			`${rootDir}/src/node_modules/tests/vendor/**`,
+		];
 	}
 
-	unitTestFiles() {
+	lintJavascriptFiles() {
 		return this._files.matchingFiles([
-			"**/_*_test.js",
+			"**/*.js",
+		], [
+		]);
+	}
+
+	lintTypescriptFiles() {
+		return this._files.matchingFiles([
+			"**/*.ts",
+		]);
+	}
+
+	buildTestFiles() {
+		return this._files.matchingFiles([
+			`${rootDir}/_build/**/_*_test.js`,
+		]);
+	}
+
+	srcTestFiles() {
+		return this._files.matchingFiles([
+			`${rootDir}/src/**/_*_test.ts`,
+		]);
+	}
+
+	typescriptFiles() {
+		return this._files.matchingFiles([
+			`${rootDir}/src/**/*.ts`,
 		]);
 	}
 
