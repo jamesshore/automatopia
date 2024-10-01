@@ -156,6 +156,7 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *30 Sep 2024:* Make type-checking more strict, beautify shell output (particularly TypeScript errors)
 * *29 Sep 2024:* Add TypeScript support, stop vendoring `node_modules`
 * *23 Sep 2024:* Rebuild from current production codebase
 * *21 Sep 2016:* Latest npm dependencies; Node LTS v4.5.0
