@@ -126,7 +126,7 @@ export class TestSuite implements Runnable {
 			}
 		}
 
-		function createFailure(filename: string, name: string, error: string) {
+		function createFailure(filename: string, name: string, error: unknown) {
 			return new TestSuite("", RUN_STATE.DEFAULT, { tests: [ new FailureTestCase(filename, name, error) ] });
 		}
 	}
@@ -389,9 +389,9 @@ class TestCase implements Runnable {
 class FailureTestCase extends TestCase {
 
 	private _filename: string;
-	private _error: string;
+	private _error: unknown;
 
-	constructor(filename: string, name: string, error: string) {
+	constructor(filename: string, name: string, error: unknown) {
 		super(name, undefined, RUN_STATE.DEFAULT);
 
 		this._filename = filename;

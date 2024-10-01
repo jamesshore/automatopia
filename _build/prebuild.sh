@@ -1,4 +1,3 @@
 # Prerequisites to run tests or local server
 
-echo "npm install:"
-npm install
+[ ! -f node_modules/.bin/eslint ] && npm install

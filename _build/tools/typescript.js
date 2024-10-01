@@ -116,12 +116,10 @@ module.exports = class TypeScript {
 					return true;
 				}
 				catch(err) {
-					report.progress({
-						text: Colors.brightRed.inverse("X"),
+					const failMessage = Colors.brightWhite.underline(`${sourceFile}:\n`);
+					report.failure(`\n${failMessage}${err.message}\n`, {
 						debug: `\nCompile (FAILED): ${sourceFile} --> ${compiledFile} -+- ${sourceMapFile}`
 					});
-					const failMessage = Colors.brightWhite.underline(`${sourceFile}:\n`);
-					report.footer(`\n${failMessage}${err.message}\n`);
 					return false;
 				}
 			}));
@@ -147,11 +145,12 @@ module.exports = class TypeScript {
 		}]);
 
 		await reporter.startAsync(`Type-checking ${description}`, async (report) => {
-			const { code } = await this._shell.execAsync(tscBinary,
+			const { code } = await this._shell.execWithPreambleAsync("\n\n", tscBinary,
 				"-p", typescriptConfigFile,
 				"--outDir", outputDir,
 				"--noEmit", "false",
 				"--declaration", "--emitDeclarationOnly",
+				"--pretty",
 			);
 			if (code !== 0) throw new TaskError("Type check failed");
 		});

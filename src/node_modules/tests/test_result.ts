@@ -44,6 +44,10 @@ export type SerializedTestResult = SerializedTestSuiteResult | SerializedTestCas
 
 type TestStatus = typeof STATUS[keyof typeof STATUS];
 
+interface NodeError extends Error {
+	stack: string;
+}
+
 interface TestCount {
 	pass: number;
 	fail: number;
@@ -64,7 +68,7 @@ interface SerializedTestCaseResult {
 	name: string[];
 	filename?: string;
 	status: TestStatus;
-	error?: string | SerializedError;
+	error?: unknown;
 	timeout?: number;
 }
 
@@ -123,11 +127,11 @@ export abstract class TestResult {
 	/**
 	 * Factory method. Create a TestResult for a test that failed.
 	 * @param {string|string[]} names The name of the test. Can be a list of names.
-	 * @param {Error|string} error The error that occurred.
+	 * @param {unknown} error The error that occurred.
 	 * @param {string} [filename] The file that contained this test (optional).
 	 * @returns {TestCaseResult} The result.
 	 */
-	static fail(names: string | string[], error: string | Error, filename?: string): TestCaseResult {
+	static fail(names: string | string[], error: unknown, filename?: string): TestCaseResult {
 		ensure.signature(arguments, [[ String, Array ], [ String, Error ], [ undefined, String ]]);
 
 		return new TestCaseResult(names, STATUS.FAIL, { error, filename });
@@ -259,7 +263,8 @@ export class TestSuiteResult extends TestResult {
 	}
 
 	/**
-	 * @returns { TestResult[] } This suite's direct children, which can either be test case results or test suite results.
+	 * @returns { TestResult[] } This suite's direct children, which can either be test case results or test suite
+	 *   results.
 	 */
 	get children(): TestResult[] {
 		return this._children;
@@ -403,10 +408,10 @@ export class TestCaseResult extends TestResult {
 		const { name, filename, status, error, timeout } = serializedResult;
 		return new TestCaseResult(name, status, { error: deserializeError(error), timeout, filename });
 
-		function deserializeError(serializedError?: string | SerializedError) {
+		function deserializeError(serializedError?: unknown) {
 			if (serializedError === undefined || typeof serializedError === "string") return serializedError;
 
-			const { type, message, actual, expected, operator, stack, customFields } = serializedError;
+			const { type, message, actual, expected, operator, stack, customFields } = serializedError as SerializedError;
 
 			let error;
 			switch (type) {
@@ -431,14 +436,14 @@ export class TestCaseResult extends TestResult {
 	private _name: string[];
 	private _filename?: string;
 	private _status: TestStatus;
-	private _error?: string | Error;
+	private _error?: unknown;
 	private _timeout?: number;
 
 	/** Internal use only. (Use {@link TestResult} factory methods instead.) */
 	constructor(
 		names: string | string[],
 		status: TestStatus,
-		{ error, timeout, filename }: { error?: string | Error, timeout?: number, filename?: string } = {}
+		{ error, timeout, filename }: { error?: unknown, timeout?: number, filename?: string } = {}
 	) {
 		super();
 		this._name = Array.isArray(names) ? names : [ names ];
@@ -479,7 +484,7 @@ export class TestCaseResult extends TestResult {
 	 * @returns {Error | string} The error that caused this test to fail.
 	 * @throws {Error} Throws an error if this test didn't fail.
 	 */
-	get error(): string | Error {
+	get error(): unknown {
 		ensure.that(this.isFail(), "Attempted to retrieve error from a test that didn't fail");
 		return this._error!;
 	}
@@ -560,8 +565,8 @@ export class TestCaseResult extends TestResult {
 			timeout: this._timeout,
 		};
 
-		function serializeError(error?: string | Error) {
-			if (error === undefined || typeof error === "string") return error;
+		function serializeError(error?: unknown) {
+			if (!(error instanceof Error)) return error;
 
 			const serialized: SerializedError = {
 				type: "Error",
@@ -659,17 +664,19 @@ export class TestCaseResult extends TestResult {
 	#renderFailure(): string {
 		const name = this.name;
 
-		let error;
-		if (typeof this._error === "string" || this._error?.stack === undefined) {
-			error = errorMessageColor(`\n${this._error}\n`);
-		} else {
-			error = `\n${this.#renderStack(this._error)}\n` +
+		let renderedError;
+		if (this._error instanceof Error && (this._error as NodeError).stack !== undefined) {
+			const nodeError = this._error as NodeError;
+			renderedError = `\n${this.#renderStack(nodeError)}\n` +
 				highlightColor(`\n${name[name.length - 1]} »\n`) +
-				errorMessageColor(`${this._error!.message}\n`);
+				errorMessageColor(`${nodeError.message}\n`);
+		}
+		else {
+			renderedError = errorMessageColor(`\n${this._error}\n`);
 		}
 		const diff = this.#renderDiff(this._error as AssertionError);
 
-		return `${error}${diff}`;
+		return `${renderedError}${diff}`;
 	}
 
 	#renderStack(error: Error): string {

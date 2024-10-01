@@ -17,7 +17,7 @@
     /* Language and Environment */
     "target": "es2022",                               /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
-    "jsx": "react-jsx",                               /* Specify what JSX code is generated. */
+    // "jsx": "react-jsx",                               /* Specify what JSX code is generated. */
     // "experimentalDecorators": true,                   /* Enable experimental support for TC39 stage 2 draft decorators. */
     // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
     // "jsxFactory": "",                                 /* Specify the JSX factory function used when targeting React JSX emit, e.g. 'React.createElement' or 'h'. */
@@ -53,9 +53,9 @@
     // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
     "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
     // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If 'declaration' is true, also designates a file that bundles all .d.ts output. */
-//    "outDir": "./generated/compiled-typescript",                  /* Specify an output folder for all emitted files. */
+    //  "outDir": "./generated/compiled-typescript",                  /* Specify an output folder for all emitted files. */
     // "removeComments": true,                           /* Disable emitting comments. */
-     "noEmit": true,                                   /* Disable emitting files from a compilation. */
+    "noEmit": true,                                   /* Disable emitting files from a compilation. */
     // "importHelpers": true,                            /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
     // "importsNotUsedAsValues": "remove",               /* Specify emit/checking behavior for imports that are only used for types. */
     // "downlevelIteration": true,                       /* Emit more compliant, but verbose and less performant JavaScript for iteration. */
@@ -81,27 +81,27 @@
 
     /* Type Checking */
     "strict": true,                                   /* Enable all strict type-checking options. */
-    "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
-    "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
-    "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
-    "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
-    "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
-    "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
-    "useUnknownInCatchVariables": false,              /* Default catch clause variables as 'unknown' instead of 'any'. */
-    "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
-//    "noUnusedLocals": true,                           /* Enable error reporting when local variables aren't read. */
-//    "noUnusedParameters": true,                       /* Raise an error when a function parameter isn't read. */
-    "exactOptionalPropertyTypes": false,              /* Interpret optional property types as written, rather than adding 'undefined'. */
-    "noImplicitReturns": true,                        /* Enable error reporting for codepaths that do not explicitly return in a function. */
-    "noFallthroughCasesInSwitch": true,               /* Enable error reporting for fallthrough cases in switch statements. */
-    "noUncheckedIndexedAccess": true,                 /* Add 'undefined' to a type when accessed using an index. */
-    "noImplicitOverride": true,                       /* Ensure overriding members in derived classes are marked with an override modifier. */
-    "noPropertyAccessFromIndexSignature": false,      /* Enforces using indexed accessors for keys declared using an indexed type. */
-    // "allowUnusedLabels": true,                       /* Disable error reporting for unused labels. */
-    // "allowUnreachableCode": true,                    /* Disable error reporting for unreachable code. */
+    // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+    // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
+    // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
+    // "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
+    // "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
+    // "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
+    // "useUnknownInCatchVariables": false,              /* Default catch clause variables as 'unknown' instead of 'any'. */
+    // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
+    // "noUnusedLocals": true,                           /* Enable error reporting when local variables aren't read. */
+    // "noUnusedParameters": true,                       /* Raise an error when a function parameter isn't read. */
+    // "exactOptionalPropertyTypes": false,              /* Interpret optional property types as written, rather than adding 'undefined'. */
+    // "noImplicitReturns": true,                        /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    // "noFallthroughCasesInSwitch": true,               /* Enable error reporting for fallthrough cases in switch statements. */
+    // "noUncheckedIndexedAccess": true,                 /* Add 'undefined' to a type when accessed using an index. */
+    // "noImplicitOverride": true,                       /* Ensure overriding members in derived classes are marked with an override modifier. */
+    // "noPropertyAccessFromIndexSignature": false,      /* Enforces using indexed accessors for keys declared using an indexed type. */
+    // "allowUnusedLabels": true,                        /* Disable error reporting for unused labels. */
+    // "allowUnreachableCode": true,                     /* Disable error reporting for unreachable code. */
 
     /* Completeness */
-    // "skipDefaultLibCheck": true,                     /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true                              /* Skip type checking all .d.ts files. */
+    // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    // "skipLibCheck": true                              /* Skip type checking all .d.ts files. */
   }
 }

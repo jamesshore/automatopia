@@ -36,7 +36,6 @@ module.exports = class Lint {
 				const sourceCode = await this._fileSystem.readTextFileAsync(file);
 
 				const success = await this.#validateSource(report, sourceCode, config, file);
-				report.progress();
 
 				if (success) await this._fileSystem.writeTimestampFileAsync(file, "lint");
 				return success;
@@ -50,7 +49,10 @@ module.exports = class Lint {
 		const messages = this._linter.verify(sourceCode, options);
 		const pass = (messages.length === 0);
 
-		if (!pass) {
+		if (pass) {
+			report.progress();
+		}
+		else {
 			let failures = Colors.red.bold(`\n${filename} failed\n`);
 			messages.forEach(function(error) {
 				if (error.line) {
@@ -62,7 +64,7 @@ module.exports = class Lint {
 					failures += `${error.message}\n\n`;
 				}
 			});
-			report.footer(`${failures}`);
+			report.failure(`${failures}`);
 		}
 
 		return pass;
