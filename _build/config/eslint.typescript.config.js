@@ -1,8 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 "use strict";
 
-const globals = require("globals");
-const Paths = require("./paths");
 const eslint = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 const globalConfig = require("./eslint.global.config");

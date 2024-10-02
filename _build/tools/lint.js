@@ -53,7 +53,7 @@ module.exports = class Lint {
 			report.progress();
 		}
 		else {
-			let failures = Colors.red.bold(`\n${filename} failed\n`);
+			let failures = Colors.brightRed(`\n${this._fileSystem.renderFilename(filename)} failed\n`);
 			messages.forEach(function(error) {
 				if (error.line) {
 					const code = SourceCode.splitLines(sourceCode)[error.line - 1];

@@ -15,7 +15,6 @@ const testConfig = require("./config/tests.conf");
 const lintJavascriptConfig = require("./config/eslint.javascript.config");
 const lintTypescriptConfig = require("./config/eslint.typescript.config");
 const swcConfig = require("./config/swc.conf");
-const path = require("node:path");
 
 module.exports = class Build {
 

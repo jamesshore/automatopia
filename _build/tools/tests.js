@@ -9,6 +9,7 @@ const FileSystem = require("infrastructure/file_system");
 const DependencyTree = require("tasks/dependency_tree");
 const TestRunner = require("tests/test_runner");
 const TestResult = require("tests/test_result");
+const path = require("node:path");
 
 const failColor = Colors.brightRed;
 const timeoutColor = Colors.purple;
@@ -38,7 +39,7 @@ module.exports = class Tests {
 			reporter: Reporter,
 		}]);
 
-		const filesToRun = await findTestFilesAsync(reporter, description, this._dependencyTree, files);
+		const filesToRun = await findTestFilesAsync(this._fileSystem, reporter, description, this._dependencyTree, files);
 		if (filesToRun.length === 0) return;
 
 		await runTestsAsync(reporter, description, this._testRunner, filesToRun, config, this._fileSystem);
@@ -46,7 +47,7 @@ module.exports = class Tests {
 
 };
 
-async function findTestFilesAsync(reporter, description, dependencyTree, files) {
+async function findTestFilesAsync(fileSystem, reporter, description, dependencyTree, files) {
 	return await reporter.quietStartAsync(`Finding ${description}`, async (report) => {
 		const { changed, errors } = await dependencyTree.findChangedFilesAsync(
 			files,
@@ -54,11 +55,39 @@ async function findTestFilesAsync(reporter, description, dependencyTree, files) 
 			filename => report.progress({ debug: filename }),
 		);
 
-		errors.forEach(error => report.footer(`${error}\n`));
+		reportErrors(fileSystem, report, errors);
 		if (errors.length !== 0) throw new TaskError("Dependency analysis failed");
 
 		return changed;
 	});
+
+	function reportErrors(fileSystem, report, errors) {
+		const errorsByFile = {};
+
+		errors.forEach((error) => {
+			if (errorsByFile[error.file] === undefined) errorsByFile[error.file] = [];
+			errorsByFile[error.file].push(error);
+		});
+
+		Object.keys(errorsByFile).forEach(file => {
+			report.footer(Colors.brightRed(`\n${fileSystem.renderFilename(file)} failed`));
+
+			errorsByFile[file].forEach(({ error, file, dependency, line, source }) => {
+				if (error === DependencyTree.ERRORS.DEPENDENCY_NOT_FOUND) {
+					let failure = Colors.brightWhite.bold(`\n${line}: `) + `${source}\n  ${error}\n`;
+					if (dependency.startsWith(".")) {
+						const resolvesTo = path.resolve(file, dependency);
+						failure += Colors.brightBlack(`  Resolves to: ${fileSystem.renderFilename(resolvesTo)}\n`);
+					}
+					report.footer(failure);
+				}
+				else {
+					report.footer(`\n${error}\n`);
+				}
+			});
+			report.footer("\n");
+		});
+	}
 }
 
 async function runTestsAsync(reporter, description, testRunner, filesToRun, config, fileSystem) {

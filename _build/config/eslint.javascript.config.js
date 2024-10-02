@@ -1,7 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 "use strict";
 
-const globals = require("globals");
 const globalConfig = require("./eslint.global.config");
 
 const ERROR = "error";
