@@ -1,22 +1,20 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-"use strict";
+import * as ensure from "util/ensure.js";
+import Tasks from "tasks/tasks.js";
+import TaskCli from "tasks/task_cli.js";
+import Reporter from "tasks/reporter.js";
+import FileSystem from "infrastructure/file_system.js";
+import Version from "./tools/version.js";
+import Lint from "./tools/lint.js";
+import Tests from "./tools/tests.js";
+import TypeScript from "./tools/typescript.js";
+import Paths from "./config/paths.js";
+import testConfig from "./config/tests.conf.js";
+import lintJavascriptConfig from "./config/eslint.javascript.config.js";
+import lintTypescriptConfig from "./config/eslint.typescript.config.js";
+import swcConfig from "./config/swc.conf.js";
 
-const ensure = require("util/ensure");
-const Tasks = require("tasks/tasks");
-const TaskCli = require("tasks/task_cli");
-const Reporter = require("tasks/reporter");
-const FileSystem = require("infrastructure/file_system");
-const Version = require("./tools/version");
-const Lint = require("./tools/lint");
-const Tests = require("./tools/tests");
-const TypeScript = require("./tools/typescript");
-const Paths = require("./config/paths");
-const testConfig = require("./config/tests.conf");
-const lintJavascriptConfig = require("./config/eslint.javascript.config");
-const lintTypescriptConfig = require("./config/eslint.typescript.config");
-const swcConfig = require("./config/swc.conf");
-
-module.exports = class Build {
+export default class Build {
 
 	static create() {
 		ensure.signature(arguments, []);
@@ -56,7 +54,7 @@ module.exports = class Build {
 		return await TaskCli.create().runAsync(this._tasks, "BUILD OK", "BUILD FAILURE");
 	}
 
-};
+}
 
 
 async function scanFileTreeAsync(fileSystem, reporter) {

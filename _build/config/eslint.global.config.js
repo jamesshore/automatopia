@@ -1,11 +1,10 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-"use strict";
 
-const globals = require("globals");
+import globals from "globals";
 const ERROR = "error";
 const IGNORE = "off";
 
-module.exports = [{
+export default [{
 	name: "global config",
 
 	"languageOptions": {

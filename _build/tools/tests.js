@@ -1,15 +1,13 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-"use strict";
-
-const ensure = require("util/ensure");
-const Reporter = require("tasks/reporter");
-const TaskError = require("tasks/task_error");
-const Colors = require("infrastructure/colors");
-const FileSystem = require("infrastructure/file_system");
-const DependencyTree = require("tasks/dependency_tree");
-const TestRunner = require("tests/test_runner");
-const TestResult = require("tests/test_result");
-const path = require("node:path");
+import * as ensure from "util/ensure.js";
+import Reporter from "tasks/reporter.js";
+import TaskError from "tasks/task_error.js";
+import Colors from "infrastructure/colors.js";
+import FileSystem from "infrastructure/file_system.js";
+import DependencyTree from "tasks/dependency_tree.js";
+import TestRunner from "tests/test_runner.js";
+import TestResult from "tests/test_result.js";
+import path from "node:path";
 
 const failColor = Colors.brightRed;
 const timeoutColor = Colors.purple;
@@ -17,7 +15,7 @@ const skipColor = Colors.cyan;
 const passColor = Colors.green;
 const summaryColor = Colors.brightWhite.dim;
 
-module.exports = class Tests {
+export default class Tests {
 
 	static create(fileSystem, globsToIgnore) {
 		ensure.signature(arguments, [ FileSystem, Array ]);
@@ -45,7 +43,7 @@ module.exports = class Tests {
 		await runTestsAsync(reporter, description, this._testRunner, filesToRun, config, this._fileSystem);
 	}
 
-};
+}
 
 async function findTestFilesAsync(fileSystem, reporter, description, dependencyTree, files) {
 	return await reporter.quietStartAsync(`Finding ${description}`, async (report) => {

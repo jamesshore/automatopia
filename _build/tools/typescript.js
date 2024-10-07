@@ -1,18 +1,14 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-"use strict";
+import * as ensure from "util/ensure.js";
+import Colors from "infrastructure/colors.js";
+import FileSystem from "infrastructure/file_system.js";
+import TaskError from "tasks/task_error.js";
+import Reporter from "tasks/reporter.js";
+import Shell from "infrastructure/shell.js";
+import swc from "@swc/core";
+import path from "node:path";
 
-const swc = require("@swc/core");
-const Colors = require("infrastructure/colors");
-const pathLib = require("node:path");
-const FileSystem = require("infrastructure/file_system");
-const ensure = require("util/ensure");
-const TaskError = require("tasks/task_error");
-const Reporter = require("tasks/reporter");
-const Shell = require("infrastructure/shell");
-const path = require("node:path");
-const Paths = require("../config/paths");
-
-module.exports = class TypeScript {
+export default class TypeScript {
 
 	static create(fileSystem) {
 		ensure.signature(arguments, [ FileSystem ]);
@@ -156,10 +152,10 @@ module.exports = class TypeScript {
 		});
 	}
 
-};
+}
 
 function outputFilename(filename, extension, sourceDir, outputDir) {
-	const parsedFilename = pathLib.parse(filename);
+	const parsedFilename = path.parse(filename);
 	const jsFilename = `${parsedFilename.dir}/${parsedFilename.name}${extension}`;
-	return `${outputDir}/${pathLib.relative(sourceDir, jsFilename)}`;
+	return `${outputDir}/${path.relative(sourceDir, jsFilename)}`;
 }

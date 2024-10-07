@@ -1,7 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-"use strict";
 
-const Build = require("./build");
+import Build from "./build.js";
 
 runAsync().then(result => {
 	if (result === null) process.exit(0);

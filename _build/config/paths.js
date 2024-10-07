@@ -1,15 +1,14 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-"use strict";
 
-const ensure = require("util/ensure");
-const path = require("node:path");
-const FileTree = require("infrastructure/file_tree");
+import * as ensure from "util/ensure.js";
+import FileTree from "infrastructure/file_tree.js";
+import path from "node:path";
 
-const rootDir = path.resolve(__dirname, "../..");
+const rootDir = path.resolve(import.meta.dirname, "../..");
 const generatedDir = `${rootDir}/generated`;
 const incrementalBuildDir = `${generatedDir}/build`;
 
-module.exports = class Paths {
+export default class Paths {
 
 	static create(fileTree) {
 		ensure.signature(arguments, [ FileTree ]);
@@ -101,4 +100,4 @@ module.exports = class Paths {
 		]);
 	}
 
-};
+}

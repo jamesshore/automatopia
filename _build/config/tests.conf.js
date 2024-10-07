@@ -1,8 +1,7 @@
-// Copyright Titanium I.T. LLC.
-"use strict";
+// Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-const Paths = require("./paths");
+import Paths from "./paths.js";
 
-module.exports = {
+export default {
 	scratchDir: Paths.scratchDir,
 };
