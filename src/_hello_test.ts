@@ -1,7 +1,6 @@
 // Copyright Titanium I.T. LLC.
 
-// A real codebase would use a npm module for the test suite here.
-import { test, assert } from "tests";
+import { test, assert } from "ergotest";
 
 export default test(({ it }) => {
 
