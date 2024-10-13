@@ -71,7 +71,7 @@ async function runBuildAsync(build) {
 async function debouncedWaitForChangeAsync(fileSystem) {
 	await clock.waitAsync(DEBOUNCE_MS);
 	await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs);
-	console.log(watchColor("\n*** Build queued"));
+	console.log(watchColor("\n*** Change detected"));
 }
 
 async function playBuildResultSoundAsync(buildResult) {

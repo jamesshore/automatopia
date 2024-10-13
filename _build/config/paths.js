@@ -17,22 +17,22 @@ export default class Paths {
 	}
 
 	constructor(fileTree) {
-		this.tasksDir = `${incrementalBuildDir}/tasks`;
-		this.generatedDir = generatedDir;
-
 		this._files = fileTree;
 	}
 
 	static get rootDir() { return rootDir; }
+	static get generatedDir() { return generatedDir; }
 	static get scratchDir() { return `${generatedDir}/scratch`; }
 	static get packageJson() { return `${rootDir}/package.json`; }
 	static get timestampsBuildDir() { return `${incrementalBuildDir}/timestamps`; }
+	static get tasksDir() { return `${incrementalBuildDir}/tasks`; }
 
 	static get tscBinary() { return `${rootDir}/node_modules/typescript/bin/tsc`; }
 	static get typescriptConfigFile() { return `${rootDir}/tsconfig.json`; }
 
 	static get typescriptSrcDir() { return `${rootDir}/src`; }
 	static get typescriptTargetDir() { return `${generatedDir}/src`; }
+	static get typescriptDistDir() { return `${rootDir}/dist`; }
 
 	static get successSound() { return `${rootDir}/_build/sounds/success.mp3`; }
 	static get failSound() { return `${rootDir}/_build/sounds/fail.m4a`; }
@@ -49,6 +49,7 @@ export default class Paths {
 		return [
 			`${rootDir}/_build/**`,
 			`${rootDir}/package.json`,
+			`${this.typescriptDistDir}`,
 		];
 	}
 
@@ -58,6 +59,7 @@ export default class Paths {
 			`${rootDir}/_build/node_modules/tests/vendor/**`,
 			`${rootDir}/src/node_modules/tests/vendor/**`,
 			`${rootDir}/generated/**`,
+			`${rootDir}/dist/**`,
 		];
 	}
 
