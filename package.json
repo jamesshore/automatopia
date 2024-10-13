@@ -16,12 +16,12 @@
     "@types/sinonjs__fake-timers": "^8.1.5",
     "array-to-sentence": "^2.0.0",
     "chai": "^5.1.1",
+    "ergotest": "^0.1.0",
     "eslint": "^9.11.1",
     "globals": "^15.9.0",
     "minimatch": "^10.0.1",
     "minimist": "^1.2.8",
     "typescript": "5.5",
-    "typescript-eslint": "^8.7.0",
-    "ergotest": "file:../../ergotest"
+    "typescript-eslint": "^8.7.0"
   }
 }
