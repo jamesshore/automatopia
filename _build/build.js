@@ -60,6 +60,7 @@ export default class Build {
 				unittest: "Run unit tests (incremental)",
 				compile: "Compile TypeScript (incremental)",
 				typecheck: "Type-check TypeScript and create declaration files",
+				dist: "Copy compiled files to distribution directory",
 			});
 		}
 		return this._tasks;
