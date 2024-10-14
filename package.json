@@ -14,7 +14,7 @@
     "@types/node": "^22.7.4",
     "@types/sinonjs__fake-timers": "^8.1.5",
     "chai": "^5.1.1",
-    "ergotest": "^0.1.0",
+    "ergotest": "^0.1.1",
     "eslint": "^9.11.1",
     "globals": "^15.9.0",
     "minimatch": "^10.0.1",
