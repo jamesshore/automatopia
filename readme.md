@@ -73,7 +73,9 @@ async function main() {
     "unittest": "Run unit tests",
   });
 
-  TaskCli.create().runAsync(tasks, "BUILD OK", "BUILD FAILURE");
+  TaskCli.create().runAsync(tasks, "BUILD OK", "BUILD FAILURE", async (taskNames, options) => {
+    await tasks.runTasksAsync(taskNames, options);
+  });
 }
 
 async function defineTasksAsync() {
