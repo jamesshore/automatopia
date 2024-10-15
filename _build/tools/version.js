@@ -24,10 +24,13 @@ export default class Version {
 		}]);
 
 		if (this._checked) return;
-		await reporter.startAsync("Checking Node.js version", async () => {
+		await reporter.startAsync("Checking Node.js version", async (report) => {
 			const json = await this._fileSystem.readTextFileAsync(packageJson);
 			const expectedVersion = "v" + JSON.parse(json).engines.node;
 			const actualVersion = process.version;
+
+			report.debug(`\n  Expected: ${expectedVersion}`);
+			report.debug(`\n  Actual: ${actualVersion}`);
 
 			if (expectedVersion !== actualVersion) {
 				throw new TaskError(`Incorrect Node version. Expected ${expectedVersion}, but was ${actualVersion}.`);

@@ -32,6 +32,7 @@ export default class Lint {
 			const successes = await Promise.all(filesToLint.map(async (file) => {
 				report.started();
 				const sourceCode = await this._fileSystem.readTextFileAsync(file);
+				report.debug(`\n  Lint ${file}`);
 
 				const success = await this.#validateSource(report, sourceCode, config, file);
 
