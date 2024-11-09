@@ -1,4 +1,3 @@
-#!/usr/local/bin/node
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 // Automatically runs build when files change.
@@ -20,25 +19,35 @@ const args = process.argv.slice(2);
 const clock = Clock.create();
 const noOutputShell = Shell.createSilent();
 
-
 let fileTreeChanged = false;
+let restart = false;
+
 runAsync();
 
 async function runAsync() {
 	const build = await Build.create();
 	const fileSystem = FileSystem.create(Paths.rootDir, Paths.timestampsBuildDir);
 
-	// run all of these functions in the background, in parallel
-	restartWhenBuildFilesChangeAsync(fileSystem);
-	markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem);
-	runBuildWhenAnyFilesChangeAsync(fileSystem, build);
+	markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem);  // runs in background
+	const restartPromise = detectWhenBuildFilesChangeAsync(fileSystem);
+
+	while (!restart) {
+		const changePromise = Promise.race([
+			debouncedWaitForChangeAsync(fileSystem),
+			restartPromise,
+		]);
+		await runBuildAsync(build);
+		await changePromise;
+	}
+
+	// watch.sh will detect that the process exited cleanly and restart it
+	process.exit(0);
 }
 
-async function restartWhenBuildFilesChangeAsync(fileSystem) {
+async function detectWhenBuildFilesChangeAsync(fileSystem) {
 	await fileSystem.waitForChangeAsync(Paths.buildRestartGlobs);
-	console.log(watchColor("\n*** Build files changed"));
-	process.exit(0);
-	// watch.sh will detect that the process exited cleanly and restart it
+	console.log(watchColor("*** Build files changed"));
+	restart = true;
 }
 
 async function markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem) {
@@ -48,12 +57,10 @@ async function markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem) {
 	}
 }
 
-async function runBuildWhenAnyFilesChangeAsync(fileSystem, build) {
-	while (true) {
-		const changePromise = debouncedWaitForChangeAsync(fileSystem);
-		await runBuildAsync(build);
-		await changePromise;
-	}
+async function debouncedWaitForChangeAsync(fileSystem) {
+	await clock.waitAsync(DEBOUNCE_MS);
+	await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs);
+	console.log(watchColor("*** Change detected"));
 }
 
 async function runBuildAsync(build) {
@@ -66,12 +73,6 @@ async function runBuildAsync(build) {
 
 	// We don't 'await' this because we want it to run in the background.
 	playBuildResultSoundAsync(buildResult);
-}
-
-async function debouncedWaitForChangeAsync(fileSystem) {
-	await clock.waitAsync(DEBOUNCE_MS);
-	await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs);
-	console.log(watchColor("\n*** Change detected"));
 }
 
 async function playBuildResultSoundAsync(buildResult) {

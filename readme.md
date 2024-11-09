@@ -158,6 +158,7 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *9 Nov 2024:* Prevent dangling Node processes by waiting until build finishes before restarting when build files change
 * *14 Oct 2024:* TaskCli provides runs build function and provides command-line options; add detailed debug logs
 * *13 Oct 2024:* Remove test runner into separate "ergotest" npm package
 * *6 Oct 2024:* Convert to ES Modules
