@@ -22,24 +22,44 @@ export default class Tests {
 		this._testRunner = TestRunner.create();
 	}
 
-	async runAsync({ description, files, config, reporter }) {
+	async runAsync({
+		description,
+		testFiles,
+		setupFiles = [],
+		config,
+		failOnSkip = false,
+		reporter
+	}) {
 		ensure.signature(arguments, [{
 			description: String,
-			files: Array,
+			testFiles: Array,
+			setupFiles: [ undefined, Array ],
 			config: Object,
+			failOnSkip: [ undefined, Boolean ],
 			reporter: Reporter,
 		}]);
 
-		const filesToRun = await this.#findTestFilesAsync(reporter, description, files);
-		if (filesToRun.length === 0) return;
+		const filesToRun = await this.#findTestFilesAsync(reporter, description, setupFiles, testFiles);
 
-		await this.#runTestsAsync(reporter, description, filesToRun, config);
+		if (filesToRun.length !== 0) {
+			await this.#runTestsAsync(reporter, description, filesToRun, setupFiles, failOnSkip, config);
+		}
 	}
 
-	async #findTestFilesAsync(reporter, description, files) {
+	async #findTestFilesAsync(reporter, description, setupFiles, testFiles) {
+		const dependencyTree = this._dependencyTree;
+		const fileSystem = this._fileSystem;
+
 		return await reporter.quietStartAsync(`Finding ${description}`, async (report) => {
-			const { changed, errors } = await this._dependencyTree.findChangedFilesAsync(
-				files,
+			const setupFilesChanged = await findChangedFilesAsync(setupFiles, report);
+
+			if (setupFilesChanged.length > 0) return testFiles;
+			else return await findChangedFilesAsync(testFiles, report);
+		});
+
+		async function findChangedFilesAsync(filesToCheck, report) {
+			const { changed, errors } = await dependencyTree.findChangedFilesAsync(
+				filesToCheck,
 				"test",
 				(filename) => {
 					report.debug(`\n  Analyze ${filename}`);
@@ -47,11 +67,11 @@ export default class Tests {
 				},
 			);
 
-			reportErrors(this._fileSystem, report, errors);
+			reportErrors(fileSystem, report, errors);
 			if (errors.length !== 0) throw new TaskError("Dependency analysis failed");
 
 			return changed;
-		});
+		}
 
 		function reportErrors(fileSystem, report, errors) {
 			const errorsByFile = {};
@@ -82,11 +102,13 @@ export default class Tests {
 		}
 	}
 
-	async #runTestsAsync(reporter, description, filesToRun, config) {
+	async #runTestsAsync(reporter, description, filesToRun, setupFiles, failOnSkip, config) {
 		await reporter.startAsync(`Running ${description}`, async (report) => {
 			const testResult = await this._testRunner.runInChildProcessAsync(filesToRun, {
+				setupModulePaths: setupFiles,
+				timeout: 10000,
 				config,
-				notifyFn: testResult => {
+				onTestCaseResult: testResult => {
 					report.debug("\n  " + testResult.renderAsSingleLine());
 					report.progress(testResult.renderAsCharacter());
 				},
@@ -97,6 +119,7 @@ export default class Tests {
 
 			const testCount = testResult.count();
 			if (testCount.fail + testCount.timeout > 0) throw new TaskError("Tests failed");
+			if (failOnSkip && testCount.skip > 0) throw new TaskError("Tests were skipped");
 			if (testCount.total - testCount.skip === 0) throw new TaskError("No tests found");
 		});
 	}

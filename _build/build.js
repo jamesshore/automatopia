@@ -118,14 +118,14 @@ export default class Build {
 
 			await tests.runAsync({
 				description: "JavaScript tests",
-				files: paths.buildTestFiles(),
+				testFiles: paths.buildTestFiles(),
 				config: testConfig,
 				reporter: options.reporter,
 			});
 
 			await tests.runAsync({
 				description: "TypeScript tests",
-				files: typescript.mapTsToJs({
+				testFiles: typescript.mapTsToJs({
 					files: paths.srcTestFiles(),
 					sourceDir: Paths.typescriptSrcDir,
 					outputDir: Paths.typescriptTargetDir,
