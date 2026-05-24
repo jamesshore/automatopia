@@ -1,8 +1,8 @@
 // Copyright Titanium I.T. LLC.
 
-import { test, assert } from "ergotest";
+import { describe, it, assert } from "ergotest";
 
-export default test(({ it }) => {
+export default describe(() => {
 
 	it("runs tests", () => {
 		// assert.todo();

@@ -93,6 +93,12 @@ export default class Paths {
 		]);
 	}
 
+	srcTestSetupFiles() {
+		return this._files.matchingFiles([
+			`${rootDir}/src/_test_setup.ts`,
+		]);
+	}
+
 	typescriptFiles() {
 		return this._files.matchingFiles([
 			`${rootDir}/src/**/*.ts`,

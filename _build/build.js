@@ -130,6 +130,11 @@ export default class Build {
 					sourceDir: Paths.typescriptSrcDir,
 					outputDir: Paths.typescriptTargetDir,
 				}),
+				setupFiles: typescript.mapTsToJs({
+					files: paths.srcTestSetupFiles(),
+					sourceDir: Paths.typescriptSrcDir,
+					outputDir: Paths.typescriptTargetDir,
+				}),
 				config: testConfig,
 				reporter: options.reporter,
 			});
