@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "../tests/index.js";
+import { assert, describe, it } from "../util/test.js";
 import Repo from "./repo.js";
 import Shell from "./shell.js";
 import Output from "./console_output.js";

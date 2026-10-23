@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "../tests/index.js";
+import { assert, describe, it } from "./test.js";
 import * as ensure from "./ensure.js";
 
 export default describe(() => {

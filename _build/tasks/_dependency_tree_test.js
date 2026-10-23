@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "../tests/index.js";
+import { assert, describe, it } from "../util/test.js";
 import * as ensure from "../util/ensure.js";
 import DependencyTree from "./dependency_tree.js";
 import FileSystem from "../infrastructure/file_system.js";
