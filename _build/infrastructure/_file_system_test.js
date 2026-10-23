@@ -1,13 +1,13 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it, beforeAll, beforeEach } from "../util/test.js";
+import { assert, beforeAll, beforeEach, describe, it } from "../util/test.js";
 import * as ensure from "../util/ensure.js";
 import FileSystem from "./file_system.js";
 import FileTree from "./file_tree.js";
 import fs from "node:fs/promises";
-import Clock from "./clock.js";
 import path from "node:path";
 
 const IRRELEVANT_FILE_CONTENTS = "irrelevant file contents";
+const IRRELEVANT_DATE = new Date(42);
 
 export default describe(() => {
 
@@ -604,15 +604,13 @@ export default describe(() => {
 	describe("Modification times", () => {
 
 		it("provides last modified timestamp", async () => {
-			const clock = Clock.create();
 			const { fileSystem } = create();
+			const modified = new Date("2001-01-01T00:00:00Z");
 
-			const start = clock.now();
 			await fileSystem.writeTextFileAsync(FILENAME, IRRELEVANT_FILE_CONTENTS);
-			const end = clock.now() + 1; // test needs a little slop to prevent race condition
+			await fs.utimes(FILENAME, IRRELEVANT_DATE, modified);
 
-			const modified = await fileSystem.getFileModificationTimeAsync(FILENAME);
-			assert.between(modified.valueOf(), start, end);
+			assert.equal(await fileSystem.getFileModificationTimeAsync(FILENAME), modified);
 		});
 
 		it("fails when asked for modification time and file can't be found", async () => {
