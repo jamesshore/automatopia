@@ -54,7 +54,6 @@ export default class Paths {
 	static get universalGlobsToExclude() {
 		return [
 			`${rootDir}/node_modules/**`,
-			`${rootDir}/_build/tests/vendor/**`,
 			`${rootDir}/src/node_modules/tests/vendor/**`,
 			`${rootDir}/generated/**`,
 		];
@@ -63,7 +62,6 @@ export default class Paths {
 	static get dependencyTreeGlobsToExclude() {
 		return [
 			`${rootDir}/node_modules/**`,
-			`${rootDir}/_build/tests/vendor/**`,
 			`${rootDir}/src/node_modules/tests/vendor/**`,
 		];
 	}

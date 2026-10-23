@@ -56,7 +56,7 @@ const rootDir = path.resolve(__dirname, "..");
 const generatedDir = `${rootDir}/generated`;
 const incrementalDir = `${rootDir}/generated/incremental`;
 const timestampDir = `${rootDir}/generated/timestamps`;
-const universalExcludes = [ `${rootDir}/node_modules/**`, `${rootDir}/_build/tests/vendor/**` ];
+const universalExcludes = [ `${rootDir}/node_modules/**` ];
 const packageJson = `${rootDir}/package.json`;
 const lintGlobs = `${rootDir}/**/*.js`;
 const testGlobs = `${rootDir}/**/_*_test.js`;
@@ -158,6 +158,7 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *23 Oct 2026:* Clean up directory structure
 * *23 Oct 2026:* Fix tests to work with ergotest 0.14.0
 * *24 May 2026:* Update for ergotest 0.14.0
 * *9 Nov 2024:* Prevent dangling Node processes by waiting until build finishes before restarting when build files change
