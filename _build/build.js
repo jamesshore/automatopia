@@ -34,7 +34,6 @@ export default class Build {
 			version: "Check Node.js version",
 			lint: "Lint JavaScript code (incremental)",
 			unittest: "Run unit tests (incremental)",
-			compile: "Compile TypeScript (incremental)",
 			typecheck: "Type-check TypeScript and create declaration files",
 		});
 	}
@@ -114,8 +113,6 @@ export default class Build {
 		tasks.defineTask("unittest", async (options) => {
 			const paths = await this.#getPathsAsync(options.reporter);
 
-			await tasks.runTasksAsync([ "compile" ], options);
-
 			await tests.runAsync({
 				description: "JavaScript tests",
 				testFiles: paths.buildTestFiles(),
@@ -125,30 +122,9 @@ export default class Build {
 
 			await tests.runAsync({
 				description: "TypeScript tests",
-				testFiles: typescript.mapTsToJs({
-					files: paths.srcTestFiles(),
-					sourceDir: Paths.typescriptSrcDir,
-					outputDir: Paths.typescriptTargetDir,
-				}),
-				setupFiles: typescript.mapTsToJs({
-					files: paths.srcTestSetupFiles(),
-					sourceDir: Paths.typescriptSrcDir,
-					outputDir: Paths.typescriptTargetDir,
-				}),
+				testFiles: paths.srcTestFiles(),
+				setupFiles: paths.srcTestSetupFiles(),
 				config: testConfig,
-				reporter: options.reporter,
-			});
-		});
-
-		tasks.defineTask("compile", async (options) => {
-			const paths = await this.#getPathsAsync(options.reporter);
-
-			await typescript.compileAsync({
-				description: "TypeScript tree",
-				files: paths.typescriptFiles(),
-				sourceDir: Paths.typescriptSrcDir,
-				outputDir: Paths.typescriptTargetDir,
-				config: swcConfig,
 				reporter: options.reporter,
 			});
 		});
