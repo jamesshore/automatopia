@@ -1,11 +1,11 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "util/ensure.js";
-import Reporter from "tasks/reporter.js";
-import TaskError from "tasks/task_error.js";
-import Colors from "infrastructure/colors.js";
-import FileSystem from "infrastructure/file_system.js";
-import DependencyTree from "tasks/dependency_tree.js";
-import { TestRunner } from "tests/test_runner.js";
+import * as ensure from "../util/ensure.js";
+import Reporter from "../tasks/reporter.js";
+import TaskError from "../tasks/task_error.js";
+import Colors from "../infrastructure/colors.js";
+import FileSystem from "../infrastructure/file_system.js";
+import DependencyTree from "../tasks/dependency_tree.js";
+import { TestRunner } from "../tests/test_runner.js";
 import path from "node:path";
 
 export default class Tests {

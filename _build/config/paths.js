@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as ensure from "util/ensure.js";
-import FileTree from "infrastructure/file_tree.js";
+import * as ensure from "../util/ensure.js";
+import FileTree from "../infrastructure/file_tree.js";
 import path from "node:path";
 
 const rootDir = path.resolve(import.meta.dirname, "../..");
@@ -54,7 +54,7 @@ export default class Paths {
 	static get universalGlobsToExclude() {
 		return [
 			`${rootDir}/node_modules/**`,
-			`${rootDir}/_build/node_modules/tests/vendor/**`,
+			`${rootDir}/_build/tests/vendor/**`,
 			`${rootDir}/src/node_modules/tests/vendor/**`,
 			`${rootDir}/generated/**`,
 		];
@@ -63,7 +63,7 @@ export default class Paths {
 	static get dependencyTreeGlobsToExclude() {
 		return [
 			`${rootDir}/node_modules/**`,
-			`${rootDir}/_build/node_modules/tests/vendor/**`,
+			`${rootDir}/_build/tests/vendor/**`,
 			`${rootDir}/src/node_modules/tests/vendor/**`,
 		];
 	}

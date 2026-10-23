@@ -1,10 +1,10 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "util/ensure.js";
-import Colors from "infrastructure/colors.js";
-import FileSystem from "infrastructure/file_system.js";
-import TaskError from "tasks/task_error.js";
-import Reporter from "tasks/reporter.js";
-import Shell from "infrastructure/shell.js";
+import * as ensure from "../util/ensure.js";
+import Colors from "../infrastructure/colors.js";
+import FileSystem from "../infrastructure/file_system.js";
+import TaskError from "../tasks/task_error.js";
+import Reporter from "../tasks/reporter.js";
+import Shell from "../infrastructure/shell.js";
 import swc from "@swc/core";
 import path from "node:path";
 

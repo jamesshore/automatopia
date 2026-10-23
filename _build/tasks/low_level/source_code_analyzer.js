@@ -1,0 +1,44 @@
+// Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
+
+import * as ensure from "../../util/ensure.js";
+
+const IMPORT_REGEX = /(\/\/)?.*?\b(?:import|export) .*? from\s*?["'](.*?)["']/;
+const REQUIRE_REGEX = /(\/\/.*?)?\brequire\s*\(\s*["'](.*?)["']\s*\)/;
+const COMMENT_REGEX = /^\s*?\/\/\s*?dependency:\s*(.*?)\s*?$/;
+
+/**
+ * Find the dependencies mentioned in a set of source code. Looks for "require()" statements and "// dependency: xxx" comments.
+ * @param {string} sourceCode The source code to analyze.
+ * @returns {{path: string, line: number, source: string}[]} A list of all dependencies found. Each dependency has the path of the dependency, the line number it was found on (one-based), and the source code of that line.
+ */
+export function analyze(sourceCode) {
+	ensure.signature(arguments, [ String ]);
+
+	return sourceCode.split("\n").map((source, line) => {
+		const path = matchImportStatement(source) ?? matchRequireStatement(source) ?? matchDependencyComment(source);
+
+		if (path === null) return null;
+		else return { path, line: line + 1, source: source.trim() };
+	}).filter(dependency => dependency !== null);
+}
+
+function matchImportStatement(line) {
+	const match = line.match(IMPORT_REGEX);
+
+	if (match === null || match[1] !== undefined) return null;
+	else return match[2];
+}
+
+function matchRequireStatement(line) {
+	const match = line.match(REQUIRE_REGEX);
+
+	if (match === null || match[1] !== undefined) return null;
+	else return match[2];
+}
+
+function matchDependencyComment(line) {
+	const match = line.match(COMMENT_REGEX);
+
+	if (match === null) return null;
+	else return match[1];
+}

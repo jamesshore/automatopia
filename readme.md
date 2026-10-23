@@ -3,21 +3,21 @@
 This repository contains JavaScript classes for creating high-performance task and build automation. Here are some of the highlights:
 
 * **Task Automation**
-  * [Tasks](_build/node_modules/tasks/tasks.js) - Define and run tasks
-  * [TaskCli](_build/node_modules/tasks/task_cli.js) - A command-line interface to Tasks
-  * [Reporter](_build/node_modules/tasks/reporter.js) - Provide tidy build progress
-  * [Shell](_build/node_modules/infrastructure/shell.js) - Execute programs
-  * [FileTree](_build/node_modules/infrastructure/file_tree.js) - Convert file globs to filenames
-  * [Colors](_build/node_modules/infrastructure/colors.js) - Color-code build output
+  * [Tasks](_build/tasks/tasks.js) - Define and run tasks
+  * [TaskCli](_build/tasks/task_cli.js) - A command-line interface to Tasks
+  * [Reporter](_build/tasks/reporter.js) - Provide tidy build progress
+  * [Shell](_build/infrastructure/shell.js) - Execute programs
+  * [FileTree](_build/infrastructure/file_tree.js) - Convert file globs to filenames
+  * [Colors](_build/infrastructure/colors.js) - Color-code build output
 
 * **Incremental Builds**
-  * [Tasks](_build/node_modules/tasks/tasks.js) - Define tasks that only run when their source files change
-  * [FileSystem](_build/node_modules/infrastructure/file_system.js) - Determine if a file has changed since the last time you operated on it, or if a file is newer than a set of source files
-  * [DependencyTree](_build/node_modules/tasks/dependency_tree.js) - Determine if a file *or anything in its dependency tree* has changed since the last time you operated on it 
+  * [Tasks](_build/tasks/tasks.js) - Define tasks that only run when their source files change
+  * [FileSystem](_build/infrastructure/file_system.js) - Determine if a file has changed since the last time you operated on it, or if a file is newer than a set of source files
+  * [DependencyTree](_build/tasks/dependency_tree.js) - Determine if a file *or anything in its dependency tree* has changed since the last time you operated on it
 
 * **Watching**
-  * [FileSystem](_build/node_modules/infrastructure/file_system.js) - Wait until a set of files change
-  * [Clock](_build/node_modules/infrastructure/clock.js) - Wait for various conditions
+  * [FileSystem](_build/infrastructure/file_system.js) - Wait until a set of files change
+  * [Clock](_build/infrastructure/clock.js) - Wait for various conditions
   * [sounds](_build/sounds) - Pleasant sounds to play for different build outcomes 
 
 * **Example Tools**
@@ -41,10 +41,10 @@ The above examples are full-featured and derived from production builds. See bel
 ```javascript
 "use strict";
 
-const Tasks = require("tasks/tasks");
-const TaskCli = require("tasks/task_cli");
-const Reporter = require("tasks/reporter");
-const FileSystem = require("infrastructure/file_system");
+const Tasks = require("./tasks/tasks");
+const TaskCli = require("./tasks/task_cli");
+const Reporter = require("./tasks/reporter");
+const FileSystem = require("./infrastructure/file_system");
 const Version = require("./tools/version");
 const Lint = require("./tools/lint");
 const Tests = require("./tools/tests");
@@ -56,7 +56,7 @@ const rootDir = path.resolve(__dirname, "..");
 const generatedDir = `${rootDir}/generated`;
 const incrementalDir = `${rootDir}/generated/incremental`;
 const timestampDir = `${rootDir}/generated/timestamps`;
-const universalExcludes = [ `${rootDir}/node_modules/**`, `${rootDir}/_build/node_modules/tests/vendor/**` ];
+const universalExcludes = [ `${rootDir}/node_modules/**`, `${rootDir}/_build/tests/vendor/**` ];
 const packageJson = `${rootDir}/package.json`;
 const lintGlobs = `${rootDir}/**/*.js`;
 const testGlobs = `${rootDir}/**/_*_test.js`;
@@ -128,7 +128,7 @@ async function defineTasksAsync() {
 "use strict";
 
 const Build = require("./build");
-const FileSystem = require("infrastructure/file_system");
+const FileSystem = require("./infrastructure/file_system");
 const path = require("node:path");
 
 const rootDir = path.resolve(__dirname, "..");

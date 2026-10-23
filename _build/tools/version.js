@@ -1,8 +1,8 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "util/ensure.js";
-import Reporter from "tasks/reporter.js";
-import TaskError from "tasks/task_error.js";
-import FileSystem from "infrastructure/file_system.js";
+import * as ensure from "../util/ensure.js";
+import Reporter from "../tasks/reporter.js";
+import TaskError from "../tasks/task_error.js";
+import FileSystem from "../infrastructure/file_system.js";
 
 export default class Version {
 

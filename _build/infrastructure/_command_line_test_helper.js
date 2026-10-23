@@ -1,0 +1,10 @@
+// Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
+import CommandLine from "./command_line.js";
+
+const commandLine = CommandLine.create();
+
+process.stdout.write(
+	`rawArguments: ${JSON.stringify(commandLine.rawArguments)}\n` +
+	`commands: ${JSON.stringify(commandLine.commands)}\n` +
+	`options: ${JSON.stringify(commandLine.options)}\n`
+);

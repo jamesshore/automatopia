@@ -1,0 +1,177 @@
+// Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
+
+import * as ensure from "../util/ensure.js";
+import CommandLine from "../infrastructure/command_line.js";
+import ConsoleOutput from "../infrastructure/console_output.js";
+import Colors from "../infrastructure/colors.js";
+import Clock from "../infrastructure/clock.js";
+import Tasks from "./tasks.js";
+import TaskError from "./task_error.js";
+
+const ACTION = {
+	START: "start",
+	END: "end",
+};
+
+const CLI_FAILURE = "__CLI__";
+const BUILD_FAILURE = "__BUILD__";
+
+/**
+ * A command-line interface (CLI) for running tasks.
+ * @see Tasks
+ */
+export default class TaskCli {
+
+	/**
+	 * An enum for {@link TaskCli#track}.
+	 * @returns {{START: string, END: string}}
+	 */
+	static get ACTION() {
+		return ACTION;
+	}
+
+	/**
+	 * {@link TaskCli#runAsync} returns the name of the task that failed (when a failure occurs). If no tasks are run,
+	 * for example if help is requested or an invalid task is specified, this magic string is returned.
+	 */
+	static get CLI_FAILURE() {
+		return CLI_FAILURE;
+	}
+
+	/**
+	 * {@link TaskCli#runAsync} returns the name of the task that failed (when a failure occurs). If the build fails
+	 * outside of running a task, this magic string is returned.
+	 */
+	static get BUILD_FAILURE() {
+		return BUILD_FAILURE;
+	}
+
+	/**
+	 * Factory method.
+	 * @returns {TaskCli} The instance.
+	 */
+	static create() {
+		ensure.signature(arguments, []);
+
+		return new TaskCli(CommandLine.create(), ConsoleOutput.createStdout(), Clock.create());
+	}
+
+	/** Internal use only. (Use a factory method instead.) */
+	constructor(commandLine, stdout, clock) {
+		this._commandLine = commandLine;
+		this._stdout = stdout;
+		this._clock = clock;
+	}
+
+	/**
+	 * Interpret command-line arguments, run the build, and display success or failure. "Failure" means the build threw
+	 * an exception. To show a prettier failure, without the exception stack trace, throw {@link TaskError} rather than
+	 * Error.
+	 * @param {tasks} tasks The message to display when all the tasks are successful.
+	 * @param {string} successMessage The message to display when all the tasks are successful.
+	 * @param {string} failureMessage The message to display when one of the tasks throws an exception.
+	 * @param {(taskNames, options) => Promise<void>} buildFnAsync The build to run. It’s given the task names that were
+	 *   provided on the command line and the command-line arguments that can be interpreted as options (that is, that
+	 *   start with a hyphen), along with any values for those arguments. For example, `-T` will be returned as `{ T:
+	 *   true }` and `--file=my_file` will be returned as `{ file: "my_file" }`. Performs basic type conversion on option
+	 *   values.
+	 * @returns {Promise<null|string>} The name of the task that failed, or null if the tasks were all successful.
+	 *   Returns {@link TaskCli.CLI_FAILURE} when no tasks are run, such as when help is requested or an invalid task is
+	 *  specified. Returns {@link TaskCli.BUILD_FAILURE} when the build throws an exception outside of a task.
+	 */
+	async runAsync(tasks, successMessage, failureMessage, buildFnAsync) {
+		ensure.signature(arguments, [ Tasks, String, String, Function ]);
+
+		const { taskNames, helpOption, debugOption } = analyzeCommandLine(this._commandLine, tasks);
+
+		const showedHelp = showHelpIfNecessary(this._stdout, tasks, taskNames, helpOption, failureMessage);
+		if (showedHelp) return CLI_FAILURE;
+
+		const stdout = this._stdout;
+		let timings = [];
+		if (debugOption) tasks.on(Tasks.TASK_EVENT, writeTaskEvent);
+
+		try {
+			const startTime = this._clock.now();
+			await buildFnAsync(taskNames, this._commandLine.options);
+			writeSuccess(this._stdout, successMessage, this._clock.millisecondsSince(startTime) / 1000);
+			return null;
+		}
+		catch (err) {
+			const showStack = debugOption || !(err instanceof TaskError);
+			writeFailure(this._stdout, failureMessage, showStack ? err.stack : err.message);
+			return err.failedTask ?? BUILD_FAILURE;
+		}
+		finally {
+			if (debugOption) tasks.off(Tasks.TASK_EVENT, writeTaskEvent);
+		}
+
+		function writeTaskEvent({ task, action, timestamp }) {
+			if (action === Tasks.ACTION.START) {
+				timings.push(timestamp);
+				stdout.write(Colors.white.inverse(`start: ${task}\n`));
+			}
+			else if (action === Tasks.ACTION.END) {
+				const elapsedTime = timestamp - timings.pop();
+				timings = timings.map(startTime => startTime + elapsedTime);
+				stdout.write(Colors.white.inverse(`end: ${task} (${(elapsedTime / 1000).toFixed(2)}s)\n`));
+			}
+			else {
+				ensure.unreachable(`Unrecognized action: ${action}`);
+			}
+		}
+	}
+}
+
+function analyzeCommandLine(commandLine, tasks) {
+	const taskNames = commandLine.commands;
+	if (taskNames.length === 0 && tasks.hasTask("default")) taskNames.push("default");
+
+	const options = commandLine.options;
+	const helpOption = options.help || options.h || options.tasks || options.T;
+	const debugOption = options.debug;
+
+	return { taskNames, helpOption, debugOption };
+}
+
+function showHelpIfNecessary(stdout, tasks, taskNames, helpOption, failureMessage) {
+	const unknownTasks = determineUnknownTasks(tasks, taskNames);
+	if (!helpOption && taskNames.length > 0 && unknownTasks === "") return false;
+
+	if (unknownTasks !== "") {
+		writeFailure(stdout, failureMessage, `Unrecognized task(s): ${unknownTasks}`);
+		stdout.write("\n");
+	}
+
+	stdout.write("\n" + Colors.brightWhite("options:") + " <tasks> [-h|--help|-T|--tasks] [--debug]\n\n");
+	stdout.write(Colors.brightWhite.underline("Available tasks:") + "\n");
+
+	const maxLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
+	tasks.listTasks().forEach(({ name, description }) => {
+		stdout.write(`  ${Colors.white.bold(name.padEnd(maxLength))}  ${description}\n`);
+	});
+	stdout.write("\n");
+
+	return true;
+}
+
+function writeSuccess(stdout, successMessage, elapsedSeconds) {
+	stdout.write(
+		"\n" +
+		Colors.brightGreen.inverse(`   ${successMessage}   `) + "\n" +
+		`(${elapsedSeconds.toFixed(2)}s)\n`,
+	);
+}
+
+function writeFailure(stdout, failureMessage, message) {
+	stdout.write(
+		"\n" +
+		Colors.brightRed.inverse(`   ${failureMessage}   `) + "\n" +
+		Colors.brightRed.bold(message) + "\n",
+	);
+}
+
+function determineUnknownTasks(tasks, tasksToRun) {
+	return tasksToRun.filter(task => !tasks.hasTask(task)).join(", ");
+}
+

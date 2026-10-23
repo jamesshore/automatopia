@@ -3,12 +3,12 @@
 // Automatically runs build when files change.
 
 import Build from "./build.js";
-import Colors from "infrastructure/colors.js";
-import Shell from "infrastructure/shell.js";
+import Colors from "./infrastructure/colors.js";
+import Shell from "./infrastructure/shell.js";
 import Paths from "./config/paths.js";
-import FileSystem from "infrastructure/file_system.js";
-import Clock from "infrastructure/clock.js";
-import TaskCli from "tasks/task_cli.js";
+import FileSystem from "./infrastructure/file_system.js";
+import Clock from "./infrastructure/clock.js";
+import TaskCli from "./tasks/task_cli.js";
 import path from "node:path";
 
 const watchColor = Colors.cyan;

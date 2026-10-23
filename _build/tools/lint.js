@@ -1,9 +1,9 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "util/ensure.js";
-import Reporter from "tasks/reporter.js";
-import FileSystem from "infrastructure/file_system.js";
-import TaskError from "tasks/task_error.js";
-import Colors from "infrastructure/colors.js";
+import * as ensure from "../util/ensure.js";
+import Reporter from "../tasks/reporter.js";
+import FileSystem from "../infrastructure/file_system.js";
+import TaskError from "../tasks/task_error.js";
+import Colors from "../infrastructure/colors.js";
 import { Linter, SourceCode } from "eslint";
 
 export default class Lint {
