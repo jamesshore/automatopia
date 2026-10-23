@@ -30,7 +30,6 @@ export default class Paths {
 	static get tscBinary() { return `${rootDir}/node_modules/typescript/bin/tsc`; }
 	static get typescriptConfigFile() { return `${rootDir}/tsconfig.json`; }
 
-	static get typescriptSrcDir() { return `${rootDir}/src`; }
 	static get typescriptTargetDir() { return `${generatedDir}/src`; }
 
 	static get successSound() { return `${rootDir}/_build/sounds/success.mp3`; }
@@ -96,11 +95,4 @@ export default class Paths {
 			`${rootDir}/src/_test_setup.ts`,
 		]);
 	}
-
-	typescriptFiles() {
-		return this._files.matchingFiles([
-			`${rootDir}/src/**/*.ts`,
-		]);
-	}
-
 }

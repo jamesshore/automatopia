@@ -12,7 +12,6 @@ import Paths from "./config/paths.js";
 import testConfig from "./config/tests.conf.js";
 import lintJavascriptConfig from "./config/eslint.javascript.config.js";
 import lintTypescriptConfig from "./config/eslint.typescript.config.js";
-import swcConfig from "./config/swc.conf.js";
 
 export default class Build {
 
@@ -68,7 +67,7 @@ export default class Build {
 		const version = Version.create(this._fileSystem);
 		const lint = Lint.create(this._fileSystem);
 		const tests = Tests.create(this._fileSystem, Paths.dependencyTreeGlobsToExclude);
-		const typescript = TypeScript.create(this._fileSystem);
+		const typescript = TypeScript.create();
 
 		tasks.defineTask("default", async(options) => {
 			await tasks.runTasksAsync([ "clean", "quick", "typecheck" ], options);

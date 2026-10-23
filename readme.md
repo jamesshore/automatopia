@@ -158,6 +158,7 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *23 Oct 2026:* Remove compile step (uses Node's built-in type stripping instead)
 * *23 Oct 2026:* Clean up directory structure
 * *23 Oct 2026:* Fix tests to work with ergotest 0.14.0
 * *24 May 2026:* Update for ergotest 0.14.0
