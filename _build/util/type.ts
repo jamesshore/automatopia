@@ -1,6 +1,23 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-export function check(arg, expectedTypes, options) {
+export type RuntimeType =
+	| ((...args: never[]) => unknown)
+	| (abstract new (...args: never[]) => object)
+	| number | null | undefined
+	| { [key: string]: RuntimeType }
+	| RuntimeType[];
+
+export interface CheckOptions {
+	name?: string;
+	allowExtraKeys?: boolean;
+}
+
+export interface DescribeOptions {
+	articles?: boolean;
+	atLeast?: boolean;
+}
+
+export function check(arg: unknown, expectedTypes: RuntimeType, options?: CheckOptions): string | null {
 	const argType = getType(arg);
 	if (!Array.isArray(expectedTypes)) expectedTypes = [ expectedTypes ];
 	options = options || {};
@@ -8,19 +25,19 @@ export function check(arg, expectedTypes, options) {
 
 	for (let i = 0; i < expectedTypes.length; i++) {
 		if (oneTypeMatches(arg, argType, expectedTypes[i])) {
-			if (isStructComparison(argType, expectedTypes[i])) return checkStruct(arg, expectedTypes[i], options);
+			if (isStructComparison(argType, expectedTypes[i])) return checkStruct(arg as Record<string, unknown>, expectedTypes[i] as Record<string, RuntimeType>, options);
 			else return null;
 		}
 	}
 	return describeError(arg, argType, expectedTypes, options.name, options.allowExtraKeys);
 
 
-	function oneTypeMatches(arg, argType, expectedType) {
+	function oneTypeMatches(arg: unknown, argType: unknown, expectedType: RuntimeType): boolean {
 		if (argType === Object) return checkObject(arg, expectedType);
 		else if (Number.isNaN(argType)) return Number.isNaN(expectedType);
 		else return argType === expectedType;
 
-		function checkObject(arg, type) {
+		function checkObject(arg: unknown, type: RuntimeType): boolean {
 			if (type === null) return false;
 			else if (typeof type === "function") return arg instanceof type;
 			else if (typeof type === "object") return typeof arg === "object";
@@ -28,11 +45,11 @@ export function check(arg, expectedTypes, options) {
 		}
 	}
 
-	function isStructComparison(argType, type) {
+	function isStructComparison(argType: unknown, type: RuntimeType): boolean {
 		return argType === Object && typeof type === "object";
 	}
 
-	function checkStruct(arg, type, options) {
+	function checkStruct(arg: Record<string, unknown>, type: Record<string, RuntimeType>, options: CheckOptions): string | null {
 		if (typeof type !== "object") throw new Error("unrecognized type: " + type);
 
 		const unmatched = Object.assign({}, arg);
@@ -53,7 +70,7 @@ export function check(arg, expectedTypes, options) {
 		return null;
 	}
 
-	function describeError(arg, argType, type, name, allowExtraKeys) {
+	function describeError(arg: unknown, argType: unknown, type: RuntimeType, name: string, allowExtraKeys?: boolean): string {
 		const options = { articles: true, atLeast: allowExtraKeys };
 		if (argType === Object && !isStruct(arg)) argType = arg;
 		return name + " must be " + describe(type, options) + ", but it was " + describe(argType, options);
@@ -62,11 +79,10 @@ export function check(arg, expectedTypes, options) {
 }
 
 
-export function describe(type, options) {
+export function describe(type: unknown, options: DescribeOptions = {}): string {
 	if (!Array.isArray(type)) type = [ type ];
-	if (options === undefined) options = {};
 
-	const descriptions = type.map(function(oneType) {
+	const descriptions = (type as unknown[]).map(function(oneType) {
 		return describeOneType(oneType);
 	});
 
@@ -79,7 +95,7 @@ export function describe(type, options) {
 		return `${beginning}, or ${descriptions.slice(-1)}`;
 	}
 
-	function describeOneType(type) {
+	function describeOneType(type: unknown): string {
 		switch(type) {
 			case Boolean: return options.articles ? "a boolean" : "boolean";
 			case String: return options.articles ? "a string" : "string";
@@ -93,14 +109,14 @@ export function describe(type, options) {
 				if (Number.isNaN(type)) return "NaN";
 				else if (typeof type === "function") return describeConstructor(type, options);
 				else if (typeof type === "object") {
-					if (isStruct(type)) return describeStruct(type, options);
-					else return describeInstance(type, options);
+					if (isStruct(type)) return describeStruct(type as Record<string, unknown>, options);
+					else return describeInstance(type as object, options);
 				}
 				else throw new Error("unrecognized type: " + type);
 		}
 	}
 
-	function describeConstructor(type, options) {
+	function describeConstructor(type: { name: string }, options: DescribeOptions): string {
 		const articles = options.articles;
 
 		if (type === Object) return articles ? "an object" : "object";
@@ -116,7 +132,7 @@ export function describe(type, options) {
 		return name + " instance";
 	}
 
-	function describeStruct(type, options) {
+	function describeStruct(type: Record<string, unknown>, options: DescribeOptions): string {
 		const properties = Object.getOwnPropertyNames(type).map(function(key) {
 			return key + ": <" + describe(type[key]) + ">";
 		});
@@ -130,7 +146,7 @@ export function describe(type, options) {
 		return objectDesc + ` containing ${atLeast}{ ${properties.join(", ")} }`;
 	}
 
-	function describeInstance(type, options) {
+	function describeInstance(type: object, options: DescribeOptions): string {
 		const prototypeConstructor = Object.getPrototypeOf(type).constructor;
 		const article = options.articles;
 		let name = (article ? "a " : "") + prototypeConstructor.name;
@@ -141,7 +157,7 @@ export function describe(type, options) {
 
 }
 
-function getType(variable) {
+function getType(variable: unknown): RuntimeType {
 	if (variable === null) return null;
 	if (Array.isArray(variable)) return Array;
 	if (Number.isNaN(variable)) return NaN;
@@ -159,7 +175,7 @@ function getType(variable) {
 	}
 }
 
-function isStruct(type) {
+function isStruct(type: unknown): boolean {
 	const prototype = Object.getPrototypeOf(type);
 	return (!prototype || prototype.constructor === Object);
 }

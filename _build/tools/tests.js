@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "../util/ensure.js";
+import * as ensure from "../util/ensure.ts";
 import Reporter from "../tasks/reporter.js";
 import TaskError from "../tasks/task_error.js";
 import Colors from "../infrastructure/colors.js";

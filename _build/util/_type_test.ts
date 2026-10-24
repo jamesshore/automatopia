@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "./test.js";
-import * as type from "./type.js";
+import { assert, describe, it } from "./test.ts";
+import * as type from "./type.ts";
 
 export default describe(() => {
 
@@ -50,7 +50,7 @@ export default describe(() => {
 		});
 
 		it("checks custom types", function() {
-			function MyClass() {}
+			class MyClass {}
 
 			const myInstance = new MyClass();
 
@@ -121,8 +121,8 @@ export default describe(() => {
 		});
 
 		it("provides class names when using class instances", function() {
-			function One() {}
-			function Two() {}
+			class One {}
+			class Two {}
 
 			assert.equal(check(new One(), Two), "argument must be a Two instance, but it was a One instance");
 		});
@@ -135,10 +135,10 @@ export default describe(() => {
 
 	describe("describer", () => {
 
-		function MyClass() {}
+		class MyClass {}
 
-		const forceAnonymity = {};
-		const AnonClass = forceAnonymity.whatever = function() {};
+		const forceAnonymity: { whatever?: new () => object } = {};
+		const AnonClass = forceAnonymity.whatever = class {};
 
 		const myDescribe = type.describe;
 
@@ -191,9 +191,9 @@ export default describe(() => {
 		});
 
 		it("optionally uses articles", function() {
-			function MyClass() {}
-			const forceAnonymity = {};
-			const AnonClass = forceAnonymity.whatever = function() {};
+			class MyClass {}
+			const forceAnonymity: { whatever?: new () => object } = {};
+			const AnonClass = forceAnonymity.whatever = class {};
 
 			const options = { articles: true };
 

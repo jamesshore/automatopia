@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, beforeAll, beforeEach, describe, it } from "../util/test.js";
-import * as ensure from "../util/ensure.js";
+import { assert, beforeAll, beforeEach, describe, it } from "../util/test.ts";
+import * as ensure from "../util/ensure.ts";
 import FileSystem from "./file_system.js";
 import FileTree from "./file_tree.js";
 import fs from "node:fs/promises";

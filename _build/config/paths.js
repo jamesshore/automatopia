@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as ensure from "../util/ensure.js";
+import * as ensure from "../util/ensure.ts";
 import FileTree from "../infrastructure/file_tree.js";
 import path from "node:path";
 
@@ -28,9 +28,12 @@ export default class Paths {
 	static get tasksDir() { return `${incrementalBuildDir}/tasks`; }
 
 	static get tscBinary() { return `${rootDir}/node_modules/typescript/bin/tsc`; }
-	static get typescriptConfigFile() { return `${rootDir}/tsconfig.json`; }
 
-	static get typescriptTargetDir() { return `${generatedDir}/src`; }
+	static get buildTypescriptConfigFile() { return `${rootDir}/_build/tsconfig.json`; }
+	static get buildTypescriptTargetDir() { return `${generatedDir}/_build`; }
+
+	static get srcTypescriptConfigFile() { return `${rootDir}/tsconfig.json`; }
+	static get srcTypescriptTargetDir() { return `${generatedDir}/src`; }
 
 	static get successSound() { return `${rootDir}/_build/sounds/success.mp3`; }
 	static get failSound() { return `${rootDir}/_build/sounds/fail.m4a`; }
@@ -46,7 +49,7 @@ export default class Paths {
 	static get buildRestartGlobs() {
 		return [
 			`${rootDir}/_build/**`,
-			`${rootDir}/package.json`,
+			`${this.packageJson}`,
 		];
 	}
 
@@ -81,6 +84,7 @@ export default class Paths {
 	buildTestFiles() {
 		return this._files.matchingFiles([
 			`${rootDir}/_build/**/_*_test.js`,
+			`${rootDir}/_build/**/_*_test.ts`,
 		]);
 	}
 

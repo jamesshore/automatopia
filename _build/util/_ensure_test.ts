@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "./test.js";
-import * as ensure from "./ensure.js";
+import { assert, describe, it } from "./test.ts";
+import * as ensure from "./ensure.ts";
 
 export default describe(() => {
 
@@ -12,8 +12,8 @@ export default describe(() => {
 			assert.notError(that(true));
 			assertEnsureError(that(false), /Expected condition to be true/);
 			assertEnsureError(that(false, "a message"), /a message/);
-			assertEnsureError(that("foo"), /Expected condition to be true or false/);
-			assertEnsureError(that("foo", "ignored"), /Expected condition to be true or false/);
+			assertEnsureError(that("foo" as unknown as boolean), /Expected condition to be true or false/);
+			assertEnsureError(that("foo" as unknown as boolean, "ignored"), /Expected condition to be true or false/);
 		});
 
 		it("fails when unreachable code is executed", () => {
@@ -36,7 +36,7 @@ export default describe(() => {
 		});
 
 		it("checks one argument", () => {
-			assert.notError(signature([ "foo" ], [ String ]), "valid");
+			assert.notError(signature([ "foo" ], [ String ]));
 			assertEnsureError(
 				signature([ "foo", "bar" ], [ String ]),
 				/Function called with too many arguments: expected 1 but got 2/,
@@ -46,7 +46,7 @@ export default describe(() => {
 		});
 
 		it("checks multiple arguments", () => {
-			assert.notError(signature([ "foo", "bar", "baz" ], [ String, String, String ]), "valid");
+			assert.notError(signature([ "foo", "bar", "baz" ], [ String, String, String ]));
 			assertEnsureError(
 				signature([ "foo", "bar", "baz" ], [ String, String]),
 				/Function called with too many arguments: expected 2 but got 3/,
@@ -117,12 +117,12 @@ export default describe(() => {
 		});
 
 		it("supports custom types", () => {
-			function MyClass() {}
-			const NoName = function() {};
-			delete NoName.name;
+			class MyClass {}
+			const NoName = class {};
+			Reflect.deleteProperty(NoName, "name");
 
-			assert.notError(signature([ new MyClass() ], [ MyClass ]), "valid MyClass");
-			assert.notError(signature([ new NoName() ], [ NoName ]), "valid anon class");
+			assert.notError(signature([ new MyClass() ], [ MyClass ]));
+			assert.notError(signature([ new NoName() ], [ NoName ]));
 			assertEnsureError(
 				signature([ {} ], [ MyClass ]),
 				/Argument #1 must be a MyClass instance, but it was an object/,
@@ -141,23 +141,23 @@ export default describe(() => {
 		});
 
 		it("supports multiple types", () => {
-			assert.notError(signature([ 1 ], [[ String, Number ]]), "valid");
+			assert.notError(signature([ 1 ], [[ String, Number ]]));
 			assertEnsureError(
-				signature([ 1 ], [ [ String, Boolean, function MyClass() {} ] ]),
+				signature([ 1 ], [ [ String, Boolean, class MyClass {} ] ]),
 				/Argument #1 must be a string, a boolean, or a MyClass instance, but it was a number/,
 				"invalid"
 			);
 		});
 
 		it("allows optional arguments", () => {
-			assert.notError(signature([ 1 ], [ Number, [ undefined, String ] ]), "optional parameter");
+			assert.notError(signature([ 1 ], [ Number, [ undefined, String ] ]));
 			assertEnsureError(
 				signature([], [ Number ]),
 				/Argument #1 must be a number, but it was undefined/,
 				"required parameter"
 			);
 
-			assert.notError(signature([ {} ], [ [undefined, Object] ]), "filled-in optional object");
+			assert.notError(signature([ {} ], [ [undefined, Object] ]));
 
 			assertEnsureError(
 				signature([ "foo" ], [ [undefined, Object] ]),
@@ -195,20 +195,20 @@ export default describe(() => {
 });
 
 
-function wrap(fn) {
-	return function() {
-		const outerArgs = arguments;
-		return function() {
-			fn.apply(this, outerArgs);
+function wrap<Args extends unknown[]>(fn: (...args: Args) => unknown) {
+	return function(...args: Args): () => void {
+		return function(this: unknown): void {
+			fn.apply(this, args);
 		};
 	};
 }
 
-function assertEnsureError(fn, expectedRegexOrExactString, message) {
+function assertEnsureError(fn: () => void, expectedRegexOrExactString?: string | RegExp, message?: string): void {
 	try {
 		fn();
 	}
 	catch (err) {
+		if (!(err instanceof Error)) throw err;
 		if (expectedRegexOrExactString === undefined) return;
 		if (typeof expectedRegexOrExactString === "string") {
 			assert.equal(err.message, expectedRegexOrExactString, message);
@@ -216,8 +216,8 @@ function assertEnsureError(fn, expectedRegexOrExactString, message) {
 		else {
 			assert.match(err.message, expectedRegexOrExactString, message);
 		}
-		assert.notIncludes(err.stack, "ensure.js", "should filter stack trace");
+		assert.notIncludes(err.stack ?? "", "ensure.ts", "should filter stack trace");
 		return;
 	}
-	assert.fail(message, "Expected exception");
+	assert.fail(message ? `${message}: Expected exception` : "Expected exception");
 }

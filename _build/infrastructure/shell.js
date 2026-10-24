@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as ensure from "../util/ensure.js";
+import * as ensure from "../util/ensure.ts";
 import Output from "./console_output.js";
 import OutputTracker from "./low_level/output_tracker.js";
 import child_process from "node:child_process";

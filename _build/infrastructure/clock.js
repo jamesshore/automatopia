@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as ensure from "../util/ensure.js";
+import * as ensure from "../util/ensure.ts";
 import FakeTimers from "@sinonjs/fake-timers";
 
 const FAKE_START_TIME = 0;

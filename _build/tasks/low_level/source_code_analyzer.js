@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as ensure from "../../util/ensure.js";
+import * as ensure from "../../util/ensure.ts";
 
 const IMPORT_REGEX = /(\/\/)?.*?\b(?:import|export) .*? from\s*?["'](.*?)["']/;
 const REQUIRE_REGEX = /(\/\/.*?)?\brequire\s*\(\s*["'](.*?)["']\s*\)/;

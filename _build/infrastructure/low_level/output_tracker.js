@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "../../util/ensure.js";
+import * as ensure from "../../util/ensure.ts";
 import EventEmitter from "node:events";
 
 /** A utility class for infrastructure wrappers to use track output */

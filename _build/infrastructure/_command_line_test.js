@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "../util/test.js";
-import * as ensure from "../util/ensure.js";
+import { assert, describe, it } from "../util/test.ts";
+import * as ensure from "../util/ensure.ts";
 import path from "node:path";
 import childProcess from "node:child_process";
 import CommandLine from "./command_line.js";

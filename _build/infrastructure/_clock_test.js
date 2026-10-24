@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import { assert, describe, it } from "../util/test.js";
+import { assert, describe, it } from "../util/test.ts";
 import Clock from "./clock.js";
 
 export default describe(() => {

@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as ensure from "../util/ensure.js";
+import * as ensure from "../util/ensure.ts";
 import FileSystem from "../infrastructure/file_system.js";
 import * as analyzer from "./low_level/source_code_analyzer.js";
 import path from "node:path";

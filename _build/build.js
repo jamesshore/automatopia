@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import * as ensure from "./util/ensure.js";
+import * as ensure from "./util/ensure.ts";
 import Tasks from "./tasks/tasks.js";
 import TaskCli from "./tasks/task_cli.js";
 import Reporter from "./tasks/reporter.js";
@@ -113,14 +113,14 @@ export default class Build {
 			const paths = await this.#getPathsAsync(options.reporter);
 
 			await tests.runAsync({
-				description: "JavaScript tests",
+				description: "build tests",
 				testFiles: paths.buildTestFiles(),
 				config: testConfig,
 				reporter: options.reporter,
 			});
 
 			await tests.runAsync({
-				description: "TypeScript tests",
+				description: "src tests",
 				testFiles: paths.srcTestFiles(),
 				setupFiles: paths.srcTestSetupFiles(),
 				config: testConfig,
@@ -130,10 +130,18 @@ export default class Build {
 
 		tasks.defineTask("typecheck", async (options) => {
 			await typescript.typecheckAndEmitDeclarationFilesAsync({
-				description: "TypeScript",
+				description: "build",
 				tscBinary: Paths.tscBinary,
-				typescriptConfigFile: Paths.typescriptConfigFile,
-				outputDir: Paths.typescriptTargetDir,
+				typescriptConfigFile: Paths.buildTypescriptConfigFile,
+				outputDir: Paths.buildTypescriptTargetDir,
+				reporter: options.reporter,
+			});
+
+			await typescript.typecheckAndEmitDeclarationFilesAsync({
+				description: "src",
+				tscBinary: Paths.tscBinary,
+				typescriptConfigFile: Paths.srcTypescriptConfigFile,
+				outputDir: Paths.srcTypescriptTargetDir,
 				reporter: options.reporter,
 			});
 		});
