@@ -54,12 +54,13 @@ export default describe(() => {
 			const { execPromise, cancelFnAsync } = shell.exec("node", "-e", "while (true);");
 
 			await cancelFnAsync();
-			await execPromise;    // if cancelFn doesn't work, this never exits
+			const { code } = await execPromise;    // if cancelFn doesn't work, this never exits
+			assert.equal(code, null);
 
-			// execPromise resolves with stdout, stderr, and exit code, but that's too much work to test. We'd have to
+			// execPromise also resolves with stdout and stderr, but that's too much work to test. We'd have to
 			// somehow delay cancelFnAsync() until after stdout had been written, and there's no easy way to determine
 			// that. (It can be done by piping the output, but it's probably not worth it.)
-		});
+    });
 
 		it("does nothing when cancelling a function that's already exited", async () => {
 			const shell = Shell.createSilent();
