@@ -6,7 +6,7 @@ This repository contains JavaScript classes for creating high-performance task a
   * [Tasks](_build/tasks/tasks.js) - Define and run tasks
   * [TaskCli](_build/tasks/task_cli.js) - A command-line interface to Tasks
   * [Reporter](_build/tasks/reporter.js) - Provide tidy build progress
-  * [Shell](_build/infrastructure/shell.js) - Execute programs
+  * [Shell](_build/infrastructure/shell.ts) - Execute programs
   * [FileTree](_build/infrastructure/file_tree.js) - Convert file globs to filenames
   * [Colors](_build/infrastructure/colors.js) - Color-code build output
 

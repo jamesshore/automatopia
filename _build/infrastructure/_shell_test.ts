@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../util/tests.ts";
-import Shell from "./shell.js";
+import Shell, { type ShellResult } from "./shell.ts";
 
 export default describe(() => {
 
@@ -249,7 +249,7 @@ export default describe(() => {
 
 });
 
-async function runNestedShellAsync(fn) {
+async function runNestedShellAsync(fn: () => void): Promise<ShellResult> {
 	// Okay, this is weird stuff. But it's necessary to test the create() and createSilent() methods.
 	//
 	// What I'm doing here is shelling out to Node to run the provided function. The reason I do this is so that
@@ -266,7 +266,7 @@ async function runNestedShellAsync(fn) {
 	// and we have to make sure it doesn't find this one, because it's not a real import, and if it thought
 	// it was, the dependency analysis would fail.
 	const program =
-		"import Shell fr" + `om "${import.meta.dirname}/shell.js";\n` +
+		"import Shell fr" + `om "${import.meta.dirname}/shell.ts";\n` +
 		`(${fn})();\n`;
 
 	const testbedShell = Shell.createSilent();

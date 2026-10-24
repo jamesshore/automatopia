@@ -4,7 +4,7 @@
 
 import Build from "./build.js";
 import Colors from "./infrastructure/colors.js";
-import Shell from "./infrastructure/shell.js";
+import Shell from "./infrastructure/shell.ts";
 import Paths from "./config/paths.js";
 import FileSystem from "./infrastructure/file_system.js";
 import Clock from "./infrastructure/clock.js";

@@ -21,10 +21,8 @@ export function that(variable: unknown, message: string) {
  * Runtime assertion for code that shouldn't be reachable. Throws an exception.
  * @param {string} [message] the exception message to throw
  */
-export function unreachable(message: string): never {
-	if (!message) message = "Unreachable code executed";
-
-	throw new EnsureError(message, unreachable);
+export function unreachable(message?: string): never {
+	throw new EnsureError(message ?? "Unreachable code executed", unreachable);
 }
 
 /**

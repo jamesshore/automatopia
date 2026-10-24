@@ -2,7 +2,7 @@
 import * as ensure from "../util/ensure.ts";
 import TaskError from "../tasks/task_error.js";
 import Reporter from "../tasks/reporter.js";
-import Shell from "../infrastructure/shell.js";
+import Shell from "../infrastructure/shell.ts";
 
 export default class TypeScript {
 
