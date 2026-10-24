@@ -2,7 +2,7 @@
 
 import * as ensure from "../util/ensure.ts";
 import Shell from "./shell.js";
-import Output from "./console_output.js";
+import Output from "./console_output.ts";
 
 /**
  * Represents a git repository (and the things that can be done to it).

@@ -2,7 +2,7 @@
 
 import * as ensure from "../util/ensure.ts";
 import CommandLine from "../infrastructure/command_line.js";
-import ConsoleOutput from "../infrastructure/console_output.js";
+import ConsoleOutput from "../infrastructure/console_output.ts";
 import Colors from "../infrastructure/colors.js";
 import Clock from "../infrastructure/clock.js";
 import Tasks from "./tasks.js";

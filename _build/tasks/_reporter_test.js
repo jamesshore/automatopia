@@ -2,7 +2,7 @@
 import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import Reporter from "./reporter.js";
-import ConsoleOutput from "../infrastructure/console_output.js";
+import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.js";
 import Colors from "../infrastructure/colors.js";
 

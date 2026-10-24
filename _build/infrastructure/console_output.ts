@@ -6,38 +6,45 @@ import EventEmitter from "node:events";
 
 const WRITE_EVENT = "write";
 
+interface OutputStream {
+	write(text: string): unknown;
+}
+
 /** Wrapper for output streams such as `stdout` and `stderr`. */
 export default class ConsoleOutput {
 
+	private readonly _stream: OutputStream;
+	private readonly _emitter: EventEmitter;
+
 	/**
 	 * Factory method. Wraps `stdout`.
-	 * @returns {CommandLine} The instance.
+	 * @returns {ConsoleOutput} The instance.
 	 */
-	static createStdout() {
+	static createStdout(): ConsoleOutput {
 		ensure.signature(arguments, []);
 		return new ConsoleOutput(process.stdout);
 	}
 
 	/**
 	 * Factory method. Wraps `stderr`.
-	 * @returns {CommandLine} The instance.
+	 * @returns {ConsoleOutput} The instance.
 	 */
-	static createStderr() {
+	static createStderr(): ConsoleOutput {
 		ensure.signature(arguments, []);
 		return new ConsoleOutput(process.stderr);
 	}
 
 	/**
 	 * Factory method. Discards writes.
-	 * @returns {CommandLine} The instance.
+	 * @returns {ConsoleOutput} The instance.
 	 */
-	static createNull() {
+	static createNull(): ConsoleOutput {
 		ensure.signature(arguments, []);
 		return new ConsoleOutput(new NullStream());
 	}
 
 	/** For internal use only. (Use a factory method instead.) */
-	constructor(stream) {
+	constructor(stream: OutputStream) {
 		this._stream = stream;
 		this._emitter = new EventEmitter();
 	}
@@ -46,7 +53,7 @@ export default class ConsoleOutput {
 	 * Write to the output stream.
 	 * @param {string | Buffer} text The text to write.
 	 */
-	write(text) {
+	write(text: string | Buffer): void {
 		ensure.signature(arguments, [ [ String, Buffer ] ]);
 		if (text instanceof Buffer) text = text.toString();
 
@@ -56,15 +63,15 @@ export default class ConsoleOutput {
 
 	/**
 	 * Track writes to the output stream.
-	 * @returns {OutputTracker} The output tracker.
+	 * @returns {OutputTracker<string>} The output tracker.
 	 */
-	track() {
+	track(): OutputTracker<string> {
 		ensure.signature(arguments, []);
-		return OutputTracker.create(this._emitter, WRITE_EVENT);
+		return OutputTracker.create<string>(this._emitter, WRITE_EVENT);
 	}
 
 }
 
-class NullStream {
-	write() {}
+class NullStream implements OutputStream {
+	write(): void {}
 }

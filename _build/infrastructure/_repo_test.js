@@ -2,7 +2,7 @@
 import { assert, describe, it } from "../util/tests.ts";
 import Repo from "./repo.js";
 import Shell from "./shell.js";
-import Output from "./console_output.js";
+import Output from "./console_output.ts";
 
 export default describe(() => {
 
