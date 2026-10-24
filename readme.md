@@ -17,7 +17,7 @@ This repository contains JavaScript classes for creating high-performance task a
 
 * **Watching**
   * [FileSystem](_build/infrastructure/file_system.js) - Wait until a set of files change
-  * [Clock](_build/infrastructure/clock.js) - Wait for various conditions
+  * [Clock](_build/infrastructure/clock.ts) - Wait for various conditions
   * [sounds](_build/sounds) - Pleasant sounds to play for different build outcomes 
 
 * **Example Tools**

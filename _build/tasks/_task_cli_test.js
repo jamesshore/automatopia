@@ -6,7 +6,7 @@ import Tasks from "./tasks.js";
 import CommandLine from "../infrastructure/command_line.js";
 import Colors from "../infrastructure/colors.js";
 import ConsoleOutput from "../infrastructure/console_output.ts";
-import Clock from "../infrastructure/clock.js";
+import Clock from "../infrastructure/clock.ts";
 import TaskError from "./task_error.js";
 
 const IRRELEVANT_FN = () => {};

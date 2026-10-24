@@ -3,7 +3,7 @@ import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import Reporter from "./reporter.js";
 import ConsoleOutput from "../infrastructure/console_output.ts";
-import Clock from "../infrastructure/clock.js";
+import Clock from "../infrastructure/clock.ts";
 import Colors from "../infrastructure/colors.js";
 
 const IRRELEVANT_TEXT = "irrelevant_text";

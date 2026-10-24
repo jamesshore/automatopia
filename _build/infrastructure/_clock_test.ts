@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 import { assert, describe, it } from "../util/tests.ts";
-import Clock from "./clock.js";
+import Clock from "./clock.ts";
 
 export default describe(() => {
 
@@ -134,7 +134,7 @@ export default describe(() => {
 
 	describe("timeouts", () => {
 
-		function createTimeoutFn(result = "default timeout function result") {
+		function createTimeoutFn(result: string | Error = "default timeout function result") {
 			const timeoutFn = () => {
 				timeoutFn.ran = true;
 				if (result instanceof Error) return Promise.reject(result);
@@ -265,12 +265,12 @@ export default describe(() => {
 
 		it("can wait", async () => {
 			const clock = Clock.createNull();
-			let wait = "waiting";
+			let wait = 0;
 
 			clock.waitAsync(10).then(() => {
 				wait = clock.now();
 			});
-			assert.equal(wait, "waiting");
+			assert.equal(wait, 0);
 			await clock.tickAsync(20);
 			assert.equal(wait, 10);
 		});
