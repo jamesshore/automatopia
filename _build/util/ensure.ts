@@ -1,16 +1,16 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import * as typeLib from "./type.ts";
-import type { RuntimeType } from "./type.ts";
+import * as typeChecker from "./type.ts";
+import type { TypeDescriptor } from "./type.ts";
 
-type StackBoundary = (...args: never[]) => unknown;
+export const ANY_TYPE = typeChecker.ANY_TYPE;
 
 /**
  * General-purpose runtime assertion. Throws an exception if the expression isn't true.
- * @param variable the expression to check
- * @param [message] the exception message to throw
+ * @param {boolean} expression the expression to check
+ * @param {string} message the exception message to throw
  */
-export function that(variable: boolean, message?: string): void {
+export function that(variable: unknown, message: string) {
 	if (message === undefined) message = "Expected condition to be true";
 
 	if (variable === false) throw new EnsureError(message, that);
@@ -19,9 +19,9 @@ export function that(variable: boolean, message?: string): void {
 
 /**
  * Runtime assertion for code that shouldn't be reachable. Throws an exception.
- * @param [message] the exception message to throw
+ * @param {string} [message] the exception message to throw
  */
-export function unreachable(message?: string): never {
+export function unreachable(message: string): never {
 	if (!message) message = "Unreachable code executed";
 
 	throw new EnsureError(message, unreachable);
@@ -29,56 +29,88 @@ export function unreachable(message?: string): never {
 
 /**
  * Runtime assertion for variables that should be defined. Throws an exception if the variable is undefined.
- * @param variable the variable to check
- * @param [variableName] the name of the variable, which will be included in the exception message
+ * @param {any} variable the variable to check
+ * @param {string} variableName the name of the variable, which will be included in the exception message
  */
-export function defined(variable: unknown, variableName?: string): void {
+export function defined(variable: unknown, variableName: string) {
 	if (variable === undefined) {
 		throw new EnsureError(`${normalize(variableName)} was not defined`, defined);
 	}
 }
 
 /**
- * Runtime assertion for function signatures. Throws an exception if the function parameters don't match the expected types exactly.
- * @param args the function parameters (call it with 'arguments')
- * @param [sig] The function signature as an array. Each element in the array describes the corresponding function parameter. Use JavaScript's class names for each type: String, Number, Array, etc. You can also use 'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g., 'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array containing each type. For optional parameters, provide an array and include 'undefined' as one of the options (e.g., [ undefined, String ].
- * @param [names] the names of each parameter (used in error messages)
+ * Runtime assertion for function signatures. Throws an exception if the function parameters don't match the expected
+ * types exactly.
+ * @param {any[]} args the function parameters (call it with 'arguments')
+ * @param {any[]} sig The function signature as an array. Each element in the array describes the corresponding
+ *   function parameter. Use JavaScript's class names for each type: String, Number, Array, etc. You can also use
+ *   'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g.,
+ *   'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property
+ *   (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array
+ *   containing each type. For optional parameters, provide an array and include 'undefined' as one of the options
+ *   (e.g., [ undefined, String ].
+ * @param {string[]} [names] the names of each parameter (used in error messages)
  */
-export function signature(args: ArrayLike<unknown>, sig?: RuntimeType[], names?: string[]): void {
-	checkSignature(false, args, sig, names, signature);
+export function signature(args: IArguments, expectedSignature: TypeDescriptor[], names?: string[]) {
+	checkSignature(false, args, expectedSignature, names, signature);
 }
 
 /**
- * Runtime assertion for function signatures. Throws an exception if the function parameters don't match the expected types, but doesn't complain if there are more parameters or object properties than expected.
- * @param args the function parameters (call it with 'arguments')
- * @param [sig] The function signature as an array. Each element in the array describes the corresponding function parameter. Use JavaScript's class names for each type: String, Number, Array, etc. You can also use 'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g., 'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array containing each type. For optional parameters, provide an array and include 'undefined' as one of the options (e.g., [ undefined, String ].
- * @param [names] the names of each parameter (used in error messages)
+ * Runtime assertion for function signatures. Throws an exception if the function parameters don't match the expected
+ * types, but doesn't complain if there are more parameters or object properties than expected.
+ * @param {any[]} args the function parameters (call it with 'arguments')
+ * @param {any[]} sig The function signature as an array. Each element in the array describes the corresponding
+ *   function parameter. Use JavaScript's class names for each type: String, Number, Array, etc. You can also use
+ *   'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g.,
+ *   'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property
+ *   (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array
+ *   containing each type. For optional parameters, provide an array and include 'undefined' as one of the options
+ *   (e.g., [ undefined, String ].
+ * @param {string[]} [names] the names of each parameter (used in error messages)
  */
-export function signatureMinimum(args: ArrayLike<unknown>, sig?: RuntimeType[], names?: string[]): void {
-	checkSignature(true, args, sig, names, signatureMinimum);
+export function signatureMinimum(args: IArguments, expectedSignature: TypeDescriptor[], names?: string[]) {
+	checkSignature(true, args, expectedSignature, names);
 }
 
 /**
  * Runtime assertion for variable types. Throws an exception if the variable doesn't match the expected type exactly.
- * @param variable the variable
- * @param expectedType The expected type. Use JavaScript's class names: String, Number, Array, etc. You can also use 'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g., 'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array containing each type. For optional parameters, provide an array and include 'undefined' as one of the options (e.g., [ undefined, String ].
- * @param [name] the name of the variable (used in error messages)
+ * @param {any} variable the variable
+ * @param {any} expectedType The expected type. Use JavaScript's class names: String, Number, Array, etc. You can also
+ *   use 'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g.,
+ *   'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property
+ *   (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array
+ *   containing each type. For optional parameters, provide an array and include 'undefined' as one of the options
+ *   (e.g., [ undefined, String ].
+ * @param {string} [name] the name of the variable (used in error messages)
  */
-export function type(variable: unknown, expectedType: RuntimeType, name?: string): void {
+export function type(variable: unknown, expectedType: TypeDescriptor, name?: string) {
 	checkType(variable, expectedType, false, name, type);
 }
 
 /**
- * Runtime assertion for variable types. Throws an exception if the variable doesn't match the expected type, but doesn't complain if there are more object properties than expected.
- * @param variable the variable
- * @param expectedType The expected type. Use JavaScript's class names: String, Number, Array, etc. You can also use 'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g., 'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array containing each type. For optional parameters, provide an array and include 'undefined' as one of the options (e.g., [ undefined, String ].
- * @param [name] the name of the variable (used in error messages)
+ * Runtime assertion for variable types. Throws an exception if the variable doesn't match the expected type, but
+ * doesn't complain if there are more object properties than expected.
+ * @param {any} variable the variable
+ * @param {any} expectedType The expected type. Use JavaScript's class names: String, Number, Array, etc. You can also
+ *   use 'undefined', 'null', and 'NaN'. For instances, use the name of your class or constructor function (e.g.,
+ *   'MyClass'). For objects with specific properties, provide an object, and specify the type(s) of each property
+ *   (e.g., { a: Number, b: [ undefined, String ]}). For parameters that allow multiple types, provide an array
+ *   containing each type. For optional parameters, provide an array and include 'undefined' as one of the options
+ *   (e.g., [ undefined, String ].
+ * @param {string} [name] the name of the variable (used in error messages)
  */
-export function typeMinimum(variable: unknown, expectedType: RuntimeType, name?: string): void {
+export function typeMinimum(variable: unknown, expectedType: TypeDescriptor, name?: string) {
 	checkType(variable, expectedType, true, name, typeMinimum);
 }
 
-function checkSignature(allowExtra: boolean, args: ArrayLike<unknown>, signature: RuntimeType[] = [], names: string[] = [], fnToRemoveFromStackTrace: StackBoundary): void {
+export function checkSignature(
+	allowExtra: boolean,
+	args: IArguments,
+	signature: TypeDescriptor[] = [],
+	names: string[] = [],
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+	fnToRemoveFromStackTrace?: Function,  // can literally be any function
+) {
 	that(Array.isArray(signature), "ensure.signature(): signature parameter must be an array");
 	that(Array.isArray(names), "ensure.signature(): names parameter must be an array");
 
@@ -98,8 +130,15 @@ function checkSignature(allowExtra: boolean, args: ArrayLike<unknown>, signature
 	});
 }
 
-function checkType(variable: unknown, expectedType: RuntimeType, allowExtraKeys: boolean, name: string | undefined, fnToRemoveFromStackTrace: StackBoundary): void {
-	const error = typeLib.check(variable, expectedType, { name: normalize(name), allowExtraKeys });
+export function checkType(
+	variable: unknown,
+	expectedType: TypeDescriptor,
+	allowExtraKeys: boolean,
+	name: string | undefined,
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+	fnToRemoveFromStackTrace?: Function,  // can literally be any function
+) {
+	const error = typeChecker.check(variable, expectedType, { name: normalize(name), allowExtraKeys });
 	if (error !== null) throw new EnsureError(error, fnToRemoveFromStackTrace);
 }
 
@@ -110,7 +149,8 @@ function normalize(variableName?: string): string {
 
 class EnsureError extends Error {
 
-	constructor(message: string, fnToRemoveFromStackTrace: StackBoundary) {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+	constructor(message: string, fnToRemoveFromStackTrace?: Function) {   // can literally be any function
 		super(message);
 		Error.captureStackTrace(this, fnToRemoveFromStackTrace);
 	}

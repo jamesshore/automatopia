@@ -1,13 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-export type RuntimeType =
-	| ((...args: never[]) => unknown)
-	| (abstract new (...args: never[]) => object)
-	| number | null | undefined
-	| { [key: string]: RuntimeType }
-	| RuntimeType[];
-
-export interface CheckOptions {
+export interface TypeOptions {
 	name?: string;
 	allowExtraKeys?: boolean;
 }
@@ -17,7 +10,17 @@ export interface DescribeOptions {
 	atLeast?: boolean;
 }
 
-export function check(arg: unknown, expectedTypes: RuntimeType, options?: CheckOptions): string | null {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+type SingleDescriptor = undefined | null | typeof NaN | Function;   // Descriptor can have any function as constructor
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface StructDescriptor extends Record<string, TypeDescriptor> {}  // required for circularity
+
+export type TypeDescriptor = SingleDescriptor | TypeDescriptor[] | StructDescriptor;
+
+export const ANY_TYPE = [ undefined, null, Boolean, Number, NaN, String, Array, Object ];
+
+export function check(arg: unknown, expectedTypes: TypeDescriptor, options?: TypeOptions): string | null {
 	const argType = getType(arg);
 	if (!Array.isArray(expectedTypes)) expectedTypes = [ expectedTypes ];
 	options = options || {};
@@ -25,19 +28,21 @@ export function check(arg: unknown, expectedTypes: RuntimeType, options?: CheckO
 
 	for (let i = 0; i < expectedTypes.length; i++) {
 		if (oneTypeMatches(arg, argType, expectedTypes[i])) {
-			if (isStructComparison(argType, expectedTypes[i])) return checkStruct(arg as Record<string, unknown>, expectedTypes[i] as Record<string, RuntimeType>, options);
+			if (isStructComparison(argType, expectedTypes[i])) {
+				return checkStruct(arg as Record<string, unknown>, expectedTypes[i] as StructDescriptor, options);
+			}
 			else return null;
 		}
 	}
 	return describeError(arg, argType, expectedTypes, options.name, options.allowExtraKeys);
 
 
-	function oneTypeMatches(arg: unknown, argType: unknown, expectedType: RuntimeType): boolean {
+	function oneTypeMatches(arg: unknown, argType: TypeDescriptor, expectedType: TypeDescriptor) {
 		if (argType === Object) return checkObject(arg, expectedType);
 		else if (Number.isNaN(argType)) return Number.isNaN(expectedType);
 		else return argType === expectedType;
 
-		function checkObject(arg: unknown, type: RuntimeType): boolean {
+		function checkObject(arg: unknown, type: TypeDescriptor) {
 			if (type === null) return false;
 			else if (typeof type === "function") return arg instanceof type;
 			else if (typeof type === "object") return typeof arg === "object";
@@ -45,21 +50,22 @@ export function check(arg: unknown, expectedTypes: RuntimeType, options?: CheckO
 		}
 	}
 
-	function isStructComparison(argType: unknown, type: RuntimeType): boolean {
+	function isStructComparison(argType: TypeDescriptor, type: TypeDescriptor) {
 		return argType === Object && typeof type === "object";
 	}
 
-	function checkStruct(arg: Record<string, unknown>, type: Record<string, RuntimeType>, options: CheckOptions): string | null {
+	function checkStruct(arg: Record<string, unknown>, type: StructDescriptor, options: TypeOptions) {
 		if (typeof type !== "object") throw new Error("unrecognized type: " + type);
 
 		const unmatched = Object.assign({}, arg);
 		const keys = Object.getOwnPropertyNames(type);
 		for (let i = 0; i < keys.length; i++) {
 			const newOptions = Object.assign({}, options);
-			newOptions.name = options.name + "." + keys[i];
-			const checkResult = check(arg[keys[i]], type[keys[i]], newOptions);
+			const key = keys[i]!;
+			newOptions.name = options.name + "." + key;
+			const checkResult = check(arg[key], type[key], newOptions);
 			if (checkResult !== null) return checkResult;
-			delete unmatched[keys[i]];
+			delete unmatched[key];
 		}
 		if (!options.allowExtraKeys) {
 			const unmatchedKeys = Object.keys(unmatched);
@@ -70,19 +76,25 @@ export function check(arg: unknown, expectedTypes: RuntimeType, options?: CheckO
 		return null;
 	}
 
-	function describeError(arg: unknown, argType: unknown, type: RuntimeType, name: string, allowExtraKeys?: boolean): string {
+	function describeError(
+		arg: unknown,
+		argType: TypeDescriptor,
+		type: TypeDescriptor,
+		name: string,
+		allowExtraKeys?: boolean,
+	) {
 		const options = { articles: true, atLeast: allowExtraKeys };
-		if (argType === Object && !isStruct(arg)) argType = arg;
+		if (argType === Object && !isStruct(arg)) argType = arg as typeof Object;
 		return name + " must be " + describe(type, options) + ", but it was " + describe(argType, options);
 	}
 
 }
 
 
-export function describe(type: unknown, options: DescribeOptions = {}): string {
+export function describe(type: TypeDescriptor, options: DescribeOptions = {}): string {
 	if (!Array.isArray(type)) type = [ type ];
 
-	const descriptions = (type as unknown[]).map(function(oneType) {
+	const descriptions = type.map(function(oneType) {
 		return describeOneType(oneType);
 	});
 
@@ -95,13 +107,13 @@ export function describe(type: unknown, options: DescribeOptions = {}): string {
 		return `${beginning}, or ${descriptions.slice(-1)}`;
 	}
 
-	function describeOneType(type: unknown): string {
+	function describeOneType(type: TypeDescriptor) {
 		switch(type) {
-			case Boolean: return options.articles ? "a boolean" : "boolean";
-			case String: return options.articles ? "a string" : "string";
-			case Number: return options.articles ? "a number" : "number";
-			case Function: return options.articles ? "a function" : "function";
-			case Array: return options.articles ? "an array" : "array";
+			case Boolean: return options!.articles ? "a boolean" : "boolean";
+			case String: return options!.articles ? "a string" : "string";
+			case Number: return options!.articles ? "a number" : "number";
+			case Function: return options!.articles ? "a function" : "function";
+			case Array: return options!.articles ? "an array" : "array";
 			case undefined: return "undefined";
 			case null: return "null";
 
@@ -109,14 +121,15 @@ export function describe(type: unknown, options: DescribeOptions = {}): string {
 				if (Number.isNaN(type)) return "NaN";
 				else if (typeof type === "function") return describeConstructor(type, options);
 				else if (typeof type === "object") {
-					if (isStruct(type)) return describeStruct(type as Record<string, unknown>, options);
-					else return describeInstance(type as object, options);
+					if (isStruct(type)) return describeStruct(type as StructDescriptor, options);
+					else return describeInstance(type, options);
 				}
 				else throw new Error("unrecognized type: " + type);
 		}
 	}
 
-	function describeConstructor(type: { name: string }, options: DescribeOptions): string {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+	function describeConstructor(type: Function, options: DescribeOptions) {  // can literally be any function
 		const articles = options.articles;
 
 		if (type === Object) return articles ? "an object" : "object";
@@ -132,7 +145,7 @@ export function describe(type: unknown, options: DescribeOptions = {}): string {
 		return name + " instance";
 	}
 
-	function describeStruct(type: Record<string, unknown>, options: DescribeOptions): string {
+	function describeStruct(type: StructDescriptor, options: DescribeOptions) {
 		const properties = Object.getOwnPropertyNames(type).map(function(key) {
 			return key + ": <" + describe(type[key]) + ">";
 		});
@@ -146,7 +159,7 @@ export function describe(type: unknown, options: DescribeOptions = {}): string {
 		return objectDesc + ` containing ${atLeast}{ ${properties.join(", ")} }`;
 	}
 
-	function describeInstance(type: object, options: DescribeOptions): string {
+	function describeInstance(type: object, options: DescribeOptions) {
 		const prototypeConstructor = Object.getPrototypeOf(type).constructor;
 		const article = options.articles;
 		let name = (article ? "a " : "") + prototypeConstructor.name;
@@ -157,7 +170,7 @@ export function describe(type: unknown, options: DescribeOptions = {}): string {
 
 }
 
-function getType(variable: unknown): RuntimeType {
+function getType(variable: unknown): SingleDescriptor {
 	if (variable === null) return null;
 	if (Array.isArray(variable)) return Array;
 	if (Number.isNaN(variable)) return NaN;

@@ -2,6 +2,10 @@
 import { assert, describe, it } from "./test.ts";
 import * as ensure from "./ensure.ts";
 
+interface NodeError extends Error {
+	stack: string;
+}
+
 export default describe(() => {
 
 	describe("condition checking", () => {
@@ -12,8 +16,8 @@ export default describe(() => {
 			assert.notError(that(true));
 			assertEnsureError(that(false), /Expected condition to be true/);
 			assertEnsureError(that(false, "a message"), /a message/);
-			assertEnsureError(that("foo" as unknown as boolean), /Expected condition to be true or false/);
-			assertEnsureError(that("foo" as unknown as boolean, "ignored"), /Expected condition to be true or false/);
+			assertEnsureError(that("foo"), /Expected condition to be true or false/);
+			assertEnsureError(that("foo", "ignored"), /Expected condition to be true or false/);
 		});
 
 		it("fails when unreachable code is executed", () => {
@@ -117,9 +121,11 @@ export default describe(() => {
 		});
 
 		it("supports custom types", () => {
-			class MyClass {}
-			const NoName = class {};
-			Reflect.deleteProperty(NoName, "name");
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const MyClass = function MyClass() {} as any;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const NoName = function() {} as any;
+			delete NoName.name;
 
 			assert.notError(signature([ new MyClass() ], [ MyClass ]));
 			assert.notError(signature([ new NoName() ], [ NoName ]));
@@ -143,7 +149,7 @@ export default describe(() => {
 		it("supports multiple types", () => {
 			assert.notError(signature([ 1 ], [[ String, Number ]]));
 			assertEnsureError(
-				signature([ 1 ], [ [ String, Boolean, class MyClass {} ] ]),
+				signature([ 1 ], [ [ String, Boolean, function MyClass() {} ] ]),
 				/Argument #1 must be a string, a boolean, or a MyClass instance, but it was a number/,
 				"invalid"
 			);
@@ -194,30 +200,34 @@ export default describe(() => {
 
 });
 
-
-function wrap<Args extends unknown[]>(fn: (...args: Args) => unknown) {
-	return function(...args: Args): () => void {
-		return function(this: unknown): void {
-			fn.apply(this, args);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+function wrap<T extends Function>(fn: T): (...args: unknown[]) => T {
+	return function() {
+		const outerArgs = arguments;
+		return function() {
+			fn.apply(null, outerArgs);
 		};
-	};
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} as any;
 }
 
-function assertEnsureError(fn: () => void, expectedRegexOrExactString?: string | RegExp, message?: string): void {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+function assertEnsureError(fn: Function, expectedRegexOrExactString?: RegExp | string, message?: string) {
 	try {
 		fn();
+		assert.fail("Expected exception");
 	}
 	catch (err) {
-		if (!(err instanceof Error)) throw err;
+		const typedErr = err as NodeError;
+
 		if (expectedRegexOrExactString === undefined) return;
 		if (typeof expectedRegexOrExactString === "string") {
-			assert.equal(err.message, expectedRegexOrExactString, message);
+			assert.equal(typedErr.message, expectedRegexOrExactString, message);
 		}
 		else {
-			assert.match(err.message, expectedRegexOrExactString, message);
+			assert.match(typedErr.message, expectedRegexOrExactString, message);
 		}
-		assert.notIncludes(err.stack ?? "", "ensure.ts", "should filter stack trace");
+		assert.notIncludes(typedErr.stack, "ensure.js", "should filter stack trace");
 		return;
 	}
-	assert.fail(message ? `${message}: Expected exception` : "Expected exception");
 }
