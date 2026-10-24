@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "./test.ts";
+import { assert, describe, it } from "./tests.ts";
 import * as ensure from "./ensure.ts";
 
 interface NodeError extends Error {

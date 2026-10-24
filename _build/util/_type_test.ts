@@ -3,7 +3,7 @@
 /* eslint @typescript-eslint/no-explicit-any: "off" */
 // There are a lot of weird JavaScript manipulations in these tests, so we work around the type-checker with "as any"
 
-import { assert, describe, it } from "./test.ts";
+import { assert, describe, it } from "./tests.ts";
 import * as type from "./type.ts";
 
 export default describe(() => {

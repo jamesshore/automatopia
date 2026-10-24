@@ -1,5 +1,5 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
-import { assert, describe, it } from "../util/test.ts";
+import { assert, describe, it } from "../util/tests.ts";
 import FileTree from "./file_tree.js";
 
 export default describe(() => {
