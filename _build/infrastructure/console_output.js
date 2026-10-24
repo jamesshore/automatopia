@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 import * as ensure from "../util/ensure.ts";
-import OutputTracker from "./low_level/output_tracker.js";
+import OutputTracker from "./low_level/output_tracker.ts";
 import EventEmitter from "node:events";
 
 const WRITE_EVENT = "write";

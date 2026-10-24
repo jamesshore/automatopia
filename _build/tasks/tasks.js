@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import * as ensure from "../util/ensure.ts";
 import Clock from "../infrastructure/clock.js";
-import OutputTracker from "../infrastructure/low_level/output_tracker.js";
+import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
 import FileSystem from "../infrastructure/file_system.js";
 import EventEmitter from "node:events";
 
