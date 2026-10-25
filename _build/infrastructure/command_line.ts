@@ -4,14 +4,23 @@ import * as ensure from "../util/ensure.ts";
 import minimist from "minimist";
 import EventEmitter from "node:events";
 
+interface NarrowedProcess {
+	argv: string[];
+}
+
+export type NulledCommandLineOptions = { args?: string[] };
+
 /** Wrapper for command-line parameters. */
 export default class CommandLine {
+
+	private readonly _process: NarrowedProcess;
+	private readonly _emitter: EventEmitter;
 
 	/**
 	 * Factory method. Wraps the process's command-line arguments.
 	 * @returns {CommandLine} The instance.
 	 */
-	static create() {
+	static create(): CommandLine {
 		ensure.signature(arguments, []);
 		return new CommandLine(process);
 	}
@@ -21,13 +30,14 @@ export default class CommandLine {
 	 * @param {string[]} [args] Simulated arguments. Defaults to none.
 	 * @returns {CommandLine} The instance.
 	 */
-	static createNull({ args = [] } = {}) {
+	static createNull({ args = [] }: NulledCommandLineOptions = {}): CommandLine {
 		ensure.signature(arguments, [[ undefined, { args: Array } ]]);
+
 		return new CommandLine(new NullProcess(args));
 	}
 
 	/** For internal use only. (Use a factory method instead.) */
-	constructor(proc) {
+	constructor(proc: NarrowedProcess) {
 		this._process = proc;
 		this._emitter = new EventEmitter();
 	}
@@ -35,7 +45,7 @@ export default class CommandLine {
 	/**
 	 * @returns {string[]} The raw command-line arguments provided to Node, not including 'node' or the filename.
 	 */
-	get rawArguments() {
+	get rawArguments(): string[] {
 		ensure.signature(arguments, []);
 		return this._process.argv.slice(2);
 	}
@@ -44,7 +54,7 @@ export default class CommandLine {
 	 * @returns {string[]} The command-line arguments that can be interpreted as commands (that is, that don't start with
 	 *   a hyphen).
 	 */
-	get commands() {
+	get commands(): string[] {
 		ensure.signature(arguments, []);
 
 		const parsedArgs = parseArgs(this.rawArguments);
@@ -56,29 +66,31 @@ export default class CommandLine {
 	 *   hyphen), along with any values for those arguments. For example, `-T` will be returned as `{ T: true }` and
 	 *   `--file=my_file` will be returned as `{ file: "my_file" }`. Performs basic type conversion on option values.
 	 */
-	get options() {
+	get options(): Record<string, unknown> {
 		ensure.signature(arguments, []);
 
-		const parsedArgs = parseArgs(this.rawArguments);
+		const parsedArgs: Record<string, unknown> = parseArgs(this.rawArguments);
 		delete parsedArgs._;
 		return parsedArgs;
 	}
 
 }
 
-function parseArgs(args) {
+function parseArgs(args: string[]): minimist.ParsedArgs {
 	return minimist(args, { "--": true });
 }
 
 
 
-class NullProcess {
+class NullProcess implements NarrowedProcess {
 
-	constructor(args) {
+	private readonly _args: string[];
+
+	constructor(args: string[]) {
 		this._args = args;
 	}
 
-	get argv() {
+	get argv(): string[] {
 		return [ "null_process_node", "null_process_script.js", ...this._args ];
 	}
 

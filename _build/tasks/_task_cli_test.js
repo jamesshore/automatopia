@@ -3,7 +3,7 @@ import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import TaskCli from "./task_cli.js";
 import Tasks from "./tasks.js";
-import CommandLine from "../infrastructure/command_line.js";
+import CommandLine from "../infrastructure/command_line.ts";
 import Colors from "../infrastructure/colors.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";

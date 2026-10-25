@@ -3,7 +3,7 @@ import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import path from "node:path";
 import childProcess from "node:child_process";
-import CommandLine from "./command_line.js";
+import CommandLine from "./command_line.ts";
 // dependency: ./_command_line_test_helper.js
 
 export default describe(() => {
@@ -51,7 +51,10 @@ export default describe(() => {
 
 });
 
-function runModuleAsync(cwd, modulePath, { args = [], failOnStderr = true } = {}) {
+function runModuleAsync(cwd: string, modulePath: string, {
+	args = [],
+	failOnStderr = true,
+}: { args?: string[], failOnStderr?: boolean } = {}): Promise<{ stdout: string, stderr: string }> {
 	return new Promise((resolve, reject) => {
 		ensure.signature(arguments, [ String, String, [ undefined, {
 			args: [ undefined, Array ],
@@ -59,17 +62,17 @@ function runModuleAsync(cwd, modulePath, { args = [], failOnStderr = true } = {}
 		}]], [ "cwd", "modulePath", "options" ]);
 
 		const absolutePath = path.resolve(cwd, modulePath);
-		const options = {
+		const options: childProcess.ForkOptions = {
 			stdio: "pipe",
 		};
 		const child = childProcess.fork(absolutePath, args, options);
 
 		let stdout = "";
 		let stderr = "";
-		child.stdout.on("data", (data) => {
+		child.stdout!.on("data", (data: Buffer) => {
 			stdout += data;
 		});
-		child.stderr.on("data", (data) => {
+		child.stderr!.on("data", (data: Buffer) => {
 			stderr += data;
 		});
 
