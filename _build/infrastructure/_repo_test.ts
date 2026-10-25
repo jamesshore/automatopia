@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../util/tests.ts";
-import Repo from "./repo.js";
-import Shell from "./shell.ts";
+import Repo from "./repo.ts";
+import Shell, { type NulledShellOptions, type ShellOutput } from "./shell.ts";
 import Output from "./console_output.ts";
 
 export default describe(() => {
@@ -120,21 +120,21 @@ export default describe(() => {
 
 });
 
-function assertCommand(shell, command, ...args) {
+function assertCommand(shell: ShellOutput[], command: string, ...args: string[]): void {
 	assertCommands(shell, [[ command, ...args ]]);
 }
 
-function assertCommands(shell, commands) {
+function assertCommands(shell: ShellOutput[], commands: string[][]): void {
 	const expected = commands.map(([ command, ...args ]) => ({ command, args }));
 	assert.equal(shell, expected);
 }
 
-function createRepo(shellOptions) {
+function createRepo(shellOptions?: NulledShellOptions): { repo: Repo, shell: ShellOutput[], stdout: string[] } {
 	const shell = Shell.createNull(shellOptions);
 	const stdout = Output.createNull();
 	const stderr = Output.createNull();
 
-	const repo = Repo.createNull({ shell, stdout, stderr });
+	const repo = new Repo(shell, stdout, stderr);
 
 	return {
 		repo,
