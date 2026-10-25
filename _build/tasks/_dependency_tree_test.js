@@ -2,7 +2,7 @@
 import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import DependencyTree from "./dependency_tree.js";
-import FileSystem from "../infrastructure/file_system.js";
+import FileSystem from "../infrastructure/file_system.ts";
 
 export default describe(() => {
 

@@ -2,7 +2,7 @@
 import * as ensure from "../util/ensure.ts";
 import Clock from "../infrastructure/clock.ts";
 import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
-import FileSystem from "../infrastructure/file_system.js";
+import FileSystem from "../infrastructure/file_system.ts";
 import EventEmitter from "node:events";
 
 const TASK_EVENT = "task";

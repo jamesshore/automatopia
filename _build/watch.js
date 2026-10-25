@@ -6,7 +6,7 @@ import Build from "./build.js";
 import Colors from "./infrastructure/colors.ts";
 import Shell from "./infrastructure/shell.ts";
 import Paths from "./config/paths.js";
-import FileSystem from "./infrastructure/file_system.js";
+import FileSystem from "./infrastructure/file_system.ts";
 import Clock from "./infrastructure/clock.ts";
 import TaskCli from "./tasks/task_cli.js";
 import path from "node:path";

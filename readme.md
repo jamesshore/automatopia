@@ -12,11 +12,11 @@ This repository contains JavaScript classes for creating high-performance task a
 
 * **Incremental Builds**
   * [Tasks](_build/tasks/tasks.js) - Define tasks that only run when their source files change
-  * [FileSystem](_build/infrastructure/file_system.js) - Determine if a file has changed since the last time you operated on it, or if a file is newer than a set of source files
+  * [FileSystem](_build/infrastructure/file_system.ts) - Determine if a file has changed since the last time you operated on it, or if a file is newer than a set of source files
   * [DependencyTree](_build/tasks/dependency_tree.js) - Determine if a file *or anything in its dependency tree* has changed since the last time you operated on it
 
 * **Watching**
-  * [FileSystem](_build/infrastructure/file_system.js) - Wait until a set of files change
+  * [FileSystem](_build/infrastructure/file_system.ts) - Wait until a set of files change
   * [Clock](_build/infrastructure/clock.ts) - Wait for various conditions
   * [sounds](_build/sounds) - Pleasant sounds to play for different build outcomes 
 

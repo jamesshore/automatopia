@@ -2,7 +2,7 @@
 import * as ensure from "../util/ensure.ts";
 import Reporter from "../tasks/reporter.js";
 import TaskError from "../tasks/task_error.js";
-import FileSystem from "../infrastructure/file_system.js";
+import FileSystem from "../infrastructure/file_system.ts";
 
 export default class Version {
 

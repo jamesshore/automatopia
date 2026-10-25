@@ -2,7 +2,7 @@
 import { assert, describe, it } from "../util/tests.ts";
 import Tasks from "./tasks.js";
 import Clock from "../infrastructure/clock.ts";
-import FileSystem from "../infrastructure/file_system.js";
+import FileSystem from "../infrastructure/file_system.ts";
 
 const IRRELEVANT_OPTIONS = { irrelevantOptions: true };
 

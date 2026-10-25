@@ -3,7 +3,7 @@ import * as ensure from "./util/ensure.ts";
 import Tasks from "./tasks/tasks.js";
 import TaskCli from "./tasks/task_cli.js";
 import Reporter from "./tasks/reporter.js";
-import FileSystem from "./infrastructure/file_system.js";
+import FileSystem from "./infrastructure/file_system.ts";
 import Version from "./tools/version.js";
 import Lint from "./tools/lint.js";
 import Tests from "./tools/tests.js";

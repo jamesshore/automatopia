@@ -1,21 +1,25 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, beforeAll, beforeEach, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
-import FileSystem from "./file_system.js";
+import FileSystem from "./file_system.ts";
 import FileTree from "./file_tree.ts";
 import fs from "node:fs/promises";
 import path from "node:path";
+
+interface ErrorWithCode extends Error {
+	code?: string;
+}
 
 const IRRELEVANT_FILE_CONTENTS = "irrelevant file contents";
 const IRRELEVANT_DATE = new Date(42);
 
 export default describe(() => {
 
-	let TEST_DIR;
-	let FILENAME;
+	let TEST_DIR: string;
+	let FILENAME: string;
 
 	beforeAll(({ getConfig }) => {
-		TEST_DIR = getConfig("scratchDir");
+		TEST_DIR = getConfig<string>("scratchDir");
 		FILENAME = `${TEST_DIR}/my_file`;
 	});
 
@@ -69,7 +73,8 @@ export default describe(() => {
 				await fileSystem.readTextFileAsync(`${TEST_DIR}/no_such_file`);
 				assert.fail("should have thrown ENOENT error");
 			}
-			catch(err) {
+			catch (error) {
+				const err = error as ErrorWithCode;
 				assert.equal(err.message, `ENOENT: no such file or directory, open '${TEST_DIR}/no_such_file'`);
 				assert.equal(err.code, "ENOENT");
 			}
@@ -139,7 +144,8 @@ export default describe(() => {
 					await fileSystem.readTextFileAsync("/no_such_file");
 					assert.fail("should have thrown ENOENT error");
 				}
-				catch(err) {
+				catch (error) {
+					const err = error as ErrorWithCode;
 					assert.equal(err.message, "ENOENT: nulled FileSystem not configured with file '/no_such_file'");
 					assert.equal(err.code, "ENOENT");
 				}
@@ -232,7 +238,8 @@ export default describe(() => {
 				await fileSystem.copyAsync(`${TEST_DIR}/no_such_file`, FILENAME);
 				assert.fail("should have thrown ENOENT error");
 			}
-			catch(err) {
+			catch (error) {
+				const err = error as ErrorWithCode;
 				assert.equal(err.message, `ENOENT: no such file or directory, lstat '${TEST_DIR}/no_such_file'`);
 				assert.equal(err.code, "ENOENT");
 			}
@@ -477,7 +484,8 @@ export default describe(() => {
 					await fileSystem.readFileTreeAsync("/no_such_file");
 					assert.fail("should have thrown ENOENT error");
 				}
-				catch(err) {
+				catch (error) {
+					const err = error as ErrorWithCode;
 					assert.equal(err.message, "ENOENT: nulled FileSystem not configured with any files in '/no_such_file/'");
 					assert.equal(err.code, "ENOENT");
 				}
@@ -513,7 +521,8 @@ export default describe(() => {
 				await fileSystem.resolveModulePathAsync(TEST_DIR, "./no_such_module");
 				assert.fail("should have thrown MODULE_NOT_FOUND error");
 			}
-			catch(err) {
+			catch (error) {
+				const err = error as ErrorWithCode;
 				assert.match(err.message, /Cannot find module '\.\/no_such_module'/);
 				assert.equal(err.code, "MODULE_NOT_FOUND");
 			}
@@ -590,7 +599,8 @@ export default describe(() => {
 					await fileSystem.resolveModulePathAsync("/root_dir", "./no_such_module");
 					assert.fail("should have thrown MODULE_NOT_FOUND error");
 				}
-				catch(err) {
+				catch (error) {
+					const err = error as ErrorWithCode;
 					assert.equal(err.message, "Cannot find module './no_such_module'\nrelative to '/root_dir'");
 					assert.equal(err.code, "MODULE_NOT_FOUND");
 				}
@@ -620,7 +630,8 @@ export default describe(() => {
 				await fileSystem.getFileModificationTimeAsync(`${TEST_DIR}/no_such_file`);
 				assert.fail("should have thrown ENOENT error");
 			}
-			catch(err) {
+			catch (error) {
+				const err = error as ErrorWithCode;
 				assert.equal(err.message, `ENOENT: no such file or directory, stat '${TEST_DIR}/no_such_file'`);
 				assert.equal(err.code, "ENOENT");
 			}
@@ -701,7 +712,8 @@ export default describe(() => {
 					await fileSystem.getFileModificationTimeAsync("/no_such_file");
 					assert.fail("should have thrown ENOENT error");
 				}
-				catch(err) {
+				catch (error) {
+					const err = error as ErrorWithCode;
 					assert.equal(err.message, "ENOENT: nulled FileSystem not configured with file '/no_such_file'");
 					assert.equal(err.code, "ENOENT");
 				}
@@ -784,7 +796,7 @@ export default describe(() => {
 				"/dest/subdir/removed.out": {},
 			});
 
-			function rewrite(source) {
+			function rewrite(source: string) {
 				return `${path.dirname(source)}/${path.basename(source, "in")}out`;
 			}
 
@@ -807,7 +819,7 @@ export default describe(() => {
 				"/dest/changed.in": { modified: 500 },
 			});
 
-			function rewrite(source) {
+			function rewrite(source: string) {
 				return `./././${source}`;
 			}
 
@@ -840,7 +852,7 @@ export default describe(() => {
 				"/dest/subdir/removed3.out.extra": {},
 			});
 
-			function rewrite(source) {
+			function rewrite(source: string) {
 				const noExtension = `${path.dirname(source)}/${path.basename(source, "in")}`;
 				return [ `${noExtension}out`, `${noExtension}out.extra` ];
 			}
@@ -974,18 +986,19 @@ export default describe(() => {
 		};
 	}
 
-	async function fileExistsAsync(filename) {
+	async function fileExistsAsync(filename: string): Promise<boolean> {
 		try {
 			await fs.stat(filename);
 			return true;
 		}
-		catch (err) {
+		catch (error) {
+			const err = error as ErrorWithCode;
 			if (err.code === "ENOENT") return false;
 			else throw err;
 		}
 	}
 
-	async function deleteTempFilesAsync(testDir) {
+	async function deleteTempFilesAsync(testDir: string): Promise<void> {
 		await fs.rm(testDir, { recursive: true, force: true });
 	}
 
