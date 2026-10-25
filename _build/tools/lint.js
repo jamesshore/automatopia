@@ -3,7 +3,7 @@ import * as ensure from "../util/ensure.ts";
 import Reporter from "../tasks/reporter.js";
 import FileSystem from "../infrastructure/file_system.js";
 import TaskError from "../tasks/task_error.js";
-import Colors from "../infrastructure/colors.js";
+import Colors from "../infrastructure/colors.ts";
 import { Linter, SourceCode } from "eslint";
 
 export default class Lint {

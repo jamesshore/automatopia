@@ -4,7 +4,7 @@ import * as ensure from "../util/ensure.ts";
 import TaskCli from "./task_cli.js";
 import Tasks from "./tasks.js";
 import CommandLine from "../infrastructure/command_line.js";
-import Colors from "../infrastructure/colors.js";
+import Colors from "../infrastructure/colors.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";
 import TaskError from "./task_error.js";

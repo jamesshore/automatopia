@@ -4,7 +4,7 @@ import * as ensure from "../util/ensure.ts";
 import Reporter from "./reporter.js";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";
-import Colors from "../infrastructure/colors.js";
+import Colors from "../infrastructure/colors.ts";
 
 const IRRELEVANT_TEXT = "irrelevant_text";
 const TIME = Colors.brightWhite.dim(" (0.00s)\n");

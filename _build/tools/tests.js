@@ -2,7 +2,7 @@
 import * as ensure from "../util/ensure.ts";
 import Reporter from "../tasks/reporter.js";
 import TaskError from "../tasks/task_error.js";
-import Colors from "../infrastructure/colors.js";
+import Colors from "../infrastructure/colors.ts";
 import FileSystem from "../infrastructure/file_system.js";
 import DependencyTree from "../tasks/dependency_tree.js";
 import { TestRunner } from "ergotest";

@@ -8,7 +8,7 @@ This repository contains JavaScript classes for creating high-performance task a
   * [Reporter](_build/tasks/reporter.js) - Provide tidy build progress
   * [Shell](_build/infrastructure/shell.ts) - Execute programs
   * [FileTree](_build/infrastructure/file_tree.js) - Convert file globs to filenames
-  * [Colors](_build/infrastructure/colors.js) - Color-code build output
+  * [Colors](_build/infrastructure/colors.ts) - Color-code build output
 
 * **Incremental Builds**
   * [Tasks](_build/tasks/tasks.js) - Define tasks that only run when their source files change

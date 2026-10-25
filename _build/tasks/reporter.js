@@ -4,7 +4,7 @@ import * as ensure from "../util/ensure.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";
 import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
-import Colors from "../infrastructure/colors.js";
+import Colors from "../infrastructure/colors.ts";
 import EventEmitter from "node:events";
 
 const DEFAULT_PROGRESS_TEXT = ".";

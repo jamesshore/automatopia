@@ -3,7 +3,7 @@
 // Automatically runs build when files change.
 
 import Build from "./build.js";
-import Colors from "./infrastructure/colors.js";
+import Colors from "./infrastructure/colors.ts";
 import Shell from "./infrastructure/shell.ts";
 import Paths from "./config/paths.js";
 import FileSystem from "./infrastructure/file_system.js";

@@ -1,5 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
+type Style = keyof typeof COLOR_STYLES;
+
 const COLOR_STYLES = {
 	bold: "1;",
 	dim: "2;",
@@ -9,7 +11,9 @@ const COLOR_STYLES = {
 };
 
 /**
- * Call these functions to wrap a string in ANSI color codes. Add `.bold`, `.dim`, `.underline`, `.blink`, or `.inverse` to the function to add the corresponding ANSI codes. String as many effects together as you like. (Note that not all terminals support all effects.)
+ * Call these functions to wrap a string in ANSI color codes. Add `.bold`, `.dim`, `.underline`, `.blink`, or
+ * `.inverse` to the function to add the corresponding ANSI codes. String as many effects together as you like. (Note
+ * that not all terminals support all effects.)
  */
 export default {
 	// this brute-force approach works better with IDE code completion than building the object at run-time.
@@ -31,20 +35,28 @@ export default {
 	brightWhite: colorFn(97),
 };
 
-function colorFn(color) {
+export interface ColorFn {
+	(name: string): string;
+	bold: ColorFn;
+	dim: ColorFn;
+	underline: ColorFn;
+	blink: ColorFn;
+	inverse: ColorFn;
+}
+
+function colorFn(color: number): ColorFn {
 	const fn = encodeFn("", color);
 	combinatorialize(fn, "", color, COLOR_STYLES);
 	return fn;
 
-	function encodeFn(style, color) {
-		return (text) => {
-			return `\u001b[${style}${color}m${text}\u001b[0m`;
-		};
+	function encodeFn(style: string, color: number) {
+		return ((text: string) => `\u001b[${style}${color}m${text}\u001b[0m`) as ColorFn;
 	}
 
-	function combinatorialize(fn, baseStyle, color, styles) {
+	function combinatorialize(fn: ColorFn, baseStyle: string, color: number, styles: Record<Style, string>) {
 		// adds .bold, .dim, etc. to fn, and does so recursively.
-		Object.keys(styles).forEach(styleKey => {
+		const styleNames = Object.keys(styles) as Style[];
+		styleNames.forEach((styleKey) => {
 			const myStyle = baseStyle + styles[styleKey];
 			fn[styleKey] = encodeFn(myStyle, color);
 
