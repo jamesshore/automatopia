@@ -2,7 +2,7 @@
 
 import * as ensure from "../util/ensure.ts";
 import OutputTracker from "./low_level/output_tracker.ts";
-import FileTree from "./file_tree.js";
+import FileTree from "./file_tree.ts";
 import fs from "node:fs/promises";
 import path from "node:path";
 import EventEmitter from "node:events";

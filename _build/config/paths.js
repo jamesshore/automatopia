@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 import * as ensure from "../util/ensure.ts";
-import FileTree from "../infrastructure/file_tree.js";
+import FileTree from "../infrastructure/file_tree.ts";
 import path from "node:path";
 
 const rootDir = path.resolve(import.meta.dirname, "../..");
