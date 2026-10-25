@@ -39,7 +39,7 @@ export default describe(() => {
 		]);
 	});
 
-	it("accepts multiple globs, and doesn't return same filename twice", () => {
+	it("returns sorted files for multiple globs without duplicates", () => {
 		const fileTree = FileTree.create([
 			"/ignored",
 			"/file_a_1",
@@ -47,7 +47,7 @@ export default describe(() => {
 			"/file_b_1",
 		]);
 
-		assert.equal(fileTree.matchingFiles([ "/file_a*", "/file*1" ]), [
+		assert.equal(fileTree.matchingFiles([ "/file*1", "/file_a*" ]), [
 			"/file_a_1",
 			"/file_a_2",
 			"/file_b_1",

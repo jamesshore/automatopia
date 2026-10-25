@@ -5,7 +5,7 @@ import { minimatch } from "minimatch";
 /** Represents a list of files. This is a purely in-memory representation. It's immutable and does not change when the file system changes. To keep the list up to date, use {@FileSystem#waitForChangeAsync} and look for `TREE` changes. Then create a new `FileTree` using {@FileSystem#readFileTreeAsync}. */
 export default class FileTree {
 
-	private readonly _files: string[];
+	private readonly _files: Set<string>;
 	private readonly _matchCache: Record<string, string[] | undefined>;
 
 	/**
@@ -23,9 +23,7 @@ export default class FileTree {
 
 	/** For internal use only. (Use {@FileSystem#readFileTreeAsync} or a factory method instead.) */
 	constructor(files: Set<string>) {
-		ensure.signature(arguments, [ Set ]);
-
-		this._files = [ ...files ].sort();
+		this._files = files;
 		this._matchCache = {};
 	}
 
@@ -35,7 +33,7 @@ export default class FileTree {
 	 * @returns {boolean} True if the file is in the tree's list.
 	 */
 	has(file: string): boolean {
-		return this._files.includes(file);
+		return this._files.has(file);
 	}
 
 	/**
@@ -55,11 +53,12 @@ export default class FileTree {
 		const cacheKey = `INCLUDE:\n${globsToInclude.join("\n")}\nEXCLUDE:\n${globsToExclude.join("\n")}`;
 
 		if (this._matchCache[cacheKey] === undefined) {
+			const files = [ ...this._files ];
 			const result = new Set<string>();
 			globsToInclude
-				.forEach(glob => minimatch.match(this._files, glob)
+				.forEach(glob => minimatch.match(files, glob)
 					.forEach(file => result.add(file)));
-			this._matchCache[cacheKey] = [ ...filter(result, globsToExclude) ];
+			this._matchCache[cacheKey] = [ ...filter(result, globsToExclude) ].sort();
 		}
 
 		return this._matchCache[cacheKey];
@@ -68,17 +67,13 @@ export default class FileTree {
 	/**
 	 * Check if this FileTree is the same as another FileTree.
 	 * @param {FileTree} that The other FileTree.
-	 * @returns {boolean} True is the FileTrees have the same list of files, regardless of order.
+	 * @returns {boolean} True if the FileTrees have the same list of files, regardless of order.
 	 */
 	equals(that: FileTree): boolean {
 		ensure.signature(arguments, [ FileTree ]);
 
-		if (this._files.length !== that._files.length) return false;
-
-		// JDLS 16 Sep 2024: When Node supports Set.symmetricDifference(), use it instead.
-		const thisCopy = new Set([ ...this._files ]);
-		that._files.forEach(file => thisCopy.delete(file));
-		return thisCopy.size === 0;
+		if (this._files.size !== that._files.size) return false;
+		return this._files.symmetricDifference(that._files).size === 0;
 	}
 
 }
