@@ -3,7 +3,7 @@ import { assert, describe, it } from "../util/tests.ts";
 import path from "node:path";
 import Shell from "./shell.ts";
 import CommandLine from "./command_line.ts";
-// dependency: ./_command_line_test_helper.js
+// dependency: ./_command_line_test_helper.ts
 
 export default describe(() => {
 
@@ -12,7 +12,7 @@ export default describe(() => {
 			"command1", "command2", "-abc", "--option", "--no-d", "-p1", "--parm=parm2", "--", "trailing", "values"
 		];
 
-		const stdout = await runModuleAsync(path.resolve(import.meta.dirname, "./_command_line_test_helper.js"), args);
+		const stdout = await runModuleAsync(path.resolve(import.meta.dirname, "./_command_line_test_helper.ts"), args);
 		assert.equal(stdout,
 			`rawArguments: ${JSON.stringify(args)}\n` +
 			`commands: ${JSON.stringify([ "command1", "command2" ])}\n` +

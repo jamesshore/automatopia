@@ -4,14 +4,14 @@ import * as ensure from "../util/ensure.ts";
 import path from "node:path";
 import childProcess from "node:child_process";
 import ConsoleOutput from "./console_output.ts";
-// dependency: ./_console_output_test_helper.js
+// dependency: ./_console_output_test_helper.ts
 
 export default describe(() => {
 
 	it("real version writes to stdout (or stderr), null version doesn't", async () => {
 		const { stdout, stderr } = await runModuleAsync(
 			import.meta.dirname,
-			"./_console_output_test_helper.js",
+			"./_console_output_test_helper.ts",
 			{ failOnStderr: false }
 		);
 		assert.equal(stdout, "string stdout\nbuffer stdout\n");
