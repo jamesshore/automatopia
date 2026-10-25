@@ -124,8 +124,15 @@ export default describe(() => {
 			"/file4",
 		]);
 
+		const fileTree3 = FileTree.create([
+			"/file1",
+			"/file2",
+		]);
+
 		assert.equal(fileTree1a.equals(fileTree1b), true, "should be equal");
 		assert.equal(fileTree1a.equals(fileTree2), false, "should not be equal");
+		assert.equal(fileTree1a.equals(fileTree3), false, "should not equal a tree with missing files");
+		assert.equal(fileTree3.equals(fileTree1a), false, "should not equal a tree with additional files");
 	});
 
 });
