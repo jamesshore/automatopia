@@ -58,7 +58,7 @@ export default class Tests {
 		});
 
 		async function findChangedFilesAsync(filesToCheck, report) {
-			const { changed, errors } = await dependencyTree.findChangedFilesAsync(
+			const result = await dependencyTree.findChangedFilesAsync(
 				filesToCheck,
 				"test",
 				(filename) => {
@@ -67,10 +67,12 @@ export default class Tests {
 				},
 			);
 
-			reportErrors(fileSystem, report, errors);
-			if (errors.length !== 0) throw new TaskError("Dependency analysis failed");
+			if (result.errors !== undefined) {
+				reportErrors(fileSystem, report, result.errors);
+				throw new TaskError("Dependency analysis failed");
+			}
 
-			return changed;
+			return result.changed;
 		}
 
 		function reportErrors(fileSystem, report, errors) {

@@ -158,6 +158,9 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *25 Oct 2026:* Convert to TypeScript. Includes BREAKING CHANGES:
+  * DependencyTree methods exclude inappropriate values instead of returning an empty array. For example, if there are no errors, there will be no "errors" property at all, instead of an empty "errors" array.
+  * FileSystem.readFileTree()'s "globsToExclude" parameter must be an array.
 * *23 Oct 2026:* Remove compile step (uses Node's built-in type stripping instead)
 * *23 Oct 2026:* Clean up directory structure
 * *23 Oct 2026:* Fix tests to work with ergotest 0.14.0

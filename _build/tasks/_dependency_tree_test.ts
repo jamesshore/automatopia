@@ -32,7 +32,6 @@ export default describe(() => {
 				dependencies: [
 					"/root.js", "/child1.js", "/child2.js", "/grandchild1a.js", "/grandchild1b.js", "/greatgrandchild.js"
 				],
-				errors: [],
 			});
 		});
 
@@ -71,7 +70,6 @@ export default describe(() => {
 
 			assert.equal(await tree.dependenciesForAsync("/subdir/root.js"), {
 				dependencies: [ "/subdir/root.js", "/subdir/child.js" ],
-				errors: [],
 			});
 		});
 
@@ -88,7 +86,6 @@ export default describe(() => {
 
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
 				dependencies: [ "/root.js", "/child1.js" ],
-				errors: [],
 			});
 		});
 
@@ -113,7 +110,6 @@ export default describe(() => {
 
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
 				dependencies: [ "/root.js", "/child1.js" ],
-				errors: [],
 			});
 		});
 
@@ -130,7 +126,6 @@ export default describe(() => {
 			const { tree } = create({ fileSystem });
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
 				dependencies: [ "/root.js", "/sibling.js" ],
-				errors: [],
 			});
 		});
 
@@ -148,7 +143,6 @@ export default describe(() => {
 
 			const { tree } = create({ fileSystem });
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
-				dependencies: [],
 				errors: [{
 					error: DependencyTree.ERRORS.DEPENDENCY_NOT_FOUND,
 					file: "/root.js",
@@ -173,7 +167,6 @@ export default describe(() => {
 
 			const { tree } = create({ fileSystem });
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
-				dependencies: [],
 				errors: [{
 					error: DependencyTree.ERRORS.DEPENDENCY_NOT_FOUND,
 					file: "/root.js",
@@ -206,7 +199,7 @@ export default describe(() => {
 			});
 
 			const { tree } = create({ fileSystem });
-			assert.equal((await tree.dependenciesForAsync("/root.js")).dependencies, []);
+			assert.equal("dependencies" in await tree.dependenciesForAsync("/root.js"), false);
 		});
 
 		it("returns error when root file can't be found", async () => {
@@ -214,7 +207,6 @@ export default describe(() => {
 
 			const { tree } = create({ fileSystem });
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
-				dependencies: [],
 				errors: [{
 					error: DependencyTree.ERRORS.ROOT_NOT_FOUND,
 					file: "/root.js",
@@ -254,7 +246,6 @@ export default describe(() => {
 			assert.equal(
 				await tree.findChangedFilesAsync([ "/root1.js", "/root2.js", "/root3.js" ], "ext"), {
 					changed: [ "/root1.js", "/root2.js" ],
-					errors: [],
 				},
 			);
 		});
@@ -268,7 +259,6 @@ export default describe(() => {
 
 			assert.equal(await tree.findChangedFilesAsync([ "/root.js" ], "ext"), {
 				changed: [ "/root.js" ],
-				errors: [],
 			});
 		});
 
@@ -290,7 +280,6 @@ export default describe(() => {
 
 			assert.equal(
 				await tree.findChangedFilesAsync([ "/root1.js", "/root2.js" ], "ext"), {
-					changed: [],
 					errors: [{
 						error: DependencyTree.ERRORS.DEPENDENCY_NOT_FOUND,
 						file: "/root1.js",
@@ -317,7 +306,7 @@ export default describe(() => {
 			});
 
 			const { tree } = create({ fileSystem });
-			assert.equal((await tree.findChangedFilesAsync([ "/root1.js", "/root2.js" ], "ext")).changed, []);
+			assert.equal("changed" in await tree.findChangedFilesAsync([ "/root1.js", "/root2.js" ], "ext"), false);
 		});
 
 		it("executes notify function for every file that's read (but not cached files)", async () => {
@@ -419,7 +408,6 @@ export default describe(() => {
 			files["/child1.js"].content = 'require' + '("/child2b.js");\n';
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
 				dependencies: [ "/root.js", "/child1.js", "/child2b.js" ],
-				errors: [],
 			});
 		});
 
@@ -444,7 +432,6 @@ export default describe(() => {
 			files["/child1.js"].content = 'require' + '("/child2.js");\n';
 			assert.equal(await tree.dependenciesForAsync("/root.js"), {
 				dependencies: [ "/root.js", "/child1.js", "/child2.js" ],
-				errors: [],
 			});
 		});
 

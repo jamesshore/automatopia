@@ -15,7 +15,9 @@ const ERRORS = {
 };
 
 /**
- * Analyzes source code dependencies for the purpose of discovering when files have changed. Caches the results for performance, but automatically re-analyzes files whose timestamp has changed. Calls a notify function for each file it analyzes.
+ * Analyzes source code dependencies for the purpose of discovering when files have changed. Caches the results for
+ * performance, but automatically re-analyzes files whose timestamp has changed. Calls a notify function for each file
+ * it analyzes.
  */
 export default class DependencyTree {
 
@@ -46,11 +48,13 @@ export default class DependencyTree {
 	}
 
 	/**
-	 * Find files that are newer than their corresponding timestamp file, or that recursively depend on any files newer than that timestamp file. Files matching {@link DependencyTree.create}'s "globsToIgnore" are ignored.
+	 * Find files that are newer than their corresponding timestamp file, or that recursively depend on any files newer
+	 * than that timestamp file. Files matching {@link DependencyTree.create}'s "globsToIgnore" are ignored.
 	 * @param {string[]} rootFiles Files to check.
 	 * @param {string} timestampExtension Extension used by the timestamp file.
 	 * @param {(filename: string) => void} [notifyFn] This function is called every time a file is analyzed.
-	 * @returns {Promise<{changed: string[]} | {errors: string[]}} Either the list of rootFiles with newer dependencies, or a list of errors.
+	 * @returns {Promise<{changed: string[]} | {errors: string[]}} Either the list of rootFiles with newer dependencies,
+	 *   or a list of errors.
 	 * @see FileSystem#timestampFileFor
 	 */
 	async findChangedFilesAsync(rootFiles, timestampExtension, notifyFn) {
@@ -64,7 +68,7 @@ export default class DependencyTree {
 			const timestampFile = this._fileSystem.timestampFileFor(root, timestampExtension);
 
 			const { dependencies, errors } = await this.dependenciesForAsync(root, notifyFn);
-			if (errors.length !== 0) {
+			if (errors !== undefined) {
 				errors.forEach(error => allErrors.add(error));
 				continue;
 			}
@@ -74,14 +78,18 @@ export default class DependencyTree {
 			if (!upToDate) changed.push(root);
 		}
 
-		return { changed, errors: [ ...allErrors ]};
+		if (allErrors.size !== 0) return { errors: [ ...allErrors ] };
+		return { changed };
 	}
 
 	/**
-	 * Find all files recursively depended upon by a file. Files matching {@link DependencyTree.create}'s "globsToIgnore" are ignored.
+	 * Find all files recursively depended upon by a file. Files matching {@link DependencyTree.create}'s "globsToIgnore"
+	 * are ignored.
 	 * @param {string} filename The file to analyze.
-	 * @param {(filename: string) => void} [notifyFn] This function is called every time a file is read from the file system.
-	 * @returns {Promise<{dependencies: string[]} | {errors: string[]}>} Either the list of imported files, or a list of errors.
+	 * @param {(filename: string) => void} [notifyFn] This function is called every time a file is read from the file
+	 *   system.
+	 * @returns {Promise<{dependencies: string[]} | {errors: string[]}>} Either the list of imported files, or a list of
+	 *   errors.
 	 */
 	async dependenciesForAsync(filename, notifyFn = () => {}) {
 		ensure.signature(arguments, [ String, [ undefined, Function ] ]);
@@ -100,10 +108,8 @@ export default class DependencyTree {
 			else throw err;
 		}
 
-		return {
-			dependencies: errors.length === 0 ? [ ...dependencySet ] : [],
-			errors,
-		};
+		if (errors.length !== 0) return { errors };
+		return { dependencies: [ ...dependencySet ] };
 	}
 
 	async #populateDependenciesAsync(notifyFn, filename, dependencySet, errors, notFoundError) {
