@@ -239,7 +239,7 @@ export default describe(() => {
 			await assertTasksShown("--tasks");
 			await assertTasksShown("--T");
 
-			async function assertTasksShown(arg) {
+			async function assertTasksShown(arg: string): Promise<void> {
 				const { tasks, cli, stdoutTracker } = createCli({ args: [ arg ] });
 				tasks.defineTask("task1", IRRELEVANT_FN);
 				tasks.defineTask("task3", IRRELEVANT_FN);
@@ -324,7 +324,7 @@ export default describe(() => {
 
 function createCli({
 	args = [],
-} = {}) {
+}: { args?: string[] } = {}) {
 	ensure.signature(arguments, [[ undefined, {
 		args: [ undefined, Array ],
 	}]]);
@@ -350,6 +350,12 @@ async function runAsync({
 	successMessage = "irrelevant_success_message",
 	failureMessage = "irrelevant_failure_message",
 	buildFnAsync = IRRELEVANT_FN,
+}: {
+	cli: TaskCli;
+	tasks: Tasks<unknown>;
+	successMessage?: string;
+	failureMessage?: string;
+	buildFnAsync?: () => void | Promise<void>;
 }) {
 	ensure.signature(arguments, [{
 		cli: TaskCli,
@@ -359,7 +365,10 @@ async function runAsync({
 		buildFnAsync: [ undefined, Function ],
 	}]);
 
-	let buildParms;
+	let buildParms: {
+		taskNames: string[];
+		options: Record<string, unknown>;
+	} | undefined;
 	const returnValue = await cli.runAsync(tasks, successMessage, failureMessage, async (taskNames, options) => {
 		buildParms = { taskNames, options };
 		await buildFnAsync();
