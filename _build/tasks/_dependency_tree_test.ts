@@ -1,8 +1,8 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
-import DependencyTree from "./dependency_tree.ts";
-import FileSystem from "../infrastructure/file_system.ts";
+import DependencyTree, { type DependencyNotFoundError } from "./dependency_tree.ts";
+import FileSystem, { type NulledFiles } from "../infrastructure/file_system.ts";
 
 export default describe(() => {
 
@@ -47,8 +47,8 @@ export default describe(() => {
 				"/child2.js": {},
 			});
 
-			const progress = [];
-			function notifyFn(filename) {
+			const progress: string[] = [];
+			function notifyFn(filename: string): void {
 				progress.push(filename);
 			}
 
@@ -320,8 +320,8 @@ export default describe(() => {
 				"/child.js": {},
 			});
 
-			const progress = [];
-			function notifyFn(filename) {
+			const progress: string[] = [];
+			function notifyFn(filename: string): void {
 				progress.push(filename);
 			}
 
@@ -411,6 +411,21 @@ export default describe(() => {
 			});
 		});
 
+		it("re-analyzes root files that didn't exist previously", async () => {
+			const files: NulledFiles = {};
+			const fileSystem = FileSystem.createNull(files);
+			const { tree } = create({ fileSystem });
+
+			assert.equal(await tree.dependenciesForAsync("/root.js"), {
+				errors: [{ error: DependencyTree.ERRORS.ROOT_NOT_FOUND, file: "/root.js" }],
+			});
+
+			files["/root.js"] = { content: "" };
+			assert.equal(await tree.dependenciesForAsync("/root.js"), {
+				dependencies: [ "/root.js" ],
+			});
+		});
+
 		it("re-analyzes files that have dependencies that don't exist", async () => {
 			const files = {
 				"/root.js": {
@@ -426,7 +441,7 @@ export default describe(() => {
 
 			const { tree } = create({ fileSystem });
 			const { errors } = await tree.dependenciesForAsync("/root.js");
-			assert.equal(errors[0].dependency, "/no_such_file.js");
+			assert.equal((errors![0] as DependencyNotFoundError).dependency, "/no_such_file.js");
 
 			files["/child1.js"].modified = 150;
 			files["/child1.js"].content = 'require' + '("/child2.js");\n';
@@ -444,6 +459,10 @@ function create({
 	fileSystem,
 	globsToIgnore,
 	reportHeadline = "irrelevant_report",
+}: {
+	fileSystem: FileSystem;
+	globsToIgnore?: string[];
+	reportHeadline?: string;
 }) {
 	ensure.signature(arguments, [{
 		fileSystem: FileSystem,

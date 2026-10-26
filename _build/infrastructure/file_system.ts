@@ -32,7 +32,7 @@ export interface NulledFileSystemOptions {
 	timestampDir?: string;
 }
 
-type NulledFiles = Record<string, NulledFile>;
+export type NulledFiles = Record<string, NulledFile>;
 
 export type FileSystemOutput =
 	| { action: typeof TRACK_ACTION.READ, filename: string }

@@ -12,7 +12,48 @@ import { minimatch as matchesGlob } from "minimatch";
 const ERRORS = {
 	ROOT_NOT_FOUND: "File not found",
 	DEPENDENCY_NOT_FOUND: "Dependency not found",
+} as const;
+
+export interface RootNotFoundError {
+	error: typeof ERRORS.ROOT_NOT_FOUND;
+	file: string;
+}
+
+export interface DependencyNotFoundError {
+	error: typeof ERRORS.DEPENDENCY_NOT_FOUND;
+	file: string;
+	dependency: string;
+	line: number;
+	source: string;
+}
+
+export type DependencyError = RootNotFoundError | DependencyNotFoundError;
+
+export type DependencyResult =
+	| { dependencies: string[], errors?: never }
+	| { errors: DependencyError[], dependencies?: never };
+
+export type ChangedFilesResult =
+	| { changed: string[], errors?: never }
+	| { errors: DependencyError[], changed?: never };
+
+type NotifyFn = (filename: string) => void;
+
+type FileError = Omit<Error, "message"> & {
+	code?: string;
+	message: string | DependencyError;
 };
+
+type ResolvedDependency =
+	| { ignored: false, dependency: analyzer.SourceDependency, error?: never }
+	| { ignored?: never, dependency?: never, error: { message: DependencyNotFoundError } };
+
+type AnalyzedDependency = ResolvedDependency | { ignored: true };
+
+interface CachedAnalysis {
+	modified: number;
+	dependencies: ResolvedDependency[];
+}
 
 /**
  * Analyzes source code dependencies for the purpose of discovering when files have changed. Caches the results for
@@ -21,8 +62,12 @@ const ERRORS = {
  */
 export default class DependencyTree {
 
+	private readonly _fileSystem: FileSystem;
+	private readonly _globsToIgnore: string[];
+	private readonly _cache: Record<string, Promise<CachedAnalysis>>;
+
 	/** The types of errors that can occur */
-	static get ERRORS() {
+	static get ERRORS(): typeof ERRORS {
 		return ERRORS;
 	}
 
@@ -32,7 +77,7 @@ export default class DependencyTree {
 	 * @param {string[]} [globsToIgnore=[]] Ignore files matching these globs.
 	 * @returns {DependencyTree} The instance.
 	 */
-	static create(fileSystem, globsToIgnore) {
+	static create(fileSystem: FileSystem, globsToIgnore?: string[]): DependencyTree {
 		ensure.signature(arguments, [ FileSystem, [ undefined, Array ]]);
 
 		return new DependencyTree(fileSystem, globsToIgnore);
@@ -41,7 +86,7 @@ export default class DependencyTree {
 	/**
 	 * Only for use by tests. (Use the factory method instead.)
 	 */
-	constructor(fileSystem, globsToIgnore = []) {
+	constructor(fileSystem: FileSystem, globsToIgnore: string[] = []) {
 		this._fileSystem = fileSystem;
 		this._globsToIgnore = globsToIgnore;
 		this._cache = {};
@@ -57,11 +102,11 @@ export default class DependencyTree {
 	 *   or a list of errors.
 	 * @see FileSystem#timestampFileFor
 	 */
-	async findChangedFilesAsync(rootFiles, timestampExtension, notifyFn) {
+	async findChangedFilesAsync(rootFiles: string[], timestampExtension: string, notifyFn?: NotifyFn): Promise<ChangedFilesResult> {
 		ensure.signature(arguments, [ Array, String, [ undefined, Function ]]);
 
-		const changed = [];
-		const allErrors = new Set();
+		const changed: string[] = [];
+		const allErrors = new Set<DependencyError>();
 
 		for (let i = 0; i < rootFiles.length; i++) {
 			const root = rootFiles[i];
@@ -91,20 +136,21 @@ export default class DependencyTree {
 	 * @returns {Promise<{dependencies: string[]} | {errors: string[]}>} Either the list of imported files, or a list of
 	 *   errors.
 	 */
-	async dependenciesForAsync(filename, notifyFn = () => {}) {
+	async dependenciesForAsync(filename: string, notifyFn: NotifyFn = () => {}): Promise<DependencyResult> {
 		ensure.signature(arguments, [ String, [ undefined, Function ] ]);
 
-		const dependencySet = new Set();
-		const errors = [];
+		const dependencySet = new Set<string>();
+		const errors: DependencyError[] = [];
+		const rootNotFound: RootNotFoundError = {
+			error: ERRORS.ROOT_NOT_FOUND,
+			file: filename,
+		};
 
 		try {
-			await this.#populateDependenciesAsync(notifyFn, filename, dependencySet, errors, "");
+			await this.#populateDependenciesAsync(notifyFn, filename, dependencySet, errors, rootNotFound);
 		}
 		catch (err) {
-			if (err.code === "ENOENT") errors.push({
-				error: ERRORS.ROOT_NOT_FOUND,
-				file: filename,
-			});
+			if ((err as FileError).code === "ENOENT") errors.push(rootNotFound);
 			else throw err;
 		}
 
@@ -112,31 +158,37 @@ export default class DependencyTree {
 		return { dependencies: [ ...dependencySet ] };
 	}
 
-	async #populateDependenciesAsync(notifyFn, filename, dependencySet, errors, notFoundError) {
+	async #populateDependenciesAsync(
+		notifyFn: NotifyFn,
+		filename: string,
+		dependencySet: Set<string>,
+		errors: DependencyError[],
+		errorToUseIfNotFound: DependencyError,
+	): Promise<{ dependencySet: Set<string>, errors: DependencyError[] }> {
 		// Have we processed this file already during this run?
 		if (dependencySet.has(filename)) return { dependencySet, errors };
 		dependencySet.add(filename);
 
 		// Have we processed this file in a previous run? If not, process it now.
 		if (this._cache[filename] === undefined) {
-			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, notFoundError);
+			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, errorToUseIfNotFound);
 		}
 
 		// Has this file changed since the last time we processed it?
-		let fileChangedOrErrored;
+		let fileChangedOrErrored: boolean;
 		try {
 			const { modified: cachedFileModified } = await this._cache[filename];
-			const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, notFoundError);
+			const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, errorToUseIfNotFound);
 			fileChangedOrErrored = cachedFileModified !== currentFileModified;
 		}
 		catch (err) {
-			if (err.code === "ENOENT") fileChangedOrErrored = true;
+			if ((err as FileError).code === "ENOENT") fileChangedOrErrored = true;
 			else throw err;
 		}
 
 		// If file has changed, or it errored last time we read it, process it again
 		if (fileChangedOrErrored) {
-			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, notFoundError);
+			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, errorToUseIfNotFound);
 		}
 
 		// Add this file's dependencies and errors to 'results' and 'errors'
@@ -154,14 +206,14 @@ export default class DependencyTree {
 		return { dependencySet, errors };
 	}
 
-	async #readAndAnalyzeFileAsync(notifyFn, filename, notFoundError) {
+	async #readAndAnalyzeFileAsync(notifyFn: NotifyFn, filename: string, errorToUseIfNotFound: DependencyError): Promise<CachedAnalysis> {
 		notifyFn(filename);
 
-		const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, notFoundError);
-		const sourceCode = await readTextFileAsync(this._fileSystem, filename, notFoundError);
+		const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, errorToUseIfNotFound);
+		const sourceCode = await readTextFileAsync(this._fileSystem, filename, errorToUseIfNotFound);
 		const rawDependencies = analyzer.analyze(sourceCode);
 
-		const resolvedDependencies = await Promise.all(rawDependencies.map(async (dependency) => {
+		const resolvedDependencies = await Promise.all(rawDependencies.map(async (dependency): Promise<AnalyzedDependency> => {
 			try {
 				if (dependency.path.startsWith("node:")) return { ignored: true };
 
@@ -178,50 +230,50 @@ export default class DependencyTree {
 				};
 			}
 			catch (error) {
-				if (error.code === "MODULE_NOT_FOUND") return { error };
+				if ((error as FileError).code === "MODULE_NOT_FOUND") return { error: error as { message: DependencyNotFoundError } };
 				else throw error;
 			}
 		}));
 
 		return {
 			modified: currentFileModified,
-			dependencies: resolvedDependencies.filter(({ ignored }) => !ignored)
+			dependencies: resolvedDependencies.filter((entry): entry is ResolvedDependency => !entry.ignored)
 		};
 	}
 
 }
 
-async function getFileModificationTimeAsync(fileSystem, filename, notFoundError) {
+async function getFileModificationTimeAsync(fileSystem: FileSystem, filename: string, errorToUseIfNotFound: DependencyError): Promise<number> {
 	try {
 		return (await fileSystem.getFileModificationTimeAsync(filename)).valueOf();
 	}
 	catch(err) {
-		if (err.code === "ENOENT") err.message = notFoundError;
+		if ((err as FileError).code === "ENOENT") (err as FileError).message = errorToUseIfNotFound;
 		throw err;
 	}
 }
 
-async function readTextFileAsync(fileSystem, filename, notFoundError) {
+async function readTextFileAsync(fileSystem: FileSystem, filename: string, errorToUseIfNotFound: DependencyError): Promise<string> {
 	try {
 		return await fileSystem.readTextFileAsync(filename);
 	}
 	catch(err) {
-		if (err.code === "ENOENT") err.message = notFoundError;
+		if ((err as FileError).code === "ENOENT") (err as FileError).message = errorToUseIfNotFound;
 		throw err;
 	}
 }
 
-async function resolveModulePathAsync(fileSystem, baseDir, module, notFoundError) {
+async function resolveModulePathAsync(fileSystem: FileSystem, baseDir: string, module: string, errorToUseIfNotFound: DependencyNotFoundError): Promise<string> {
 	try {
 		return await fileSystem.resolveModulePathAsync(baseDir, module);
 	}
 	catch(err) {
-		if (err.code === "MODULE_NOT_FOUND") err.message = notFoundError;
+		if ((err as FileError).code === "MODULE_NOT_FOUND") (err as FileError).message = errorToUseIfNotFound;
 		throw err;
 	}
 }
 
-function notFound(parent, child, line, source) {
+function notFound(parent: string, child: string, line: number, source: string): DependencyNotFoundError {
 	return {
 		error: ERRORS.DEPENDENCY_NOT_FOUND,
 		file: parent,
