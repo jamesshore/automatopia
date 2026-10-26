@@ -90,7 +90,7 @@ export default class DependencyTree {
 		const errors = [];
 
 		try {
-			await populateDependenciesAsync(this, notifyFn, filename, dependencySet, errors, "");
+			await this.#populateDependenciesAsync(notifyFn, filename, dependencySet, errors, "");
 		}
 		catch (err) {
 			if (err.code === "ENOENT") errors.push({
@@ -106,83 +106,83 @@ export default class DependencyTree {
 		};
 	}
 
-}
+	async #populateDependenciesAsync(notifyFn, filename, dependencySet, errors, notFoundError) {
+		// Have we processed this file already during this run?
+		if (dependencySet.has(filename)) return { dependencySet, errors };
+		dependencySet.add(filename);
 
-async function populateDependenciesAsync(self, notifyFn, filename, dependencySet, errors, notFoundError) {
-	// Have we processed this file already during this run?
-	if (dependencySet.has(filename)) return { dependencySet, errors };
-	dependencySet.add(filename);
-
-	// Have we processed this file in a previous run? If not, process it now.
-	if (self._cache[filename] === undefined) {
-		self._cache[filename] = readAndAnalyzeFileAsync(self, notifyFn, filename, notFoundError);
-	}
-
-	// Has this file changed since the last time we processed it?
-	let fileChangedOrErrored;
-	try {
-		const { modified: cachedFileModified } = await self._cache[filename];
-		const currentFileModified = await getFileModificationTimeAsync(self._fileSystem, filename, notFoundError);
-		fileChangedOrErrored = cachedFileModified !== currentFileModified;
-	}
-	catch (err) {
-		if (err.code === "ENOENT") fileChangedOrErrored = true;
-		else throw err;
-	}
-
-	// If file has changed, or it errored last time we read it, process it again
-	if (fileChangedOrErrored) {
-		self._cache[filename] = readAndAnalyzeFileAsync(self, notifyFn, filename, notFoundError);
-	}
-
-	// Add this file's dependencies and errors to 'results' and 'errors'
-	const { dependencies }  = await self._cache[filename];
-	await Promise.all(dependencies.map(async ({ dependency, error }) => {
-		if (error !== undefined) {
-			errors.push(error.message);
-			return;
+		// Have we processed this file in a previous run? If not, process it now.
+		if (this._cache[filename] === undefined) {
+			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, notFoundError);
 		}
 
-		const dependencyNotFound = notFound(filename, dependency.path, dependency.line, dependency.source);
-		await populateDependenciesAsync(self, notifyFn, dependency.path, dependencySet, errors, dependencyNotFound);
-	}));
-
-	return { dependencySet, errors };
-}
-
-async function readAndAnalyzeFileAsync(self, notifyFn, filename, notFoundError) {
-	notifyFn(filename);
-
-	const currentFileModified = await getFileModificationTimeAsync(self._fileSystem, filename, notFoundError);
-	const sourceCode = await readTextFileAsync(self._fileSystem, filename, notFoundError);
-	const rawDependencies = analyzer.analyze(sourceCode);
-
-	const resolvedDependencies = await Promise.all(rawDependencies.map(async (dependency) => {
+		// Has this file changed since the last time we processed it?
+		let fileChangedOrErrored;
 		try {
-			if (dependency.path.startsWith("node:")) return { ignored: true };
+			const { modified: cachedFileModified } = await this._cache[filename];
+			const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, notFoundError);
+			fileChangedOrErrored = cachedFileModified !== currentFileModified;
+		}
+		catch (err) {
+			if (err.code === "ENOENT") fileChangedOrErrored = true;
+			else throw err;
+		}
 
-			const baseDir = path.dirname(filename);
+		// If file has changed, or it errored last time we read it, process it again
+		if (fileChangedOrErrored) {
+			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, notFoundError);
+		}
+
+		// Add this file's dependencies and errors to 'results' and 'errors'
+		const { dependencies }  = await this._cache[filename];
+		await Promise.all(dependencies.map(async ({ dependency, error }) => {
+			if (error !== undefined) {
+				errors.push(error.message);
+				return;
+			}
+
 			const dependencyNotFound = notFound(filename, dependency.path, dependency.line, dependency.source);
-			const resolvedPath = await resolveModulePathAsync(self._fileSystem, baseDir, dependency.path, dependencyNotFound);
+			await this.#populateDependenciesAsync(notifyFn, dependency.path, dependencySet, errors, dependencyNotFound);
+		}));
 
-			if (self._globsToIgnore.some(glob => matchesGlob(resolvedPath, glob))) return { ignored: true };
+		return { dependencySet, errors };
+	}
 
-			dependency.path = resolvedPath;
-			return {
-				ignored: false,
-				dependency,
-			};
-		}
-		catch (error) {
-			if (error.code === "MODULE_NOT_FOUND") return { error };
-			else throw error;
-		}
-	}));
+	async #readAndAnalyzeFileAsync(notifyFn, filename, notFoundError) {
+		notifyFn(filename);
 
-	return {
-		modified: currentFileModified,
-		dependencies: resolvedDependencies.filter(({ ignored }) => !ignored)
-	};
+		const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, notFoundError);
+		const sourceCode = await readTextFileAsync(this._fileSystem, filename, notFoundError);
+		const rawDependencies = analyzer.analyze(sourceCode);
+
+		const resolvedDependencies = await Promise.all(rawDependencies.map(async (dependency) => {
+			try {
+				if (dependency.path.startsWith("node:")) return { ignored: true };
+
+				const baseDir = path.dirname(filename);
+				const dependencyNotFound = notFound(filename, dependency.path, dependency.line, dependency.source);
+				const resolvedPath = await resolveModulePathAsync(this._fileSystem, baseDir, dependency.path, dependencyNotFound);
+
+				if (this._globsToIgnore.some(glob => matchesGlob(resolvedPath, glob))) return { ignored: true };
+
+				dependency.path = resolvedPath;
+				return {
+					ignored: false,
+					dependency,
+				};
+			}
+			catch (error) {
+				if (error.code === "MODULE_NOT_FOUND") return { error };
+				else throw error;
+			}
+		}));
+
+		return {
+			modified: currentFileModified,
+			dependencies: resolvedDependencies.filter(({ ignored }) => !ignored)
+		};
+	}
+
 }
 
 async function getFileModificationTimeAsync(fileSystem, filename, notFoundError) {
