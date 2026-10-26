@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../util/tests.ts";
-import Tasks from "./tasks.ts";
+import Tasks, { type ErrorWithFailedTask, type NulledTasksOptions, type TaskOutput } from "./tasks.ts";
 import Clock from "../infrastructure/clock.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 
@@ -39,7 +39,7 @@ export default describe(() => {
 
 			let taskRan = false;
 			tasks.defineTask("my_task", async () => {
-				await new Promise((resolve) => {
+				await new Promise<void>((resolve) => {
 					setImmediate(() => {
 						taskRan = true;
 						resolve();
@@ -103,7 +103,7 @@ export default describe(() => {
 				await clock.tickAsync(200);
 			});
 
-			const eventData = [];
+			const eventData: TaskOutput[] = [];
 			tasks.on(Tasks.TASK_EVENT, event => eventData.push(event));
 			await tasks.runTasksAsync([ "parent_task" ], IRRELEVANT_OPTIONS);
 
@@ -232,8 +232,8 @@ export default describe(() => {
 				assert.fail("expected exception");
 			}
 			catch(err) {
-				assert.equal(err.message, "my task failure", "exception's message");
-				assert.equal(err.failedTask, "my_task", "exception's failed task");
+				assert.equal((err as ErrorWithFailedTask).message, "my task failure", "exception's message");
+				assert.equal((err as ErrorWithFailedTask).failedTask, "my_task", "exception's failed task");
 			}
 		});
 
@@ -252,8 +252,8 @@ export default describe(() => {
 				assert.fail("expected exception");
 			}
 			catch(err) {
-				assert.equal(err.message, "child task failure", "exception's message");
-				assert.equal(err.failedTask, "child_task", "exception's failed task");
+				assert.equal((err as ErrorWithFailedTask).message, "child task failure", "exception's message");
+				assert.equal((err as ErrorWithFailedTask).failedTask, "child_task", "exception's failed task");
 			}
 		});
 
@@ -352,7 +352,7 @@ function createTasks({
 	incrementalDir = "/irrelevant/incremental/dir",
 	clock = Clock.createNull(),
 	fileSystem = FileSystem.createNull(),
-} = {}) {
+}: NulledTasksOptions = {}) {
 	const writeTracker = fileSystem.track();
 	const tasks = new Tasks(incrementalDir, clock, fileSystem);
 

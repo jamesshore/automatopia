@@ -4,23 +4,51 @@ import Clock from "../infrastructure/clock.ts";
 import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 import EventEmitter from "node:events";
+import { ANY_TYPE } from "../util/ensure.ts";
 
 const TASK_EVENT = "task";
 const ACTION = {
 	START: "start",
 	END: "end",
-};
+} as const;
+
+export interface NulledTasksOptions {
+	incrementalDir?: string;
+	clock?: Clock;
+	fileSystem?: FileSystem;
+}
+
+export type TaskFunction<T_TaskParameters> = (parms: T_TaskParameters) => void | Promise<void>;
+
+export type TaskOutput =
+	| { action: typeof ACTION.START, task: string, timestamp: number }
+	| { action: typeof ACTION.END, task: string, timestamp: number };
+
+export interface TaskDescription {
+	name: string;
+	description: string;
+}
+
+export interface ErrorWithFailedTask extends Error {
+	failedTask?: string;
+}
 
 /**
  * A set of tasks. Each task consists of a name and an associated function. The tasks can be run programmatically or
  * from the command-line.
  */
-export default class Tasks extends EventEmitter {
+export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskOutput] }> {
+
+	private readonly _taskFns: Record<string, TaskFunction<T_TaskParameters>>;
+	private readonly _descriptions: Record<string, string>;
+	private readonly _incrementalDir: string;
+	private readonly _clock: Clock;
+	private readonly _fileSystem: FileSystem;
 
 	/**
 	 * Task tracking event.
 	 */
-	static get TASK_EVENT() {
+	static get TASK_EVENT(): typeof TASK_EVENT {
 		return TASK_EVENT;
 	}
 
@@ -28,7 +56,7 @@ export default class Tasks extends EventEmitter {
 	 * An enum for {@link Tasks#track} and the event emitter.
 	 * @returns {{START: string, END: string}}
 	 */
-	static get ACTION() {
+	static get ACTION(): typeof ACTION {
 		return ACTION;
 	}
 
@@ -39,16 +67,19 @@ export default class Tasks extends EventEmitter {
 	 * @param {FileSystem} fileSystem The file system that contains `incrementalDir`.
 	 * @returns {Tasks} The instance.
 	 */
-	static create({
+	static create<T_TaskParameters>({
 		incrementalDir,
 		fileSystem,
-	}) {
+	}: {
+		incrementalDir: string;
+		fileSystem: FileSystem;
+	}): Tasks<T_TaskParameters> {
 		ensure.signature(arguments, [{
 			incrementalDir: String,
 			fileSystem: FileSystem,
 		}]);
 
-		return new Tasks(incrementalDir, Clock.create(), fileSystem);
+		return new Tasks<T_TaskParameters>(incrementalDir, Clock.create(), fileSystem);
 	}
 
 	/**
@@ -59,22 +90,22 @@ export default class Tasks extends EventEmitter {
 	 * @param {FileSystem} [fileSystem] File system. Defaults to a Nulled instance.
 	 * @returns {Tasks} The instance.
 	 */
-	static createNull({
+	static createNull<T_TaskParameters>({
 		incrementalDir = "/nulled_incremental_dir",
 		clock = Clock.createNull(),
 		fileSystem = FileSystem.createNull(),
-	} = {}) {
+	}: NulledTasksOptions = {}): Tasks<T_TaskParameters> {
 		ensure.signature(arguments, [[ undefined, {
 			incrementalDir: [ undefined, String ],
 			clock: [ undefined, Clock ],
 			fileSystem: [ undefined, FileSystem ],
 		}]]);
 
-		return new Tasks(incrementalDir, clock, fileSystem);
+		return new Tasks<T_TaskParameters>(incrementalDir, clock, fileSystem);
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
-	constructor(incrementalDir, clock, fileSystem) {
+	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem) {
 		super();
 		this._taskFns = {};
 		this._descriptions = {};
@@ -88,10 +119,10 @@ export default class Tasks extends EventEmitter {
 	 * @returns {OutputTracker} The tracker.
 	 * @see Tasks.ACTION
 	 */
-	track() {
+	track(): OutputTracker<TaskOutput> {
 		ensure.signature(arguments, []);
 
-		return new OutputTracker(this, TASK_EVENT);
+		return new OutputTracker<TaskOutput>(this, TASK_EVENT);
 	}
 
 	/**
@@ -100,7 +131,7 @@ export default class Tasks extends EventEmitter {
 	 * @param {() => void} fn The function to run when the task executes.
 	 * @throws Error Throws an error if the task name has already been used.
 	 */
-	defineTask(name, fn) {
+	defineTask(name: string, fn: TaskFunction<T_TaskParameters>): void {
 		ensure.signature(arguments, [ String, Function ]);
 
 		if (this._taskFns[name] === undefined) this._taskFns[name] = fn;
@@ -113,18 +144,18 @@ export default class Tasks extends EventEmitter {
 	 * run, it checks for the existance of that task file, and skips the task if it's newer than all the `sourceFiles`.
 	 * @param {string} name The name of the task.
 	 * @param {string[]} sourceFiles The files to compare to the task file.
-	 * @param {(options) => void} fn The function to run when the task executes. It will be provided with the `options`
-	 *   object that was passed into {@link Tasks.runTasksAsync}.
+	 * @param {(parms) => void} fn The function to run when the task executes. It will be provided with the `parms`
+	 *   variable that was passed into {@link Tasks.runTasksAsync}.
 	 * @throws Error Throws an error if the task name has already been used.
 	 */
-	defineIncrementalTask(name, sourceFiles, fn) {
+	defineIncrementalTask(name: string, sourceFiles: string[], fn: TaskFunction<T_TaskParameters>): void {
 		ensure.signature(arguments, [ String, Array, Function ]);
 
-		this.defineTask(name, async (options) => {
+		this.defineTask(name, async (parms) => {
 			const taskFile = `${this._incrementalDir}/${name}.task`;
 			if (await this._fileSystem.isFileNewerThanAllAsync(taskFile, sourceFiles)) return;
 
-			await fn(options);
+			await fn(parms);
 			await this._fileSystem.writeTextFileAsync(taskFile, "ok");
 		});
 	}
@@ -136,7 +167,7 @@ export default class Tasks extends EventEmitter {
 	 *   where the keys are the task names and the values are the task descriptions.
 	 * @throws {Error} Throws error if any of the task names don't exist.
 	 */
-	setDescriptions(namesAndDescriptions) {
+	setDescriptions(namesAndDescriptions: Record<string, string>): void {
 		ensure.signature(arguments, [ Object ]);
 
 		Object.entries(namesAndDescriptions).forEach(([ key, value ]) => {
@@ -158,7 +189,7 @@ export default class Tasks extends EventEmitter {
 	 * descriptions default to an empty string.)
 	 * @returns {{name: string, description: string}[]} Each task in the order it was added.
 	 */
-	listTasks() {
+	listTasks(): TaskDescription[] {
 		return Object.keys(this._taskFns).map(name => {
 			const description = this._descriptions[name] ?? "";
 			return { name, description };
@@ -170,19 +201,19 @@ export default class Tasks extends EventEmitter {
 	 * @param {string} name The name of the task to check.
 	 * @returns {boolean} True if the task has been defined.
 	 */
-	hasTask(name) {
+	hasTask(name: string): boolean {
 		return this._taskFns[name] !== undefined;
 	}
 
 	/**
 	 * Runs the requested tasks. Each task is run one at a time in the order provided.
 	 * @param {string[]} tasksToRun The names of the tasks to run.
-	 * @param {options} options An arbitrary object to provide to tasks when they run.
+	 * @param {parms} parms An arbitrary object to provide to tasks when they run.
 	 * @returns {Promise<void>}
 	 * @throws Error Throws an error, without running any tasks, if any of the task names haven't been defined.
 	 */
-	async runTasksAsync(tasksToRun, options) {
-		ensure.signature(arguments, [ Array, Object ]);
+	async runTasksAsync(tasksToRun: string[], parms: T_TaskParameters): Promise<void> {
+		ensure.signature(arguments, [ Array, ANY_TYPE ]);
 
 		const unknownTasks = determineUnknownTasks(this._taskFns, tasksToRun);
 		if (unknownTasks !== "") {
@@ -192,11 +223,11 @@ export default class Tasks extends EventEmitter {
 		for (const task of tasksToRun) {
 			try {
 				this.emit(TASK_EVENT, { task, action: ACTION.START, timestamp: this._clock.now() });
-				await this._taskFns[task](options);
+				await this._taskFns[task](parms);
 				this.emit(TASK_EVENT, { task, action: ACTION.END, timestamp: this._clock.now() });
 			}
 			catch (err) {
-				if (err.failedTask === undefined) err.failedTask = task;
+				if ((err as ErrorWithFailedTask).failedTask === undefined) (err as ErrorWithFailedTask).failedTask = task;
 				throw err;
 			}
 		}
@@ -204,6 +235,6 @@ export default class Tasks extends EventEmitter {
 
 }
 
-function determineUnknownTasks(taskFns, tasksToRun) {
+function determineUnknownTasks(taskFns: Record<string, unknown>, tasksToRun: string[]): string {
 	return tasksToRun.filter((task) => taskFns[task] === undefined).join(", ");
 }
