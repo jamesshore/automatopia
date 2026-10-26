@@ -21,9 +21,9 @@ This repository contains JavaScript classes for creating high-performance task a
   * [sounds](_build/sounds) - Pleasant sounds to play for different build outcomes 
 
 * **Example Tools**
-  * [version](_build/tools/version.js) Check the Node.js version
-  * [lint](_build/tools/lint.js) - Run ESLint on files that have changed
-  * [tests](_build/tools/tests.js) - Run tests whose dependencies have changed 
+  * [version](_build/tools/version.ts) Check the Node.js version
+  * [lint](_build/tools/lint.ts) - Run ESLint on files that have changed
+  * [tests](_build/tools/tests.ts) - Run tests whose dependencies have changed
 
 This repo is designed for you to copy and customize. Everything's documented with JSDoc comments, so look at the files in [_build](_build) to get started, or check out the highlights above.
 
