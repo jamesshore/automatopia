@@ -136,6 +136,20 @@ export default describe(() => {
 			], "should have written task file");
 		});
 
+		it("passes arbitrary options through to tasks", async () => {
+			const { tasks } = createTasks();
+
+			let actualOptions;
+			tasks.defineIncrementalTask("my_task", [ "/source_file" ], (optionsParm) => {
+				actualOptions = optionsParm;
+			});
+
+			const expectedOptions = { myOptions: true };
+			await tasks.runTasksAsync([ "my_task" ], expectedOptions);
+
+			assert.equal(actualOptions, expectedOptions);
+		});
+
 		it("doesn't run or write file if the file exists and is newer than the source files", async () => {
 			const fileSystem = FileSystem.createNull({
 				"/incremental_dir/my_task.task": { modified: 100 },

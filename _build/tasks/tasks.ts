@@ -120,11 +120,11 @@ export default class Tasks extends EventEmitter {
 	defineIncrementalTask(name, sourceFiles, fn) {
 		ensure.signature(arguments, [ String, Array, Function ]);
 
-		this.defineTask(name, async () => {
+		this.defineTask(name, async (options) => {
 			const taskFile = `${this._incrementalDir}/${name}.task`;
 			if (await this._fileSystem.isFileNewerThanAllAsync(taskFile, sourceFiles)) return;
 
-			await fn();
+			await fn(options);
 			await this._fileSystem.writeTextFileAsync(taskFile, "ok");
 		});
 	}
