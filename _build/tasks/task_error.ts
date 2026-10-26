@@ -8,7 +8,7 @@ export default class TaskError extends Error {
 	/**
 	 * @param message The error message to display.
 	 */
-	constructor(message) {
+	constructor(message: string) {
 		super(message);
 	}
 
