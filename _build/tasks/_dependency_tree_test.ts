@@ -308,6 +308,18 @@ export default describe(() => {
 			);
 		});
 
+		it("doesn't return changed files if there were any errors", async () => {
+			const fileSystem = FileSystem.createNull({
+				"/root1.js": {},
+				"/root2.js": { content:
+					'require' + '("/no_such_child.js");\n'
+				},
+			});
+
+			const { tree } = create({ fileSystem });
+			assert.equal((await tree.findChangedFilesAsync([ "/root1.js", "/root2.js" ], "ext")).changed, []);
+		});
+
 		it("executes notify function for every file that's read (but not cached files)", async () => {
 			const fileSystem = FileSystem.createNull({
 				"/root1.js": { content:
