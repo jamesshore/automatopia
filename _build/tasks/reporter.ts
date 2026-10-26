@@ -19,18 +19,43 @@ const ACTION = {
 	FAILURE: "failure",
 	FOOTER: "footer",
 	END: "end",
-};
+} as const;
+
+export interface ReporterOptions {
+	debug?: boolean;
+	stdout?: ConsoleOutput;
+}
+
+export interface NulledReporterOptions {
+	stdout?: ConsoleOutput;
+	clock?: Clock;
+}
+
+export type ReporterOutput =
+	| { action: typeof ACTION.START, report: string }
+	| { action: typeof ACTION.PROGRESS, report: string, text?: string }
+	| { action: typeof ACTION.DEBUG, report: string, text: string }
+	| { action: typeof ACTION.FAILURE, report: string, footer?: string, progress?: string, debug?: string }
+	| { action: typeof ACTION.FOOTER, report: string, text: string }
+	| { action: typeof ACTION.END, report: string };
+
+type ReportFunction<T> = (report: Report) => T | Promise<T>;
 
 /**
  * Writes build progress as a headline, a series of dots, and an elapsed time.
  */
 export default class Reporter {
 
+	private readonly _stdout: ConsoleOutput;
+	private readonly _clock: Clock;
+	private readonly _debug: boolean | undefined;
+	private readonly _emitter: EventEmitter;
+
 	/**
 	 * An enum for {@link Reporter#track}.
 	 * @returns {{STARTED: string, PROGRESS: string, FOOTER: string, END: string}}
 	 */
-	static get ACTION() {
+	static get ACTION(): typeof ACTION {
 		return ACTION;
 	}
 
@@ -38,7 +63,7 @@ export default class Reporter {
 	 * Used for runtime type checking.
 	 * @returns {Report} The Reporter.Report class.
 	 */
-	static get Report() {
+	static get Report(): typeof Report {
 		return Report;
 	}
 
@@ -51,7 +76,7 @@ export default class Reporter {
 	static create({
 		debug = false,
 		stdout = ConsoleOutput.createStdout(),
-	} = {}) {
+	}: ReporterOptions = {}): Reporter {
 		ensure.signature(arguments, [[ undefined, {
 			debug: [ undefined, Boolean ],
 			stdout: [ undefined, ConsoleOutput ],
@@ -69,7 +94,7 @@ export default class Reporter {
 	static createNull({
 		stdout = ConsoleOutput.createNull(),
 		clock = Clock.createNull(),
-	} = {}) {
+	}: NulledReporterOptions = {}): Reporter {
 		ensure.signature(arguments, [[ undefined, {
 			stdout: [ undefined, ConsoleOutput ],
 			clock: [ undefined, Clock ],
@@ -79,7 +104,7 @@ export default class Reporter {
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
-	constructor(stdout, clock, debug) {
+	constructor(stdout: ConsoleOutput, clock: Clock, debug?: boolean) {
 		this._stdout = stdout;
 		this._clock = clock;
 		this._debug = debug;
@@ -87,13 +112,15 @@ export default class Reporter {
 	}
 
 	/**
-	 * Start a new report by writing a headline and then running a function. When the function ends, a dot will be written (if the function didn't call {@link Report#progress}) along with the elapsed time.
+	 * Start a new report by writing a headline and then running a function. When the function ends, a dot will be
+	 * written (if the function didn't call {@link Report#progress}) along with the elapsed time.
 	 * @template T
 	 * @param {string} headline The headline to write.
-	 * @param {(report: Report) => Promise<T>} fnAsync The function to call. Use the `report` parameter to write to the report.
+	 * @param {(report: Report) => Promise<T>} fnAsync The function to call. Use the `report` parameter to write to the
+	 *   report.
 	 * @returns {Promise<T>} The value returned by `fnAsync`.
 	 */
-	async startAsync(headline, fnAsync) {
+	async startAsync<T>(headline: string, fnAsync: ReportFunction<T>): Promise<T> {
 		ensure.signature(arguments, [ String, Function ]);
 
 		const report = new Report(this._stdout, this._clock, this._debug, this._emitter, headline, false);
@@ -101,13 +128,14 @@ export default class Reporter {
 	}
 
 	/**
-	 * Start a 'quiet' report. It's just like {@link Report#startAsync}, except that it only writes the headline and elapsed time if the function writes something to the report.
-	 * template T
+	 * Start a 'quiet' report. It's just like {@link Report#startAsync}, except that it only writes the headline and
+	 * elapsed time if the function writes something to the report.
 	 * @param {string} headline The headline to write.
-	 * @param {(report: Report) => Promise<T>} fnAsync The function to call. Use the `report` parameter to write to the report.
+	 * @param {(report: Report) => Promise<T>} fnAsync The function to call. Use the `report` parameter to write to the
+	 *   report.
 	 * @returns {Promise<T>} The value returned by `fnAsync`.
 	 */
-	async quietStartAsync(headline, fnAsync) {
+	async quietStartAsync<T>(headline: string, fnAsync: ReportFunction<T>): Promise<T> {
 		ensure.signature(arguments, [ String, Function ]);
 
 		const report = new Report(this._stdout, this._clock, this._debug, this._emitter, headline, true);
@@ -119,13 +147,13 @@ export default class Reporter {
 	 * @returns {OutputTracker} The tracker.
 	 * @see Reporter.ACTION
 	 */
-	track() {
-		return new OutputTracker(this._emitter, USAGE_EVENT);
+	track(): OutputTracker<ReporterOutput> {
+		return new OutputTracker<ReporterOutput>(this._emitter, USAGE_EVENT);
 	}
 
 }
 
-async function runReportBodyAsync(report, bodyFnAsync) {
+async function runReportBodyAsync<T>(report: Report, bodyFnAsync: ReportFunction<T>): Promise<T> {
 	try {
 		return await bodyFnAsync(report);
 	}
@@ -134,33 +162,33 @@ async function runReportBodyAsync(report, bodyFnAsync) {
 		throw err;
 	}
 	finally {
-		endReport(report);
+		report._end();
 	}
-}
-
-function endReport(report) {
-	if (report._isQuiet && !report._started && report._footer === "") return;
-
-	if (!report._wroteProgress) report._writeProgress();
-
-	const elapsedSec = report.elapsedMs / 1000;
-	report._stdout.write(Colors.brightWhite.dim(` (${elapsedSec.toFixed(2)}s)\n`));
-
-	report._stdout.write(report._footer);
-	report._ended = true;
-	report._emitter.emit(USAGE_EVENT, { report: report._headline, action: ACTION.END });
 }
 
 
 /**
- * An individual report. A report consists of a headline, a series of dots, the elapsed time (which is added automatically), and optional footers.
+ * An individual report. A report consists of a headline, a series of dots, the elapsed time (which is added
+ * automatically), and optional footers.
  */
 class Report {
 
+	private readonly _stdout: ConsoleOutput;
+	private readonly _clock: Clock;
+	private readonly _debug: boolean | undefined;
+	private readonly _headline: string;
+	private readonly _isQuiet: boolean;
+	private readonly _emitter: EventEmitter;
+	private _started: boolean;
+	private readonly _startTime: number;
+	private _wroteProgress: boolean;
+	private _footer: string;
+	private _ended: boolean;
+
 	/**
-	 * Use {@link Reporter}'s factory methods instead.
+	 * Internal use only. (Use {@link Reporter}'s factory methods instead.)
 	 */
-	constructor(stdout, clock, debug, emitter, headline, isQuiet) {
+	constructor(stdout: ConsoleOutput, clock: Clock, debug: boolean | undefined, emitter: EventEmitter, headline: string, isQuiet: boolean) {
 		this._stdout = stdout;
 		this._clock = clock;
 		this._debug = debug;
@@ -180,7 +208,7 @@ class Report {
 	/**
 	 * @returns {number} The amount of time, in milliseconds, since the report began.
 	 */
-	get elapsedMs() {
+	get elapsedMs(): number {
 		return this._clock.millisecondsSince(this._startTime);
 	}
 
@@ -188,7 +216,7 @@ class Report {
 	 * Write the report headline, if it hasn't already been written.
 	 * @see Reporter.quietStartAsync
 	 */
-	started() {
+	started(): void {
 		ensure.signature(arguments, []);
 
 		if (!this._started) {
@@ -201,12 +229,11 @@ class Report {
 	/**
 	 * Write a dot (or other text), indicating that work is progressing.
 	 * @param {string} [text="."] The text to write.
-	 * @param {string} [debug] Text to record in the output tracker.
 	 */
-	progress(text) {
+	progress(text?: string): void {
 		ensure.signature(arguments, [[ undefined, String ]]);
 
-		this._writeProgress(text);
+		this.#writeProgress(text);
 
 		const textEvent = text === undefined ? {} : { text };
 		this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.PROGRESS, ...textEvent });
@@ -216,7 +243,7 @@ class Report {
 	 * Write text if the reporter is in debug mode; otherwise, write nothing.
 	 * @param {string} text The text to write
 	 */
-	debug(text) {
+	debug(text: string): void {
 		ensure.signature(arguments, [ String ]);
 
 		this.#writeDebug(text);
@@ -227,19 +254,22 @@ class Report {
 	 * Write a red X (or other text) along with an optional footer, indicating that something failed.
 	 * @param {string} [footer] The footer to write, if any.
 	 * @param {string} [progress="X"] The progress text to write. Defaults to a red "X".
-	 * @param {string} [debug] Text to record in the output tracker.
+	 * @param {string} [debug] Text to write if the reporter is in debug mode.
 	 */
 	failure(footer = "", {
 		progress,
 		debug,
-	} = {}) {
+	}: {
+		progress?: string;
+		debug?: string;
+	} = {}): void {
 		ensure.signature(arguments, [[ undefined, String ], [ undefined, {
 			progress: [ undefined, String ],
 			debug: [ undefined, String ],
 		}]]);
 
 		this.#writeFooter(footer);
-		this._writeProgress(progress ?? DEFAULT_FAILURE_TEXT);
+		this.#writeProgress(progress ?? DEFAULT_FAILURE_TEXT);
 		this.#writeDebug(debug);
 
 		const footerEvent = footer === "" ? {} : { footer };
@@ -258,7 +288,7 @@ class Report {
 	 * Additional text to write after the function ends. Useful for errors and summary information.
 	 * @param {string} text The text to write.
 	 */
-	footer(text) {
+	footer(text: string): void {
 		ensure.signature(arguments, [ String ]);
 		if (text === "") return;
 
@@ -266,20 +296,34 @@ class Report {
 		this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.FOOTER, text });
 	}
 
-	_writeProgress(text = DEFAULT_PROGRESS_TEXT) {
+	/** Internal use only. Called automatically when the report function returns. */
+	_end(): void {
+		if (this._isQuiet && !this._started && this._footer === "") return;
+
+		if (!this._wroteProgress) this.#writeProgress();
+
+		const elapsedSec = this.elapsedMs / 1000;
+		this._stdout.write(Colors.brightWhite.dim(` (${elapsedSec.toFixed(2)}s)\n`));
+
+		this._stdout.write(this._footer);
+		this._ended = true;
+		this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.END });
+	}
+
+	#writeProgress(text: string = DEFAULT_PROGRESS_TEXT): void {
 		this.started();
 		this._stdout.write(text);
 		this._wroteProgress = true;
 	}
 
-	#writeDebug(text) {
+	#writeDebug(text: string | undefined): void {
 		if (this._debug && text !== undefined) {
 			this.started();
 			this._stdout.write(text);
 		}
 	}
 
-	#writeFooter(text) {
+	#writeFooter(text: string): void {
 		this._footer += text;
 	}
 }

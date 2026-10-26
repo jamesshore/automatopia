@@ -339,11 +339,7 @@ export default describe(() => {
 
 function create({
 	debug = false,
-} = {}) {
-	ensure.signature(arguments, [[ undefined, {
-		debug: Boolean,
-	}]]);
-
+}: { debug?: boolean } = {}) {
 	const clock = Clock.createNull();
 	const stdout = ConsoleOutput.createNull();
 	const stdoutTracker = stdout.track();
@@ -359,6 +355,6 @@ function create({
 	};
 }
 
-function assertStdoutEqual(stdout, expected, message) {
+function assertStdoutEqual(stdout: string[], expected: string, message?: string): void {
 	assert.equal(stdout.join(""), expected, message);
 }
