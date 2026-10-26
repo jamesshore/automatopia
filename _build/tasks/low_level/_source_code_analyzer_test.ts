@@ -42,13 +42,13 @@ export default describe(() => {
 		});
 
 		it("looks for exact 'import' or 'export' word", () => {
-			assertNotFound(`ximport {foo} from ` + `"./source_code_analyzer";`, "./source_code_analyzer");
-			assertNotFound(`xexport {foo} from ` + `"./source_code_analyzer";`, "./source_code_analyzer");
+			assertNotFound(`ximport {foo} from ` + `"./source_code_analyzer";`);
+			assertNotFound(`xexport {foo} from ` + `"./source_code_analyzer";`);
 		});
 
 		it("ignores require statements that are commented out with // (but not /* */, that's too much work)", () => {
-			assertNotFound(`//import {foo} from ` + `"./source_code_analyzer";`, "./source_code_analyzer");
-			assertNotFound(`// import {foo} from ` + `"./source_code_analyzer";`, "./source_code_analyzer");
+			assertNotFound(`//import {foo} from ` + `"./source_code_analyzer";`);
+			assertNotFound(`// import {foo} from ` + `"./source_code_analyzer";`);
 		});
 
 	});
@@ -95,13 +95,13 @@ export default describe(() => {
 	});
 });
 
-function assertFound(sourceCode, expected) {
+function assertFound(sourceCode: string, expected: string): void {
 	const analysis = analyzer.analyze(sourceCode);
 
 	assert.equal(analysis.length, 1, "should have found one match");
 	assert.equal(analysis[0].path, expected);
 }
 
-function assertNotFound(sourceCode) {
+function assertNotFound(sourceCode: string): void {
 	assert.equal(analyzer.analyze(sourceCode), []);
 }

@@ -6,12 +6,20 @@ const IMPORT_REGEX = /(\/\/)?.*?\b(?:import|export) .*? from\s*?["'](.*?)["']/;
 const REQUIRE_REGEX = /(\/\/.*?)?\brequire\s*\(\s*["'](.*?)["']\s*\)/;
 const COMMENT_REGEX = /^\s*?\/\/\s*?dependency:\s*(.*?)\s*?$/;
 
+export interface SourceDependency {
+	path: string;
+	line: number;
+	source: string;
+}
+
 /**
- * Find the dependencies mentioned in a set of source code. Looks for "require()" statements and "// dependency: xxx" comments.
+ * Find the dependencies mentioned in a set of source code. Looks for "require()" statements and "// dependency: xxx"
+ * comments.
  * @param {string} sourceCode The source code to analyze.
- * @returns {{path: string, line: number, source: string}[]} A list of all dependencies found. Each dependency has the path of the dependency, the line number it was found on (one-based), and the source code of that line.
+ * @returns {{path: string, line: number, source: string}[]} A list of all dependencies found. Each dependency has the
+ *   path of the dependency, the line number it was found on (one-based), and the source code of that line.
  */
-export function analyze(sourceCode) {
+export function analyze(sourceCode: string): SourceDependency[] {
 	ensure.signature(arguments, [ String ]);
 
 	return sourceCode.split("\n").map((source, line) => {
@@ -22,21 +30,21 @@ export function analyze(sourceCode) {
 	}).filter(dependency => dependency !== null);
 }
 
-function matchImportStatement(line) {
+function matchImportStatement(line: string): string | null {
 	const match = line.match(IMPORT_REGEX);
 
 	if (match === null || match[1] !== undefined) return null;
 	else return match[2];
 }
 
-function matchRequireStatement(line) {
+function matchRequireStatement(line: string): string | null {
 	const match = line.match(REQUIRE_REGEX);
 
 	if (match === null || match[1] !== undefined) return null;
 	else return match[2];
 }
 
-function matchDependencyComment(line) {
+function matchDependencyComment(line: string): string | null {
 	const match = line.match(COMMENT_REGEX);
 
 	if (match === null) return null;
