@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
-import Reporter from "./reporter.js";
+import Reporter from "./reporter.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";
 import Colors from "../infrastructure/colors.ts";

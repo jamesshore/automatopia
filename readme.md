@@ -3,17 +3,17 @@
 This repository contains JavaScript classes for creating high-performance task and build automation. Here are some of the highlights:
 
 * **Task Automation**
-  * [Tasks](_build/tasks/tasks.js) - Define and run tasks
-  * [TaskCli](_build/tasks/task_cli.js) - A command-line interface to Tasks
-  * [Reporter](_build/tasks/reporter.js) - Provide tidy build progress
+  * [Tasks](_build/tasks/tasks.ts) - Define and run tasks
+  * [TaskCli](_build/tasks/task_cli.ts) - A command-line interface to Tasks
+  * [Reporter](_build/tasks/reporter.ts) - Provide tidy build progress
   * [Shell](_build/infrastructure/shell.ts) - Execute programs
   * [FileTree](_build/infrastructure/file_tree.ts) - Convert file globs to filenames
   * [Colors](_build/infrastructure/colors.ts) - Color-code build output
 
 * **Incremental Builds**
-  * [Tasks](_build/tasks/tasks.js) - Define tasks that only run when their source files change
+  * [Tasks](_build/tasks/tasks.ts) - Define tasks that only run when their source files change
   * [FileSystem](_build/infrastructure/file_system.ts) - Determine if a file has changed since the last time you operated on it, or if a file is newer than a set of source files
-  * [DependencyTree](_build/tasks/dependency_tree.js) - Determine if a file *or anything in its dependency tree* has changed since the last time you operated on it
+  * [DependencyTree](_build/tasks/dependency_tree.ts) - Determine if a file *or anything in its dependency tree* has changed since the last time you operated on it
 
 * **Watching**
   * [FileSystem](_build/infrastructure/file_system.ts) - Wait until a set of files change

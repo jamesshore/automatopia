@@ -2,7 +2,7 @@
 
 import * as ensure from "../util/ensure.ts";
 import FileSystem from "../infrastructure/file_system.ts";
-import * as analyzer from "./low_level/source_code_analyzer.js";
+import * as analyzer from "./low_level/source_code_analyzer.ts";
 import path from "node:path";
 
 // JDLS 1 Sep 2024: Once Node 22 enters LTS, this dependency can be replaced with path.matchesGlob(), which was

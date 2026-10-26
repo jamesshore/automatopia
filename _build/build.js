@@ -1,8 +1,8 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import * as ensure from "./util/ensure.ts";
-import Tasks from "./tasks/tasks.js";
-import TaskCli from "./tasks/task_cli.js";
-import Reporter from "./tasks/reporter.js";
+import Tasks from "./tasks/tasks.ts";
+import TaskCli from "./tasks/task_cli.ts";
+import Reporter from "./tasks/reporter.ts";
 import FileSystem from "./infrastructure/file_system.ts";
 import Version from "./tools/version.js";
 import Lint from "./tools/lint.js";

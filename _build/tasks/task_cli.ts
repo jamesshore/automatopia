@@ -5,8 +5,8 @@ import CommandLine from "../infrastructure/command_line.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Colors from "../infrastructure/colors.ts";
 import Clock from "../infrastructure/clock.ts";
-import Tasks from "./tasks.js";
-import TaskError from "./task_error.js";
+import Tasks from "./tasks.ts";
+import TaskError from "./task_error.ts";
 
 const ACTION = {
 	START: "start",

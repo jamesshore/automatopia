@@ -8,7 +8,7 @@ import Shell from "./infrastructure/shell.ts";
 import Paths from "./config/paths.js";
 import FileSystem from "./infrastructure/file_system.ts";
 import Clock from "./infrastructure/clock.ts";
-import TaskCli from "./tasks/task_cli.js";
+import TaskCli from "./tasks/task_cli.ts";
 import path from "node:path";
 
 const watchColor = Colors.cyan;

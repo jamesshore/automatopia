@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../../util/tests.ts";
-import * as analyzer from "./source_code_analyzer.js";
+import * as analyzer from "./source_code_analyzer.ts";
 
 export default describe(() => {
 

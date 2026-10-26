@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import * as ensure from "../util/ensure.ts";
-import TaskError from "../tasks/task_error.js";
-import Reporter from "../tasks/reporter.js";
+import TaskError from "../tasks/task_error.ts";
+import Reporter from "../tasks/reporter.ts";
 import Shell from "../infrastructure/shell.ts";
 
 export default class TypeScript {

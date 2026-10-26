@@ -1,10 +1,10 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import * as ensure from "../util/ensure.ts";
-import Reporter from "../tasks/reporter.js";
-import TaskError from "../tasks/task_error.js";
+import Reporter from "../tasks/reporter.ts";
+import TaskError from "../tasks/task_error.ts";
 import Colors from "../infrastructure/colors.ts";
 import FileSystem from "../infrastructure/file_system.ts";
-import DependencyTree from "../tasks/dependency_tree.js";
+import DependencyTree from "../tasks/dependency_tree.ts";
 import { TestRunner } from "ergotest";
 import path from "node:path";
 
