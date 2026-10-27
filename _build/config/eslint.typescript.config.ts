@@ -1,15 +1,15 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import globalConfig from "./eslint.global.config.js";
+import globalConfig from "./eslint.global.config.ts";
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import tseslint, { type Config } from 'typescript-eslint';
 
 const ERROR = "error";
 const IGNORE = "off";
 const UNSUPPORTED = "off";     // turned off because this option doesn't work with TypeScript
 const DEPRECATED = "off";     // turned off because this option has been deprecated
 
-export default [
+const config: Config = [
   ...globalConfig,
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -35,3 +35,5 @@ export default [
     }
   },
 ];
+
+export default config;

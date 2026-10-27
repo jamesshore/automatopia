@@ -1,13 +1,17 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import globalConfig from "./eslint.global.config.js";
+import type { Linter } from "eslint";
+
+import globalConfig from "./eslint.global.config.ts";
 
 const ERROR = "error";
 const IGNORE = "off";
 
-export default [
+const config: Linter.Config[] = [
 	...globalConfig,
 	{
 		name: "JavaScript config",
 	},
 ];
+
+export default config;

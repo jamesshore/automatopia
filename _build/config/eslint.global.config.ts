@@ -1,10 +1,12 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
+import type { Linter } from "eslint";
+
 import globals from "globals";
 const ERROR = "error";
 const IGNORE = "off";
 
-export default [{
+const config: Linter.Config[] = [{
 	name: "global config",
 
 	"languageOptions": {
@@ -99,3 +101,5 @@ export default [{
 		"require-yield": ERROR
 	}
 }];
+
+export default config;

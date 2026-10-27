@@ -9,9 +9,9 @@ import Lint from "./tools/lint.ts";
 import Tests from "./tools/tests.ts";
 import TypeScript from "./tools/typescript.ts";
 import Paths from "./config/paths.ts";
-import testConfig from "./config/tests.conf.js";
-import lintJavascriptConfig from "./config/eslint.javascript.config.js";
-import lintTypescriptConfig from "./config/eslint.typescript.config.js";
+import testConfig from "./config/tests.conf.ts";
+import lintJavascriptConfig from "./config/eslint.javascript.config.ts";
+import lintTypescriptConfig from "./config/eslint.typescript.config.ts";
 
 export default class Build {
 
