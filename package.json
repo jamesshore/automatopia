@@ -19,6 +19,6 @@
     "minimatch": "^10.0.1",
     "minimist": "^1.2.8",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.7.0"
+    "typescript-eslint": "^8.72.1"
   }
 }
