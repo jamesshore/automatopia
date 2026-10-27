@@ -1,6 +1,6 @@
 # Automatopia
 
-This repository contains JavaScript classes for creating high-performance task and build automation. Here are some of the highlights:
+This repository contains TypeScript classes for creating high-performance task and build automation. Here are some of the highlights:
 
 * **Task Automation**
   * [Tasks](_build/tasks/tasks.ts) - Define and run tasks
@@ -38,32 +38,35 @@ The above examples are full-featured and derived from production builds. See bel
 
 ### Define and run a build
 
-```javascript
-"use strict";
+```typescript
+import Tasks from "./tasks/tasks.ts";
+import TaskCli from "./tasks/task_cli.ts";
+import Reporter from "./tasks/reporter.ts";
+import FileSystem from "./infrastructure/file_system.ts";
+import Version from "./tools/version.ts";
+import Lint from "./tools/lint.ts";
+import Tests from "./tools/tests.ts";
+import lintConfig from "./config/eslint.config.ts";
+import testConfig from "./config/tests.conf.ts";
+import path from "node:path";
+import type { Linter } from "eslint";
 
-const Tasks = require("./tasks/tasks");
-const TaskCli = require("./tasks/task_cli");
-const Reporter = require("./tasks/reporter");
-const FileSystem = require("./infrastructure/file_system");
-const Version = require("./tools/version");
-const Lint = require("./tools/lint");
-const Tests = require("./tools/tests");
-const lintConfig = require("./config/eslint.conf");
-const testConfig = require("./config/tests.conf");
-const path = require("node:path");
+interface TaskParameters {
+  reporter: Reporter;
+}
 
-const rootDir = path.resolve(__dirname, "..");
+const rootDir = path.resolve(import.meta.dirname, "..");
 const generatedDir = `${rootDir}/generated`;
 const incrementalDir = `${rootDir}/generated/incremental`;
 const timestampDir = `${rootDir}/generated/timestamps`;
 const universalExcludes = [ `${rootDir}/node_modules/**` ];
 const packageJson = `${rootDir}/package.json`;
-const lintGlobs = `${rootDir}/**/*.js`;
-const testGlobs = `${rootDir}/**/_*_test.js`;
+const lintGlobs = `${rootDir}/**/*.ts`;
+const testGlobs = `${rootDir}/**/_*_test.ts`;
 
-main();
+await main();
 
-async function main() {
+async function main(): Promise<void> {
   const tasks = await defineTasksAsync();
   tasks.setDescriptions({
     "default": "Build everything",
@@ -73,47 +76,48 @@ async function main() {
     "unittest": "Run unit tests",
   });
 
-  TaskCli.create().runAsync(tasks, "BUILD OK", "BUILD FAILURE", async (taskNames, options) => {
-    await tasks.runTasksAsync(taskNames, options);
+  const result = await TaskCli.create().runAsync(tasks, "BUILD OK", "BUILD FAILURE", async (taskNames, options) => {
+    const reporter = Reporter.create({ debug: options.debug === true });
+    await tasks.runTasksAsync(taskNames, { reporter });
   });
+  process.exitCode = result === null ? 0 : 1;
 }
 
-async function defineTasksAsync() {
+async function defineTasksAsync(): Promise<Tasks<TaskParameters>> {
   const fileSystem = FileSystem.create(rootDir, timestampDir);
   const fileTree = await fileSystem.readFileTreeAsync(rootDir, universalExcludes);
 
-  const tasks = Tasks.create({ fileSystem, incrementalDir });
+  const tasks = Tasks.create<TaskParameters>({ fileSystem, incrementalDir });
   const version = Version.create(fileSystem);
   const lint = Lint.create(fileSystem);
   const tests = Tests.create(fileSystem, universalExcludes);
-  const reporter = Reporter.create();
 
 
-  tasks.defineTask("default", async () => {
-    await tasks.runTasksAsync([ "version", "lint", "unittest" ]);
+  tasks.defineTask("default", async (options) => {
+    await tasks.runTasksAsync([ "version", "lint", "unittest" ], options);
   });
 
   tasks.defineTask("clean", async () => {
     await fileSystem.deleteAsync(generatedDir);
   });
 
-  tasks.defineTask("version", async () => {
+  tasks.defineTask("version", async ({ reporter }) => {
     await version.checkAsync({ packageJson, reporter });
   });
 
-  tasks.defineTask("lint", async () => {
+  tasks.defineTask("lint", async ({ reporter }) => {
     await lint.validateAsync({
-      description: "JavaScript",
+      description: "TypeScript",
       files: fileTree.matchingFiles(lintGlobs),
-      config: lintConfig,
+      config: lintConfig as Linter.Config[],
       reporter,
     });
   });
 
-  tasks.defineTask("unittest", async () => {
+  tasks.defineTask("unittest", async ({ reporter }) => {
     await tests.runAsync({
       description: "unit tests",
-      files: fileTree.matchingFiles(testGlobs),
+      testFiles: fileTree.matchingFiles(testGlobs),
       config: testConfig,
       reporter,
     });
@@ -124,27 +128,25 @@ async function defineTasksAsync() {
 ```
 
 ### Automatically run the build on changes
-```javascript
-"use strict";
+```typescript
+import Build from "./build.ts";
+import FileSystem from "./infrastructure/file_system.ts";
+import path from "node:path";
 
-const Build = require("./build");
-const FileSystem = require("./infrastructure/file_system");
-const path = require("node:path");
-
-const rootDir = path.resolve(__dirname, "..");
+const rootDir = path.resolve(import.meta.dirname, "..");
 const timestampDir = `${rootDir}/generated/timestamps`;
 const watchGlobs = [ `${rootDir}/_build/**`, `${rootDir}/src/**` ];
 
-main();
+await main();
 
-async function main() {
+async function main(): Promise<void> {
   const fileSystem = FileSystem.create(rootDir, timestampDir);
   const build = Build.create();
 
   while (true) {
     console.log("\n*** Building...\n");
     const waitPromise = fileSystem.waitForChangeAsync(watchGlobs);
-    await build.runAsync();
+    await build.runAsync({ resetTreeCache: true });
     await waitPromise;
   }
 }
@@ -158,9 +160,9 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
-* *25 Oct 2026:* Convert to TypeScript. Includes BREAKING CHANGES:
+* *27 Oct 2026:* Convert to TypeScript. Includes BREAKING CHANGES:
   * DependencyTree methods exclude inappropriate values instead of returning an empty array. For example, if there are no errors, there will be no "errors" property at all, instead of an empty "errors" array.
-  * FileSystem.readFileTree()'s "globsToExclude" parameter must be an array.
+  * FileSystem.readFileTreeAsync()'s "globsToExclude" parameter must be an array.
 * *23 Oct 2026:* Remove compile step (uses Node's built-in type stripping instead)
 * *23 Oct 2026:* Clean up directory structure
 * *23 Oct 2026:* Fix tests to work with ergotest 0.14.0
