@@ -20,55 +20,52 @@ const config: Config = [
 		},
 
 		"rules": {
-			// "Possible Errors" (according to ESLint docs)
-			"no-extra-semi": ERROR,
-			"no-inner-declarations": ERROR,
-			"no-template-curly-in-string": ERROR,
-
-			// "Best Practices"
+			// Expression mistakes
 			"eqeqeq": ERROR,
-			"no-caller": ERROR,
-			"no-eval": ERROR,
-			"no-extend-native": ERROR,
-			"no-implicit-globals": ERROR,
-			"no-implied-eval": ERROR,
-			"no-iterator": ERROR,
-			"no-loop-func": ERROR,
-			"no-octal-escape": ERROR,
-			"no-proto": ERROR,
-			"no-return-assign": ERROR,
-			"no-script-url": ERROR,
-			"no-self-compare": ERROR,
-			"no-throw-literal": ERROR,
-			"prefer-promise-reject-errors": ERROR,
-			"radix": ERROR,
-			"require-await": ERROR,
-
-			// "Strict Mode"
-			"strict": [ ERROR, "safe" ],
-
-			// "Variables"
-			"no-undef-init": ERROR,
-
-			// "Stylistic Issues"
 			"no-bitwise": ERROR,
-			"no-mixed-spaces-and-tabs": ERROR,
-			"semi": [ ERROR, "always" ],
+			"no-return-assign": ERROR,
+			"no-self-compare": ERROR,
+			"no-template-curly-in-string": ERROR,
+			"radix": ERROR,
 
-			// "ECMAScript 6"
-			"no-duplicate-imports": ERROR,
-
-			// TypeScript
-			"prefer-rest-params": IGNORE,  // arguments preserves actual caller inputs for runtime signature checks
-			"prefer-spread": IGNORE,       // .apply() is intentional when forwarding arguments
-			"@typescript-eslint/no-unused-vars": IGNORE,
-			"no-regex-spaces": IGNORE,
-			"no-unused-private-class-members": IGNORE,
-
+			// Scope and initialization
 			"@typescript-eslint/no-use-before-define": [
 				ERROR,
 				{ functions: false, classes: false, variables: false, enums: false, typedefs: false },
 			],
+			"no-implicit-globals": ERROR,
+			"no-inner-declarations": ERROR,
+			"no-loop-func": ERROR,
+			"no-undef-init": ERROR,
+
+			// Unsafe and legacy features
+			"no-caller": ERROR,
+			"no-eval": ERROR,
+			"no-extend-native": ERROR,
+			"no-implied-eval": ERROR,
+			"no-iterator": ERROR,
+			"no-octal-escape": ERROR,
+			"no-proto": ERROR,
+			"no-script-url": ERROR,
+			"strict": [ ERROR, "safe" ],
+
+			// Errors and async functions
+			"no-throw-literal": ERROR,
+			"prefer-promise-reject-errors": ERROR,
+			"require-await": ERROR,
+
+			// Source clarity
+			"no-duplicate-imports": ERROR,
+			"no-extra-semi": ERROR,
+			"no-mixed-spaces-and-tabs": ERROR,
+			"semi": [ ERROR, "always" ],
+
+			// Intentional allowances
+			"@typescript-eslint/no-unused-vars": IGNORE,
+			"no-regex-spaces": IGNORE,
+			"no-unused-private-class-members": IGNORE,
+			"prefer-rest-params": IGNORE,                     // ensure.signature() works best with 'arguments'
+			"prefer-spread": IGNORE,                          // Allow .apply() when forwarding arguments.
 		}
 	},
 ];
