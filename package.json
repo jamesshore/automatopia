@@ -12,7 +12,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/minimist": "^1.2.5",
     "@types/node": "^22.7.4",
-    "@types/sinonjs__fake-timers": "^8.1.5",
+    "@types/sinonjs__fake-timers": "^15.0.1",
     "ergotest": "^0.14.0",
     "eslint": "^9.11.1",
     "globals": "^15.9.0",
