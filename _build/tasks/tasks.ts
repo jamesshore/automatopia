@@ -39,11 +39,11 @@ export interface ErrorWithFailedTask extends Error {
  */
 export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskOutput] }> {
 
-	private readonly _taskFns: Record<string, TaskFunction<T_TaskParameters>>;
-	private readonly _descriptions: Record<string, string>;
-	private readonly _incrementalDir: string;
-	private readonly _clock: Clock;
-	private readonly _fileSystem: FileSystem;
+	readonly #taskFns: Record<string, TaskFunction<T_TaskParameters>>;
+	readonly #descriptions: Record<string, string>;
+	readonly #incrementalDir: string;
+	readonly #clock: Clock;
+	readonly #fileSystem: FileSystem;
 
 	/**
 	 * Task tracking event.
@@ -107,11 +107,11 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	/** Only for use by tests. (Use a factory method instead.) */
 	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem) {
 		super();
-		this._taskFns = {};
-		this._descriptions = {};
-		this._incrementalDir = incrementalDir;
-		this._clock = clock;
-		this._fileSystem = fileSystem;
+		this.#taskFns = {};
+		this.#descriptions = {};
+		this.#incrementalDir = incrementalDir;
+		this.#clock = clock;
+		this.#fileSystem = fileSystem;
 	}
 
 	/**
@@ -134,7 +134,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	defineTask(name: string, fn: TaskFunction<T_TaskParameters>): void {
 		ensure.signature(arguments, [ String, Function ]);
 
-		if (this._taskFns[name] === undefined) this._taskFns[name] = fn;
+		if (this.#taskFns[name] === undefined) this.#taskFns[name] = fn;
 		else throw new Error(`Task already defined: ${name}`);
 	}
 
@@ -152,11 +152,11 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 		ensure.signature(arguments, [ String, Array, Function ]);
 
 		this.defineTask(name, async (parms) => {
-			const taskFile = `${this._incrementalDir}/${name}.task`;
-			if (await this._fileSystem.isFileNewerThanAllAsync(taskFile, sourceFiles)) return;
+			const taskFile = `${this.#incrementalDir}/${name}.task`;
+			if (await this.#fileSystem.isFileNewerThanAllAsync(taskFile, sourceFiles)) return;
 
 			await fn(parms);
-			await this._fileSystem.writeTextFileAsync(taskFile, "ok");
+			await this.#fileSystem.writeTextFileAsync(taskFile, "ok");
 		});
 	}
 
@@ -172,15 +172,15 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 
 		Object.entries(namesAndDescriptions).forEach(([ key, value ]) => {
 			ensure.that(
-				this._taskFns[key] !== undefined,
+				this.#taskFns[key] !== undefined,
 				`Attempted to set description for '${key}', but that task hasn't been defined`,
 			);
 			ensure.that(
-				this._descriptions[key] === undefined,
+				this.#descriptions[key] === undefined,
 				`Attempted to set description for '${key}', but that task already has a description`,
 			);
 
-			this._descriptions[key] = value;
+			this.#descriptions[key] = value;
 		});
 	}
 
@@ -190,8 +190,8 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 * @returns {{name: string, description: string}[]} Each task in the order it was added.
 	 */
 	listTasks(): TaskDescription[] {
-		return Object.keys(this._taskFns).map(name => {
-			const description = this._descriptions[name] ?? "";
+		return Object.keys(this.#taskFns).map(name => {
+			const description = this.#descriptions[name] ?? "";
 			return { name, description };
 		});
 	}
@@ -202,7 +202,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 * @returns {boolean} True if the task has been defined.
 	 */
 	hasTask(name: string): boolean {
-		return this._taskFns[name] !== undefined;
+		return this.#taskFns[name] !== undefined;
 	}
 
 	/**
@@ -215,16 +215,16 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	async runTasksAsync(tasksToRun: string[], parms: T_TaskParameters): Promise<void> {
 		ensure.signature(arguments, [ Array, ANY_TYPE ]);
 
-		const unknownTasks = determineUnknownTasks(this._taskFns, tasksToRun);
+		const unknownTasks = determineUnknownTasks(this.#taskFns, tasksToRun);
 		if (unknownTasks !== "") {
 			throw new Error(`Unrecognized task(s): ${unknownTasks}`);
 		}
 
 		for (const task of tasksToRun) {
 			try {
-				this.emit(TASK_EVENT, { task, action: ACTION.START, timestamp: this._clock.now() });
-				await this._taskFns[task](parms);
-				this.emit(TASK_EVENT, { task, action: ACTION.END, timestamp: this._clock.now() });
+				this.emit(TASK_EVENT, { task, action: ACTION.START, timestamp: this.#clock.now() });
+				await this.#taskFns[task](parms);
+				this.emit(TASK_EVENT, { task, action: ACTION.END, timestamp: this.#clock.now() });
 			}
 			catch (err) {
 				if ((err as ErrorWithFailedTask).failedTask === undefined) (err as ErrorWithFailedTask).failedTask = task;

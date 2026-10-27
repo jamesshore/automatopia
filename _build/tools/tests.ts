@@ -13,9 +13,9 @@ type TestConfig = NonNullable<NonNullable<Parameters<TestRunner["runInChildProce
 
 export default class Tests {
 
-	private readonly _fileSystem: FileSystem;
-	private readonly _dependencyTree: DependencyTree;
-	private readonly _testRunner: TestRunner;
+	readonly #fileSystem: FileSystem;
+	readonly #dependencyTree: DependencyTree;
+	readonly #testRunner: TestRunner;
 
 	static create(fileSystem: FileSystem, globsToIgnore: string[]): Tests {
 		ensure.signature(arguments, [ FileSystem, Array ]);
@@ -24,9 +24,9 @@ export default class Tests {
 	}
 
 	constructor(fileSystem: FileSystem, globsToIgnore: string[]) {
-		this._fileSystem = fileSystem;
-		this._dependencyTree = DependencyTree.create(fileSystem, globsToIgnore);
-		this._testRunner = TestRunner.create();
+		this.#fileSystem = fileSystem;
+		this.#dependencyTree = DependencyTree.create(fileSystem, globsToIgnore);
+		this.#testRunner = TestRunner.create();
 	}
 
 	async runAsync({
@@ -61,8 +61,8 @@ export default class Tests {
 	}
 
 	async #findTestFilesAsync(reporter: Reporter, description: string, setupFiles: string[], testFiles: string[]): Promise<string[]> {
-		const dependencyTree = this._dependencyTree;
-		const fileSystem = this._fileSystem;
+		const dependencyTree = this.#dependencyTree;
+		const fileSystem = this.#fileSystem;
 
 		return await reporter.quietStartAsync(`Finding ${description}`, async (report) => {
 			const setupFilesChanged = await findChangedFilesAsync(setupFiles, report);
@@ -121,7 +121,7 @@ export default class Tests {
 
 	async #runTestsAsync(reporter: Reporter, description: string, filesToRun: string[], setupFiles: string[], failOnSkip: boolean, config: TestConfig): Promise<void> {
 		await reporter.startAsync(`Running ${description}`, async (report) => {
-			const testResult = await this._testRunner.runInChildProcessAsync(filesToRun, {
+			const testResult = await this.#testRunner.runInChildProcessAsync(filesToRun, {
 				setupModulePaths: setupFiles,
 				timeout: 10000,
 				config,
@@ -143,7 +143,7 @@ export default class Tests {
 
 	async #writeTimestampFilesAsync(testResult: TestSuiteResult): Promise<void> {
 		await Promise.all(testResult.allPassingFiles().map(async (testFile) => {
-			await this._fileSystem.writeTimestampFileAsync(testFile, "test");
+			await this.#fileSystem.writeTimestampFileAsync(testFile, "test");
 		}));
 	}
 

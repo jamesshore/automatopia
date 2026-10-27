@@ -10,7 +10,7 @@ const incrementalBuildDir = `${generatedDir}/build`;
 
 export default class Paths {
 
-	private readonly _files: FileTree;
+	readonly #files: FileTree;
 
 	static create(fileTree: FileTree): Paths {
 		ensure.signature(arguments, [ FileTree ]);
@@ -19,7 +19,7 @@ export default class Paths {
 	}
 
 	constructor(fileTree: FileTree) {
-		this._files = fileTree;
+		this.#files = fileTree;
 	}
 
 	static get rootDir(): string { return rootDir; }
@@ -63,25 +63,25 @@ export default class Paths {
 	}
 
 	lintFiles(): string[] {
-		return this._files.matchingFiles([
+		return this.#files.matchingFiles([
 			"**/*.ts",
 		]);
 	}
 
 	buildTestFiles(): string[] {
-		return this._files.matchingFiles([
+		return this.#files.matchingFiles([
 			`${rootDir}/_build/**/_*_test.ts`,
 		]);
 	}
 
 	srcTestFiles(): string[] {
-		return this._files.matchingFiles([
+		return this.#files.matchingFiles([
 			`${rootDir}/src/**/_*_test.ts`,
 		]);
 	}
 
 	srcTestSetupFiles(): string[] {
-		return this._files.matchingFiles([
+		return this.#files.matchingFiles([
 			`${rootDir}/src/_test_setup.ts`,
 		]);
 	}

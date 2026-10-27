@@ -5,8 +5,8 @@ import { minimatch } from "minimatch";
 /** Represents a list of files. This is a purely in-memory representation. It's immutable and does not change when the file system changes. To keep the list up to date, use {@FileSystem#waitForChangeAsync} and look for `TREE` changes. Then create a new `FileTree` using {@FileSystem#readFileTreeAsync}. */
 export default class FileTree {
 
-	private readonly _files: Set<string>;
-	private readonly _matchCache: Record<string, string[] | undefined>;
+	readonly #files: Set<string>;
+	readonly #matchCache: Record<string, string[] | undefined>;
 
 	/**
 	 * Factory method. Create the tree. You'll typically call {@FileSystem#readFileTreeAsync} instead.
@@ -23,8 +23,8 @@ export default class FileTree {
 
 	/** For internal use only. (Use {@FileSystem#readFileTreeAsync} or a factory method instead.) */
 	constructor(files: Set<string>) {
-		this._files = files;
-		this._matchCache = {};
+		this.#files = files;
+		this.#matchCache = {};
 	}
 
 	/**
@@ -33,7 +33,7 @@ export default class FileTree {
 	 * @returns {boolean} True if the file is in the tree's list.
 	 */
 	has(file: string): boolean {
-		return this._files.has(file);
+		return this.#files.has(file);
 	}
 
 	/**
@@ -52,16 +52,16 @@ export default class FileTree {
 
 		const cacheKey = `INCLUDE:\n${globsToInclude.join("\n")}\nEXCLUDE:\n${globsToExclude.join("\n")}`;
 
-		if (this._matchCache[cacheKey] === undefined) {
-			const files = [ ...this._files ];
+		if (this.#matchCache[cacheKey] === undefined) {
+			const files = [ ...this.#files ];
 			const result = new Set<string>();
 			globsToInclude
 				.forEach(glob => minimatch.match(files, glob)
 					.forEach(file => result.add(file)));
-			this._matchCache[cacheKey] = [ ...filter(result, globsToExclude) ].sort();
+			this.#matchCache[cacheKey] = [ ...filter(result, globsToExclude) ].sort();
 		}
 
-		return this._matchCache[cacheKey];
+		return this.#matchCache[cacheKey];
 	}
 
 	/**
@@ -72,8 +72,8 @@ export default class FileTree {
 	equals(that: FileTree): boolean {
 		ensure.signature(arguments, [ FileTree ]);
 
-		if (this._files.size !== that._files.size) return false;
-		return this._files.symmetricDifference(that._files).size === 0;
+		if (this.#files.size !== that.#files.size) return false;
+		return this.#files.symmetricDifference(that.#files).size === 0;
 	}
 
 }

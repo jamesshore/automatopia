@@ -13,8 +13,8 @@ export type NulledCommandLineOptions = { args?: string[] };
 /** Wrapper for command-line parameters. */
 export default class CommandLine {
 
-	private readonly _process: NarrowedProcess;
-	private readonly _emitter: EventEmitter;
+	readonly #process: NarrowedProcess;
+	readonly #emitter: EventEmitter;
 
 	/**
 	 * Factory method. Wraps the process's command-line arguments.
@@ -38,8 +38,8 @@ export default class CommandLine {
 
 	/** For internal use only. (Use a factory method instead.) */
 	constructor(proc: NarrowedProcess) {
-		this._process = proc;
-		this._emitter = new EventEmitter();
+		this.#process = proc;
+		this.#emitter = new EventEmitter();
 	}
 
 	/**
@@ -47,7 +47,7 @@ export default class CommandLine {
 	 */
 	get rawArguments(): string[] {
 		ensure.signature(arguments, []);
-		return this._process.argv.slice(2);
+		return this.#process.argv.slice(2);
 	}
 
 	/**
@@ -84,14 +84,14 @@ function parseArgs(args: string[]): minimist.ParsedArgs {
 
 class NullProcess implements NarrowedProcess {
 
-	private readonly _args: string[];
+	readonly #args: string[];
 
 	constructor(args: string[]) {
-		this._args = args;
+		this.#args = args;
 	}
 
 	get argv(): string[] {
-		return [ "null_process_node", "null_process_script.js", ...this._args ];
+		return [ "null_process_node", "null_process_script.js", ...this.#args ];
 	}
 
 }

@@ -9,9 +9,9 @@ import ConsoleOutput from "./console_output.ts";
  */
 export default class Repo {
 
-	private readonly _shell: Shell;
-	private readonly _stdout: ConsoleOutput;
-	private readonly _stderr: ConsoleOutput;
+	readonly #shell: Shell;
+	readonly #stdout: ConsoleOutput;
+	readonly #stderr: ConsoleOutput;
 
 	static create(): Repo {
 		// This factory method isn't tested, because that would require actually running git,
@@ -25,9 +25,9 @@ export default class Repo {
 	}
 
 	constructor(shell: Shell, stdout: ConsoleOutput, stderr: ConsoleOutput) {
-		this._shell = shell;
-		this._stdout = stdout;
-		this._stderr = stderr;
+		this.#shell = shell;
+		this.#stdout = stdout;
+		this.#stderr = stderr;
 	}
 
 	async runBuildAsync(): Promise<void> {
@@ -122,8 +122,8 @@ export default class Repo {
 			else return arg;
 		}).join(" ");
 
-		this._stdout.write(`» ${command} ${argsRender}\n`);
-		return await this._shell.execAsync(command, ...args);
+		this.#stdout.write(`» ${command} ${argsRender}\n`);
+		return await this.#shell.execAsync(command, ...args);
 	}
 
 }

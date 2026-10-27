@@ -6,8 +6,8 @@ import FileSystem from "../infrastructure/file_system.ts";
 
 export default class Version {
 
-	private readonly _fileSystem: FileSystem;
-	private _checked: boolean;
+	readonly #fileSystem: FileSystem;
+	#checked: boolean;
 
 	static create(fileSystem: FileSystem): Version {
 		ensure.signature(arguments, [ FileSystem ]);
@@ -16,8 +16,8 @@ export default class Version {
 	}
 
 	constructor(fileSystem: FileSystem) {
-		this._fileSystem = fileSystem;
-		this._checked = false;
+		this.#fileSystem = fileSystem;
+		this.#checked = false;
 	}
 
 	async checkAsync({ packageJson, reporter }: {
@@ -29,9 +29,9 @@ export default class Version {
 			reporter: Reporter,
 		}]);
 
-		if (this._checked) return;
+		if (this.#checked) return;
 		await reporter.startAsync("Checking Node.js version", async (report) => {
-			const json = await this._fileSystem.readTextFileAsync(packageJson);
+			const json = await this.#fileSystem.readTextFileAsync(packageJson);
 			const expectedVersion = "v" + JSON.parse(json).engines.node;
 			const actualVersion = process.version;
 
@@ -41,7 +41,7 @@ export default class Version {
 			if (expectedVersion !== actualVersion) {
 				throw new TaskError(`Incorrect Node version. Expected ${expectedVersion}, but was ${actualVersion}.`);
 			}
-			this._checked = true;
+			this.#checked = true;
 		});
 	}
 

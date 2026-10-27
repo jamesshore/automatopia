@@ -54,10 +54,10 @@ interface NarrowedChildProcess {
  */
 export default class Shell {
 
-	private readonly _childProcess: NarrowedChildProcess;
-	private readonly _output: ConsoleOutput;
-	private readonly _stderr: ConsoleOutput;
-	private readonly _emitter: EventEmitter;
+	readonly #childProcess: NarrowedChildProcess;
+	readonly #output: ConsoleOutput;
+	readonly #stderr: ConsoleOutput;
+	readonly #emitter: EventEmitter;
 
 	/**
 	 * Factory method. Creates a wrapper that shells out to processes and displays their output.
@@ -91,10 +91,10 @@ export default class Shell {
 
 	/** For internal use only. (Use a factory method instead.) */
 	constructor(childProcess: NarrowedChildProcess, stdout: ConsoleOutput, stderr: ConsoleOutput) {
-		this._childProcess = childProcess;
-		this._output = stdout;
-		this._stderr = stderr;
-		this._emitter = new EventEmitter();
+		this.#childProcess = childProcess;
+		this.#output = stdout;
+		this.#stderr = stderr;
+		this.#emitter = new EventEmitter();
 	}
 
 	/**
@@ -102,7 +102,7 @@ export default class Shell {
 	 * @returns {OutputTracker<ShellOutput>} The output tracker.
 	 */
 	track(): OutputTracker<ShellOutput> {
-		return OutputTracker.create<ShellOutput>(this._emitter, EXEC_EVENT);
+		return OutputTracker.create<ShellOutput>(this.#emitter, EXEC_EVENT);
 	}
 
 	/**
@@ -163,9 +163,9 @@ export default class Shell {
 		ensure.signatureMinimum(arguments, [ String ]);
 		args.forEach((arg, i) => ensure.type(arg, String, `shell argument #${i + 1}`));
 
-		const child = this._childProcess.spawn(command, args, { stdio: [ "inherit", "pipe", "pipe" ] });
+		const child = this.#childProcess.spawn(command, args, { stdio: [ "inherit", "pipe", "pipe" ] });
 		const eventData: ShellOutput = preamble === "" ? { command, args } : { command, args, preamble };
-		this._emitter.emit(EXEC_EVENT, eventData);
+		this.#emitter.emit(EXEC_EVENT, eventData);
 
 		const cancelFnAsync = async (): Promise<void> => {
 			await new Promise<void>((resolve, reject) => {
@@ -174,7 +174,7 @@ export default class Shell {
 				child.on("exit", () => resolve());
 				const success = child.kill!();
 				if (!success) return reject(new Error("Failed to kill child process")); // this line not tested
-				this._emitter.emit(EXEC_EVENT, { ...eventData, cancelled: true });
+				this.#emitter.emit(EXEC_EVENT, { ...eventData, cancelled: true });
 			});
 		};
 
@@ -184,13 +184,13 @@ export default class Shell {
 
 			child.stdout.on("data", (data: string | Buffer) => {
 				stdout += data;
-				writePreamble(this._output);
-				this._output.write(data);
+				writePreamble(this.#output);
+				this.#output.write(data);
 			});
 			child.stderr.on("data", (data: string | Buffer) => {
 				stderr += data;
-				writePreamble(this._output);
-				this._stderr.write(data);
+				writePreamble(this.#output);
+				this.#stderr.write(data);
 			});
 			child.on("error", reject);    // this line not tested (not sure how to make it happen)
 			child.on("exit", (code) => {
@@ -210,7 +210,7 @@ export default class Shell {
 
 
 class NullChildProcess implements NarrowedChildProcess {
-	private readonly _options: NulledShellOptions;
+	readonly #options: NulledShellOptions;
 
 	constructor(options: NulledShellOptions = []) {
 		ensure.signature(arguments, [ [ undefined, Array ] ]);
@@ -220,11 +220,11 @@ class NullChildProcess implements NarrowedChildProcess {
 			code: [ undefined, Number ],
 		}, `options[${i}]`));
 
-		this._options = options;
+		this.#options = options;
 	}
 
 	spawn(): NullChild {
-		return new NullChild(this._options.shift());
+		return new NullChild(this.#options.shift());
 	}
 }
 

@@ -24,7 +24,7 @@ interface ClockGlobals {
 /** System clock. */
 export default class Clock {
 
-	private readonly _globals: ClockGlobals;
+	readonly #globals: ClockGlobals;
 
 	/**
 	 * Factory method. Wraps the system clock.
@@ -56,7 +56,7 @@ export default class Clock {
 
 	/** Do not use. (Use a factory method instead.) */
 	constructor(globals: ClockGlobals) {
-		this._globals = globals;
+		this.#globals = globals;
 	}
 
 	/**
@@ -64,7 +64,7 @@ export default class Clock {
 	 */
 	now(): number {
 		ensure.signature(arguments, []);
-		return this._globals.Date.now();
+		return this.#globals.Date.now();
 	}
 
 	/**
@@ -72,7 +72,7 @@ export default class Clock {
 	 */
 	currentYearForUtc(): number {
 		ensure.signature(arguments, []);
-		return new Date(this._globals.Date.now()).getUTCFullYear();
+		return new Date(this.#globals.Date.now()).getUTCFullYear();
 	}
 
 	/**
@@ -85,7 +85,7 @@ export default class Clock {
 		ensure.signature(arguments, [ Number ]);
 
 		await new Promise<void>((resolve) => {
-			this._globals.setTimeout(resolve, milliseconds);
+			this.#globals.setTimeout(resolve, milliseconds);
 		});
 	}
 
@@ -100,8 +100,8 @@ export default class Clock {
 	repeat(milliseconds: number, fn: () => void): () => void {
 		ensure.signature(arguments, [ Number, Function ]);
 
-		const handle = this._globals.setInterval(fn, milliseconds);
-		return () => this._globals.clearInterval(handle);
+		const handle = this.#globals.setInterval(fn, milliseconds);
+		return () => this.#globals.clearInterval(handle);
 	}
 
 	/**
@@ -144,18 +144,18 @@ export default class Clock {
 		return {
 			aliveFn: () => {
 				if (cancelled) return;
-				this._globals.clearTimeout(handle);
+				this.#globals.clearTimeout(handle);
 				startTimer(this);
 			},
 
 			cancelFn: () => {
 				cancelled = true;
-				this._globals.clearTimeout(handle);
+				this.#globals.clearTimeout(handle);
 			},
 		};
 
 		function startTimer(self: Clock): void {
-			handle = self._globals.setTimeout(timeoutFn, milliseconds);
+			handle = self.#globals.setTimeout(timeoutFn, milliseconds);
 		}
 	}
 
@@ -176,7 +176,7 @@ export default class Clock {
 
 		let timeoutToken!: TimerHandle;
 		const timeoutPromise = new Promise<T>((resolve, reject) => {
-			timeoutToken = this._globals.setTimeout(async () => {
+			timeoutToken = this.#globals.setTimeout(async () => {
 				try {
 					const result = await timeoutFnAsync();
 					resolve(result);
@@ -191,7 +191,7 @@ export default class Clock {
 			return await Promise.race([ fnAsync(), timeoutPromise ]);
 		}
 		finally {
-			this._globals.clearTimeout(timeoutToken);
+			this.#globals.clearTimeout(timeoutToken);
 		}
 	}
 
@@ -202,7 +202,7 @@ export default class Clock {
 	 */
 	async tickAsync(milliseconds: number): Promise<void> {
 		ensure.signature(arguments, [ Number ]);
-		await this._globals.tickAsync(milliseconds);
+		await this.#globals.tickAsync(milliseconds);
 	}
 
 	/**
@@ -211,7 +211,7 @@ export default class Clock {
 	 */
 	async tickUntilTimersExpireAsync(): Promise<void> {
 		ensure.signature(arguments, []);
-		await this._globals.tickUntilTimersExpireAsync();
+		await this.#globals.tickUntilTimersExpireAsync();
 	}
 
 }

@@ -30,9 +30,9 @@ interface AnalyzedCommandLine {
  */
 export default class TaskCli {
 
-	private readonly _commandLine: CommandLine;
-	private readonly _stdout: ConsoleOutput;
-	private readonly _clock: Clock;
+	readonly #commandLine: CommandLine;
+	readonly #stdout: ConsoleOutput;
+	readonly #clock: Clock;
 
 	/**
 	 * An enum for {@link TaskCli#track}.
@@ -70,9 +70,9 @@ export default class TaskCli {
 
 	/** Internal use only. (Use a factory method instead.) */
 	constructor(commandLine: CommandLine, stdout: ConsoleOutput, clock: Clock) {
-		this._commandLine = commandLine;
-		this._stdout = stdout;
-		this._clock = clock;
+		this.#commandLine = commandLine;
+		this.#stdout = stdout;
+		this.#clock = clock;
 	}
 
 	/**
@@ -99,24 +99,24 @@ export default class TaskCli {
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
-		const { taskNames, helpOption, debugOption } = analyzeCommandLine(this._commandLine, tasks);
+		const { taskNames, helpOption, debugOption } = analyzeCommandLine(this.#commandLine, tasks);
 
-		const showedHelp = showHelpIfNecessary(this._stdout, tasks, taskNames, helpOption, failureMessage);
+		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, taskNames, helpOption, failureMessage);
 		if (showedHelp) return CLI_FAILURE;
 
-		const stdout = this._stdout;
+		const stdout = this.#stdout;
 		let timings: number[] = [];
 		if (debugOption) tasks.on(Tasks.TASK_EVENT, writeTaskEvent);
 
 		try {
-			const startTime = this._clock.now();
-			await buildFnAsync(taskNames, this._commandLine.options);
-			writeSuccess(this._stdout, successMessage, this._clock.millisecondsSince(startTime) / 1000);
+			const startTime = this.#clock.now();
+			await buildFnAsync(taskNames, this.#commandLine.options);
+			writeSuccess(this.#stdout, successMessage, this.#clock.millisecondsSince(startTime) / 1000);
 			return null;
 		}
 		catch (err) {
 			const showStack = debugOption || !(err instanceof TaskError);
-			writeFailure(this._stdout, failureMessage, showStack ? (err as ErrorWithFailedTask).stack! : (err as ErrorWithFailedTask).message);
+			writeFailure(this.#stdout, failureMessage, showStack ? (err as ErrorWithFailedTask).stack! : (err as ErrorWithFailedTask).message);
 			return (err as ErrorWithFailedTask).failedTask ?? BUILD_FAILURE;
 		}
 		finally {

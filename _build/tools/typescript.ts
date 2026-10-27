@@ -6,7 +6,7 @@ import Shell from "../infrastructure/shell.ts";
 
 export default class TypeScript {
 
-	private readonly _shell: Shell;
+	readonly #shell: Shell;
 
 	static create(): TypeScript {
 		ensure.signature(arguments, []);
@@ -15,7 +15,7 @@ export default class TypeScript {
 	}
 
 	constructor(shell: Shell) {
-		this._shell = shell;
+		this.#shell = shell;
 	}
 
 	async typecheckAndEmitDeclarationFilesAsync({
@@ -50,7 +50,7 @@ export default class TypeScript {
 			];
 			report.debug(`\n  Run '${command.join(" ")}'`);
 
-			const { code } = await this._shell.execWithPreambleAsync.apply(this._shell, [ "\n\n", ...command ]);
+			const { code } = await this.#shell.execWithPreambleAsync.apply(this.#shell, [ "\n\n", ...command ]);
 			if (code !== 0) throw new TaskError("Type check failed");
 		});
 	}

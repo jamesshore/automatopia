@@ -5,10 +5,10 @@ import EventEmitter from "node:events";
 /** A utility class for infrastructure wrappers. Used to track output */
 export default class OutputTracker<T = unknown> {
 
-	private readonly _emitter: EventEmitter;
-	private readonly _event: string;
-	private readonly _data: T[];
-	private readonly _trackerFn: (text: T) => void;
+	readonly #emitter: EventEmitter;
+	readonly #event: string;
+	readonly #data: T[];
+	readonly #trackerFn: (text: T) => void;
 
 	static create<T = unknown>(emitter: EventEmitter, event: string): OutputTracker<T> {
 		ensure.signature(arguments, [ EventEmitter, String ]);
@@ -16,27 +16,27 @@ export default class OutputTracker<T = unknown> {
 	}
 
 	constructor(emitter: EventEmitter, event: string) {
-		this._emitter = emitter;
-		this._event = event;
-		this._data = [];
+		this.#emitter = emitter;
+		this.#event = event;
+		this.#data = [];
 
-		this._trackerFn = (text) => this._data.push(text);
-		this._emitter.on(this._event, this._trackerFn);
+		this.#trackerFn = (text) => this.#data.push(text);
+		this.#emitter.on(this.#event, this.#trackerFn);
 	}
 
 	get data(): T[] {
-		return this._data;
+		return this.#data;
 	}
 
 	consume(): T[] {
-		const result = [ ...this._data ];
-		this._data.length = 0;
+		const result = [ ...this.#data ];
+		this.#data.length = 0;
 		return result;
 	}
 
 	off(): void {
 		this.consume();
-		this._emitter.off(this._event, this._trackerFn);
+		this.#emitter.off(this.#event, this.#trackerFn);
 	}
 
 }

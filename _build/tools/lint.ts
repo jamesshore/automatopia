@@ -10,8 +10,8 @@ type Report = InstanceType<typeof Reporter.Report>;
 
 export default class Lint {
 
-	private readonly _fileSystem: FileSystem;
-	private readonly _linter: Linter;
+	readonly #fileSystem: FileSystem;
+	readonly #linter: Linter;
 
 	static create(fileSystem: FileSystem): Lint {
 		ensure.signature(arguments, [ FileSystem ]);
@@ -20,8 +20,8 @@ export default class Lint {
 	}
 
 	constructor(fileSystem: FileSystem) {
-		this._fileSystem = fileSystem;
-		this._linter = new Linter();
+		this.#fileSystem = fileSystem;
+		this.#linter = new Linter();
 	}
 
 	async validateAsync({ description, files, config, reporter }: {
@@ -38,15 +38,15 @@ export default class Lint {
 		}]);
 
 		await reporter.quietStartAsync(`Linting ${description}`, async (report) => {
-			const filesToLint = await this._fileSystem.findNewerFilesAsync(files, "lint");
+			const filesToLint = await this.#fileSystem.findNewerFilesAsync(files, "lint");
 			const successes = await Promise.all(filesToLint.map(async (file) => {
 				report.started();
-				const sourceCode = await this._fileSystem.readTextFileAsync(file);
+				const sourceCode = await this.#fileSystem.readTextFileAsync(file);
 				report.debug(`\n  Lint ${file}`);
 
 				const success = await this.#validateSource(report, sourceCode, config, file);
 
-				if (success) await this._fileSystem.writeTimestampFileAsync(file, "lint");
+				if (success) await this.#fileSystem.writeTimestampFileAsync(file, "lint");
 				return success;
 			}));
 			if (!successes.every((success) => success === true)) throw new TaskError("Lint failed");
@@ -55,14 +55,14 @@ export default class Lint {
 	}
 
 	#validateSource(report: Report, sourceCode: string, options: Linter.Config[], filename: string): boolean {
-		const messages = this._linter.verify(sourceCode, options);
+		const messages = this.#linter.verify(sourceCode, options);
 		const pass = (messages.length === 0);
 
 		if (pass) {
 			report.progress();
 		}
 		else {
-			let failures = Colors.brightRed(`\n${this._fileSystem.renderFilename(filename)} failed\n`);
+			let failures = Colors.brightRed(`\n${this.#fileSystem.renderFilename(filename)} failed\n`);
 			messages.forEach(function(error) {
 				if (error.line) {
 					const code = SourceCode.splitLines(sourceCode)[error.line - 1];

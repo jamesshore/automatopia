@@ -46,10 +46,10 @@ type ReportFunction<T> = (report: Report) => T | Promise<T>;
  */
 export default class Reporter {
 
-	private readonly _stdout: ConsoleOutput;
-	private readonly _clock: Clock;
-	private readonly _debug: boolean | undefined;
-	private readonly _emitter: EventEmitter;
+	readonly #stdout: ConsoleOutput;
+	readonly #clock: Clock;
+	readonly #debug: boolean | undefined;
+	readonly #emitter: EventEmitter;
 
 	/**
 	 * An enum for {@link Reporter#track}.
@@ -105,10 +105,10 @@ export default class Reporter {
 
 	/** Only for use by tests. (Use a factory method instead.) */
 	constructor(stdout: ConsoleOutput, clock: Clock, debug?: boolean) {
-		this._stdout = stdout;
-		this._clock = clock;
-		this._debug = debug;
-		this._emitter = new EventEmitter();
+		this.#stdout = stdout;
+		this.#clock = clock;
+		this.#debug = debug;
+		this.#emitter = new EventEmitter();
 	}
 
 	/**
@@ -123,7 +123,7 @@ export default class Reporter {
 	async startAsync<T>(headline: string, fnAsync: ReportFunction<T>): Promise<T> {
 		ensure.signature(arguments, [ String, Function ]);
 
-		const report = new Report(this._stdout, this._clock, this._debug, this._emitter, headline, false);
+		const report = new Report(this.#stdout, this.#clock, this.#debug, this.#emitter, headline, false);
 		return await runReportBodyAsync(report, fnAsync);
 	}
 
@@ -138,7 +138,7 @@ export default class Reporter {
 	async quietStartAsync<T>(headline: string, fnAsync: ReportFunction<T>): Promise<T> {
 		ensure.signature(arguments, [ String, Function ]);
 
-		const report = new Report(this._stdout, this._clock, this._debug, this._emitter, headline, true);
+		const report = new Report(this.#stdout, this.#clock, this.#debug, this.#emitter, headline, true);
 		return await runReportBodyAsync(report, fnAsync);
 	}
 
@@ -148,7 +148,7 @@ export default class Reporter {
 	 * @see Reporter.ACTION
 	 */
 	track(): OutputTracker<ReporterOutput> {
-		return new OutputTracker<ReporterOutput>(this._emitter, USAGE_EVENT);
+		return new OutputTracker<ReporterOutput>(this.#emitter, USAGE_EVENT);
 	}
 
 }
@@ -173,43 +173,43 @@ async function runReportBodyAsync<T>(report: Report, bodyFnAsync: ReportFunction
  */
 class Report {
 
-	private readonly _stdout: ConsoleOutput;
-	private readonly _clock: Clock;
-	private readonly _debug: boolean | undefined;
-	private readonly _headline: string;
-	private readonly _isQuiet: boolean;
-	private readonly _emitter: EventEmitter;
-	private _started: boolean;
-	private readonly _startTime: number;
-	private _wroteProgress: boolean;
-	private _footer: string;
-	private _ended: boolean;
+	readonly #stdout: ConsoleOutput;
+	readonly #clock: Clock;
+	readonly #debug: boolean | undefined;
+	readonly #headline: string;
+	readonly #isQuiet: boolean;
+	readonly #emitter: EventEmitter;
+	#started: boolean;
+	readonly #startTime: number;
+	#wroteProgress: boolean;
+	#footer: string;
+	#ended: boolean;
 
 	/**
 	 * Internal use only. (Use {@link Reporter}'s factory methods instead.)
 	 */
 	constructor(stdout: ConsoleOutput, clock: Clock, debug: boolean | undefined, emitter: EventEmitter, headline: string, isQuiet: boolean) {
-		this._stdout = stdout;
-		this._clock = clock;
-		this._debug = debug;
-		this._headline = headline;
-		this._isQuiet = isQuiet;
-		this._emitter = emitter;
+		this.#stdout = stdout;
+		this.#clock = clock;
+		this.#debug = debug;
+		this.#headline = headline;
+		this.#isQuiet = isQuiet;
+		this.#emitter = emitter;
 
-		this._started = false;
-		this._startTime = this._clock.now();
-		this._wroteProgress = false;
-		this._footer = "";
-		this._ended = false;
+		this.#started = false;
+		this.#startTime = this.#clock.now();
+		this.#wroteProgress = false;
+		this.#footer = "";
+		this.#ended = false;
 
-		if (!this._isQuiet) this.started();
+		if (!this.#isQuiet) this.started();
 	}
 
 	/**
 	 * @returns {number} The amount of time, in milliseconds, since the report began.
 	 */
 	get elapsedMs(): number {
-		return this._clock.millisecondsSince(this._startTime);
+		return this.#clock.millisecondsSince(this.#startTime);
 	}
 
 	/**
@@ -219,10 +219,10 @@ class Report {
 	started(): void {
 		ensure.signature(arguments, []);
 
-		if (!this._started) {
-			this._stdout.write(`${this._headline}: `);
-			this._started = true;
-			this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.START });
+		if (!this.#started) {
+			this.#stdout.write(`${this.#headline}: `);
+			this.#started = true;
+			this.#emitter.emit(USAGE_EVENT, { report: this.#headline, action: ACTION.START });
 		}
 	}
 
@@ -236,7 +236,7 @@ class Report {
 		this.#writeProgress(text);
 
 		const textEvent = text === undefined ? {} : { text };
-		this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.PROGRESS, ...textEvent });
+		this.#emitter.emit(USAGE_EVENT, { report: this.#headline, action: ACTION.PROGRESS, ...textEvent });
 	}
 
 	/**
@@ -247,7 +247,7 @@ class Report {
 		ensure.signature(arguments, [ String ]);
 
 		this.#writeDebug(text);
-		if (this._debug) this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.DEBUG, text });
+		if (this.#debug) this.#emitter.emit(USAGE_EVENT, { report: this.#headline, action: ACTION.DEBUG, text });
 	}
 
 	/**
@@ -275,8 +275,8 @@ class Report {
 		const footerEvent = footer === "" ? {} : { footer };
 		const progressEvent = progress === undefined ? {} : { progress };
 		const debugEvent = debug === undefined ? {} : { debug };
-		this._emitter.emit(USAGE_EVENT, {
-			report: this._headline,
+		this.#emitter.emit(USAGE_EVENT, {
+			report: this.#headline,
 			action: ACTION.FAILURE,
 			...footerEvent,
 			...progressEvent,
@@ -293,37 +293,37 @@ class Report {
 		if (text === "") return;
 
 		this.#writeFooter(text);
-		this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.FOOTER, text });
+		this.#emitter.emit(USAGE_EVENT, { report: this.#headline, action: ACTION.FOOTER, text });
 	}
 
 	/** Internal use only. Called automatically when the report function returns. */
 	_end(): void {
-		if (this._isQuiet && !this._started && this._footer === "") return;
+		if (this.#isQuiet && !this.#started && this.#footer === "") return;
 
-		if (!this._wroteProgress) this.#writeProgress();
+		if (!this.#wroteProgress) this.#writeProgress();
 
 		const elapsedSec = this.elapsedMs / 1000;
-		this._stdout.write(Colors.brightWhite.dim(` (${elapsedSec.toFixed(2)}s)\n`));
+		this.#stdout.write(Colors.brightWhite.dim(` (${elapsedSec.toFixed(2)}s)\n`));
 
-		this._stdout.write(this._footer);
-		this._ended = true;
-		this._emitter.emit(USAGE_EVENT, { report: this._headline, action: ACTION.END });
+		this.#stdout.write(this.#footer);
+		this.#ended = true;
+		this.#emitter.emit(USAGE_EVENT, { report: this.#headline, action: ACTION.END });
 	}
 
 	#writeProgress(text: string = DEFAULT_PROGRESS_TEXT): void {
 		this.started();
-		this._stdout.write(text);
-		this._wroteProgress = true;
+		this.#stdout.write(text);
+		this.#wroteProgress = true;
 	}
 
 	#writeDebug(text: string | undefined): void {
-		if (this._debug && text !== undefined) {
+		if (this.#debug && text !== undefined) {
 			this.started();
-			this._stdout.write(text);
+			this.#stdout.write(text);
 		}
 	}
 
 	#writeFooter(text: string): void {
-		this._footer += text;
+		this.#footer += text;
 	}
 }

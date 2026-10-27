@@ -13,8 +13,8 @@ interface OutputStream {
 /** Wrapper for output streams such as `stdout` and `stderr`. */
 export default class ConsoleOutput {
 
-	private readonly _stream: OutputStream;
-	private readonly _emitter: EventEmitter;
+	readonly #stream: OutputStream;
+	readonly #emitter: EventEmitter;
 
 	/**
 	 * Factory method. Wraps `stdout`.
@@ -45,8 +45,8 @@ export default class ConsoleOutput {
 
 	/** For internal use only. (Use a factory method instead.) */
 	constructor(stream: OutputStream) {
-		this._stream = stream;
-		this._emitter = new EventEmitter();
+		this.#stream = stream;
+		this.#emitter = new EventEmitter();
 	}
 
 	/**
@@ -57,8 +57,8 @@ export default class ConsoleOutput {
 		ensure.signature(arguments, [ [ String, Buffer ] ]);
 		if (text instanceof Buffer) text = text.toString();
 
-		this._stream.write(text);
-		this._emitter.emit(WRITE_EVENT, text);
+		this.#stream.write(text);
+		this.#emitter.emit(WRITE_EVENT, text);
 	}
 
 	/**
@@ -67,7 +67,7 @@ export default class ConsoleOutput {
 	 */
 	track(): OutputTracker<string> {
 		ensure.signature(arguments, []);
-		return OutputTracker.create<string>(this._emitter, WRITE_EVENT);
+		return OutputTracker.create<string>(this.#emitter, WRITE_EVENT);
 	}
 
 }

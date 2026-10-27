@@ -62,9 +62,9 @@ interface CachedAnalysis {
  */
 export default class DependencyTree {
 
-	private readonly _fileSystem: FileSystem;
-	private readonly _globsToIgnore: string[];
-	private readonly _cache: Record<string, Promise<CachedAnalysis>>;
+	readonly #fileSystem: FileSystem;
+	readonly #globsToIgnore: string[];
+	readonly #cache: Record<string, Promise<CachedAnalysis>>;
 
 	/** The types of errors that can occur */
 	static get ERRORS(): typeof ERRORS {
@@ -87,9 +87,9 @@ export default class DependencyTree {
 	 * Only for use by tests. (Use the factory method instead.)
 	 */
 	constructor(fileSystem: FileSystem, globsToIgnore: string[] = []) {
-		this._fileSystem = fileSystem;
-		this._globsToIgnore = globsToIgnore;
-		this._cache = {};
+		this.#fileSystem = fileSystem;
+		this.#globsToIgnore = globsToIgnore;
+		this.#cache = {};
 	}
 
 	/**
@@ -110,7 +110,7 @@ export default class DependencyTree {
 
 		for (let i = 0; i < rootFiles.length; i++) {
 			const root = rootFiles[i];
-			const timestampFile = this._fileSystem.timestampFileFor(root, timestampExtension);
+			const timestampFile = this.#fileSystem.timestampFileFor(root, timestampExtension);
 
 			const { dependencies, errors } = await this.dependenciesForAsync(root, notifyFn);
 			if (errors !== undefined) {
@@ -118,7 +118,7 @@ export default class DependencyTree {
 				continue;
 			}
 
-			const upToDate = await this._fileSystem.isFileNewerThanAllAsync(timestampFile, dependencies);
+			const upToDate = await this.#fileSystem.isFileNewerThanAllAsync(timestampFile, dependencies);
 
 			if (!upToDate) changed.push(root);
 		}
@@ -170,15 +170,15 @@ export default class DependencyTree {
 		dependencySet.add(filename);
 
 		// Have we processed this file in a previous run? If not, process it now.
-		if (this._cache[filename] === undefined) {
-			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, errorToUseIfNotFound);
+		if (this.#cache[filename] === undefined) {
+			this.#cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, errorToUseIfNotFound);
 		}
 
 		// Has this file changed since the last time we processed it?
 		let fileChangedOrErrored: boolean;
 		try {
-			const { modified: cachedFileModified } = await this._cache[filename];
-			const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, errorToUseIfNotFound);
+			const { modified: cachedFileModified } = await this.#cache[filename];
+			const currentFileModified = await getFileModificationTimeAsync(this.#fileSystem, filename, errorToUseIfNotFound);
 			fileChangedOrErrored = cachedFileModified !== currentFileModified;
 		}
 		catch (err) {
@@ -188,11 +188,11 @@ export default class DependencyTree {
 
 		// If file has changed, or it errored last time we read it, process it again
 		if (fileChangedOrErrored) {
-			this._cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, errorToUseIfNotFound);
+			this.#cache[filename] = this.#readAndAnalyzeFileAsync(notifyFn, filename, errorToUseIfNotFound);
 		}
 
 		// Add this file's dependencies and errors to 'results' and 'errors'
-		const { dependencies }  = await this._cache[filename];
+		const { dependencies }  = await this.#cache[filename];
 		await Promise.all(dependencies.map(async ({ dependency, error }) => {
 			if (error !== undefined) {
 				errors.push(error.message);
@@ -209,8 +209,8 @@ export default class DependencyTree {
 	async #readAndAnalyzeFileAsync(notifyFn: NotifyFn, filename: string, errorToUseIfNotFound: DependencyError): Promise<CachedAnalysis> {
 		notifyFn(filename);
 
-		const currentFileModified = await getFileModificationTimeAsync(this._fileSystem, filename, errorToUseIfNotFound);
-		const sourceCode = await readTextFileAsync(this._fileSystem, filename, errorToUseIfNotFound);
+		const currentFileModified = await getFileModificationTimeAsync(this.#fileSystem, filename, errorToUseIfNotFound);
+		const sourceCode = await readTextFileAsync(this.#fileSystem, filename, errorToUseIfNotFound);
 		const rawDependencies = analyzer.analyze(sourceCode);
 
 		const resolvedDependencies = await Promise.all(rawDependencies.map(async (dependency): Promise<AnalyzedDependency> => {
@@ -219,9 +219,9 @@ export default class DependencyTree {
 
 				const baseDir = path.dirname(filename);
 				const dependencyNotFound = notFound(filename, dependency.path, dependency.line, dependency.source);
-				const resolvedPath = await resolveModulePathAsync(this._fileSystem, baseDir, dependency.path, dependencyNotFound);
+				const resolvedPath = await resolveModulePathAsync(this.#fileSystem, baseDir, dependency.path, dependencyNotFound);
 
-				if (this._globsToIgnore.some(glob => matchesGlob(resolvedPath, glob))) return { ignored: true };
+				if (this.#globsToIgnore.some(glob => matchesGlob(resolvedPath, glob))) return { ignored: true };
 
 				dependency.path = resolvedPath;
 				return {

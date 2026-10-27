@@ -19,9 +19,9 @@ interface TaskParameters {
 
 export default class Build {
 
-	private readonly _fileSystem: FileSystem;
-	private readonly _tasks: Tasks<TaskParameters>;
-	private _paths: Paths | undefined;
+	readonly #fileSystem: FileSystem;
+	readonly #tasks: Tasks<TaskParameters>;
+	#paths: Paths | undefined;
 
 	static create(): Build {
 		ensure.signature(arguments, []);
@@ -30,11 +30,11 @@ export default class Build {
 	}
 
 	constructor() {
-		this._fileSystem = FileSystem.create(Paths.rootDir, Paths.timestampsBuildDir);
-		this._paths = undefined;
+		this.#fileSystem = FileSystem.create(Paths.rootDir, Paths.timestampsBuildDir);
+		this.#paths = undefined;
 
-		this._tasks = this.#defineTasks();
-		this._tasks.setDescriptions({
+		this.#tasks = this.#defineTasks();
+		this.#tasks.setDescriptions({
 			default: "Clean and rebuild",
 			clean: "Erase all generated files (resets incremental build)",
 			quick: "Perform an incremental build",
@@ -50,31 +50,31 @@ export default class Build {
 			resetTreeCache: [ undefined, Boolean ],
 		}]]);
 
-		if (resetTreeCache) this._paths = undefined;
-		return await TaskCli.create().runAsync(this._tasks, "BUILD OK", "BUILD FAILURE", async (taskNames, options) => {
+		if (resetTreeCache) this.#paths = undefined;
+		return await TaskCli.create().runAsync(this.#tasks, "BUILD OK", "BUILD FAILURE", async (taskNames, options) => {
 			const reporter = Reporter.create({ debug: options.debug === true });
 
-			await this._tasks.runTasksAsync(taskNames, { reporter });
+			await this.#tasks.runTasksAsync(taskNames, { reporter });
 		});
 	}
 
 	async #getPathsAsync(reporter: Reporter): Promise<Paths> {
-		if (this._paths === undefined) {
-			this._paths = await reporter.startAsync("Scanning file tree", async (report) => {
+		if (this.#paths === undefined) {
+			this.#paths = await reporter.startAsync("Scanning file tree", async (report) => {
 				report.debug(`\n  Scan ${Paths.rootDir}`);
 				report.debug(`\n  Ignore [\n    ${Paths.globsToExclude.join("\n    ")}\n  ]`);
-				const fileTree = await this._fileSystem.readFileTreeAsync(Paths.rootDir, Paths.globsToExclude);
+				const fileTree = await this.#fileSystem.readFileTreeAsync(Paths.rootDir, Paths.globsToExclude);
 				return Paths.create(fileTree);
 			});
 		}
-		return this._paths;
+		return this.#paths;
 	}
 
 	#defineTasks(): Tasks<TaskParameters> {
-		const tasks = Tasks.create<TaskParameters>({ fileSystem: this._fileSystem, incrementalDir: Paths.tasksDir });
-		const version = Version.create(this._fileSystem);
-		const lint = Lint.create(this._fileSystem);
-		const tests = Tests.create(this._fileSystem, Paths.globsToExclude);
+		const tasks = Tasks.create<TaskParameters>({ fileSystem: this.#fileSystem, incrementalDir: Paths.tasksDir });
+		const version = Version.create(this.#fileSystem);
+		const lint = Lint.create(this.#fileSystem);
+		const tests = Tests.create(this.#fileSystem, Paths.globsToExclude);
 		const typescript = TypeScript.create();
 
 		tasks.defineTask("default", async(options) => {
@@ -84,7 +84,7 @@ export default class Build {
 		tasks.defineTask("clean", async (options) => {
 			await options.reporter.startAsync("Deleting generated files", async (report) => {
 				report.debug(`\n  Delete ${Paths.generatedDir}`);
-				await this._fileSystem.deleteAsync(Paths.generatedDir);
+				await this.#fileSystem.deleteAsync(Paths.generatedDir);
 			});
 		});
 

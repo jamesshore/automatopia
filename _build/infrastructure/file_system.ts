@@ -88,11 +88,11 @@ interface ErrorWithCode extends Error {
 /** Wrapper for the file system. */
 export default class FileSystem {
 
-	private readonly _rootDir: string;
-	private readonly _timestampDir: string;
-	private readonly _fs: NarrowedFs;
-	private readonly _require: NarrowedRequire;
-	private readonly _emitter: EventEmitter;
+	readonly #rootDir: string;
+	readonly #timestampDir: string;
+	readonly #fs: NarrowedFs;
+	readonly #require: NarrowedRequire;
+	readonly #emitter: EventEmitter;
 
 	/**
 	 * Enum used by {@FileSystem#waitForChangeAsync}.
@@ -163,11 +163,11 @@ export default class FileSystem {
 
 	/** For internal use only. (Use a factory method instead.) */
 	constructor(rootDir: string, timestampDir: string, fs: NarrowedFs, require: NarrowedRequire) {
-		this._rootDir = rootDir;
-		this._timestampDir = timestampDir;
-		this._fs = fs;
-		this._require = require;
-		this._emitter = new EventEmitter();
+		this.#rootDir = rootDir;
+		this.#timestampDir = timestampDir;
+		this.#fs = fs;
+		this.#require = require;
+		this.#emitter = new EventEmitter();
 	}
 
 	/**
@@ -175,7 +175,7 @@ export default class FileSystem {
 	 * @returns {OutputTracker} The output tracker.
 	 */
 	track(): OutputTracker<FileSystemOutput> {
-		return new OutputTracker<FileSystemOutput>(this._emitter, EVENT);
+		return new OutputTracker<FileSystemOutput>(this.#emitter, EVENT);
 	}
 
 	/**
@@ -186,9 +186,9 @@ export default class FileSystem {
 	 */
 	renderFilename(absolutePath: string): string {
 		ensure.signature(arguments, [ String ]);
-		ensureValidPath(absolutePath, this._rootDir);
+		ensureValidPath(absolutePath, this.#rootDir);
 
-		return path.relative(this._rootDir, absolutePath);
+		return path.relative(this.#rootDir, absolutePath);
 	}
 
 	/**
@@ -198,10 +198,10 @@ export default class FileSystem {
 	 */
 	async readTextFileAsync(filename: string): Promise<string> {
 		ensure.signature(arguments, [ String ]);
-		ensureValidPath(filename, this._rootDir);
+		ensureValidPath(filename, this.#rootDir);
 
-		const content = await this._fs.readFile(filename, { encoding: "utf8" });
-		this._emitter.emit(EVENT, { action: TRACK_ACTION.READ, filename });
+		const content = await this.#fs.readFile(filename, { encoding: "utf8" });
+		this.#emitter.emit(EVENT, { action: TRACK_ACTION.READ, filename });
 		return content;
 	}
 
@@ -212,13 +212,13 @@ export default class FileSystem {
 	 */
 	async writeTextFileAsync(filename: string, content: string): Promise<void> {
 		ensure.signature(arguments, [ String, String ]);
-		ensureValidPath(filename, this._rootDir);
+		ensureValidPath(filename, this.#rootDir);
 
 		const dir = path.dirname(filename);
-		await this._fs.mkdir(dir, { recursive: true });
-		await this._fs.writeFile(filename, content, { encoding: "utf8" });
+		await this.#fs.mkdir(dir, { recursive: true });
+		await this.#fs.writeFile(filename, content, { encoding: "utf8" });
 
-		this._emitter.emit(EVENT, { action: TRACK_ACTION.WRITE, filename, content });
+		this.#emitter.emit(EVENT, { action: TRACK_ACTION.WRITE, filename, content });
 	}
 
 	/**
@@ -227,10 +227,10 @@ export default class FileSystem {
 	 */
 	async deleteAsync(fileOrDirectory: string): Promise<void> {
 		ensure.signature(arguments, [ String ]);
-		ensureValidPath(fileOrDirectory, this._rootDir);
+		ensureValidPath(fileOrDirectory, this.#rootDir);
 
-		await this._fs.rm(fileOrDirectory, { recursive: true, force: true });
-		this._emitter.emit(EVENT, { action: TRACK_ACTION.DELETE, filename: fileOrDirectory });
+		await this.#fs.rm(fileOrDirectory, { recursive: true, force: true });
+		this.#emitter.emit(EVENT, { action: TRACK_ACTION.DELETE, filename: fileOrDirectory });
 	}
 
 	/**
@@ -240,11 +240,11 @@ export default class FileSystem {
 	 */
 	async copyAsync(fileOrDirectory: string, destination: string): Promise<void> {
 		ensure.signature(arguments, [ String, String ]);
-		ensureValidPath(fileOrDirectory, this._rootDir);
-		ensureValidPath(destination, this._rootDir);
+		ensureValidPath(fileOrDirectory, this.#rootDir);
+		ensureValidPath(destination, this.#rootDir);
 
-		await this._fs.cp(fileOrDirectory, destination, { recursive: true });
-		this._emitter.emit(EVENT, { action: TRACK_ACTION.COPY, src: fileOrDirectory, dest: destination });
+		await this.#fs.cp(fileOrDirectory, destination, { recursive: true });
+		this.#emitter.emit(EVENT, { action: TRACK_ACTION.COPY, src: fileOrDirectory, dest: destination });
 	}
 
 	/**
@@ -262,12 +262,12 @@ export default class FileSystem {
 		if (!Array.isArray(globsToCheck)) globsToCheck = [ globsToCheck ];
 
 		const aborter = new AbortController();
-		const watcher = this._fs.watch(this._rootDir, { signal: aborter.signal, recursive: true });
+		const watcher = this.#fs.watch(this.#rootDir, { signal: aborter.signal, recursive: true });
 
 		let result: FileChange | undefined;
 		try {
 			for await (const event of watcher) {
-				const filename = path.resolve(this._rootDir, event.filename!);
+				const filename = path.resolve(this.#rootDir, event.filename!);
 				if (globsToCheck.some(glob => minimatch(filename, glob))) {
 					result = { changed: event.eventType, filename };
 					aborter.abort();
@@ -291,9 +291,9 @@ export default class FileSystem {
 	 */
 	async readFileTreeAsync(directoryName: string, globsToExclude: string[] = []): Promise<FileTree> {
 		ensure.signature(arguments, [ String, [ undefined, Array ] ]);
-		ensureValidPath(directoryName, this._rootDir);
+		ensureValidPath(directoryName, this.#rootDir);
 
-		const entities = await this._fs.readdir(directoryName, { recursive: true, withFileTypes: true });
+		const entities = await this.#fs.readdir(directoryName, { recursive: true, withFileTypes: true });
 
 		const files = entities.filter(entity => entity.isFile());
 		const absolutePaths = files.map(file => path.resolve(file.parentPath, file.name));
@@ -325,9 +325,9 @@ export default class FileSystem {
 	 */
 	async getFileModificationTimeAsync(filename: string): Promise<Date> {
 		ensure.signature(arguments, [ String ]);
-		ensureValidPath(filename, this._rootDir);
+		ensureValidPath(filename, this.#rootDir);
 
-		const { mtime } = await this._fs.stat(filename);
+		const { mtime } = await this.#fs.stat(filename);
 		return mtime;
 	}
 
@@ -345,8 +345,8 @@ export default class FileSystem {
 		return await new Promise<string>((resolvePromise, rejectPromise) => {
 			setImmediate(() => {
 				try {
-					const resolvedFilename = this._require.resolve(module, { paths: [ baseDir ] });
-					this._emitter.emit(EVENT, { action: TRACK_ACTION.MODULE_RESOLUTION, resolvedFilename });
+					const resolvedFilename = this.#require.resolve(module, { paths: [ baseDir ] });
+					this.#emitter.emit(EVENT, { action: TRACK_ACTION.MODULE_RESOLUTION, resolvedFilename });
 					resolvePromise(resolvedFilename);
 				}
 				catch (err) {
@@ -366,7 +366,7 @@ export default class FileSystem {
 	 * @returns {string} The path to the timestamp file.
 	 */
 	timestampFileFor(originalFile: string, timestampExtension: string): string {
-		return timestampFilename(originalFile, timestampExtension, this._rootDir, this._timestampDir);
+		return timestampFilename(originalFile, timestampExtension, this.#rootDir, this.#timestampDir);
 	}
 
 	/**
@@ -379,9 +379,9 @@ export default class FileSystem {
 	 */
 	async writeTimestampFileAsync(originalFile: string, timestampExtension: string): Promise<void> {
 		ensure.signature(arguments, [ String, String ]);
-		ensureValidPath(originalFile, this._rootDir);
+		ensureValidPath(originalFile, this.#rootDir);
 
-		const file = timestampFilename(originalFile, timestampExtension, this._rootDir, this._timestampDir);
+		const file = timestampFilename(originalFile, timestampExtension, this.#rootDir, this.#timestampDir);
 		await this.writeTextFileAsync(file, "generated");
 	}
 
@@ -395,11 +395,11 @@ export default class FileSystem {
 	 */
 	async findNewerFilesAsync(files: string[], timestampExtension: string): Promise<string[]> {
 		ensure.signature(arguments, [ Array, String ]);
-		ensureValidPath(files, this._rootDir);
+		ensureValidPath(files, this.#rootDir);
 
 		const result: string[] = [];
 		await Promise.all(files.map(async (file) => {
-			const timestamp = timestampFilename(file, timestampExtension, this._rootDir, this._timestampDir);
+			const timestamp = timestampFilename(file, timestampExtension, this.#rootDir, this.#timestampDir);
 
 			const isNewer = (await this.compareFileModificationTimesAsync(file, timestamp)) > 0;
 			if (isNewer) result.push(file);
@@ -417,7 +417,7 @@ export default class FileSystem {
 	 */
 	async isFileNewerThanAllAsync(filename: string, timestampFiles: string[]): Promise<boolean> {
 		ensure.signature(arguments, [ String, Array ]);
-		ensureValidPath(filename, this._rootDir);
+		ensureValidPath(filename, this.#rootDir);
 
 		const comparisons = await Promise.all(timestampFiles.map(async (compareTo) => {
 			return await this.compareFileModificationTimesAsync(filename, compareTo);
@@ -437,7 +437,7 @@ export default class FileSystem {
 	 */
 	async compareFileModificationTimesAsync(leftFilename: string, rightFilename: string): Promise<number> {
 		ensure.signature(arguments, [ String, String ]);
-		ensureValidPath([ leftFilename, rightFilename ], this._rootDir);
+		ensureValidPath([ leftFilename, rightFilename ], this.#rootDir);
 
 		const [ left, right ] = await Promise.all([
 			getMtime(this, leftFilename),
@@ -476,8 +476,8 @@ export default class FileSystem {
 	 */
 	async compareDirectoriesAsync(sourceDir: string, targetDir: string, rewriteFn: (sourceFile: string) => string | string[] = sourceFile => sourceFile): Promise<DirectoryComparison> {
 		ensure.signature(arguments, [ String, String, [ undefined, Function ] ]);
-		ensureValidPath(sourceDir, this._rootDir);
-		ensureValidPath(targetDir, this._rootDir);
+		ensureValidPath(sourceDir, this.#rootDir);
+		ensureValidPath(targetDir, this.#rootDir);
 
 		const [ absoluteSources, absoluteTargets ] = await Promise.all([
 			(await this.readPossibleFileTreeAsync(sourceDir)).matchingFiles("**"),
@@ -549,10 +549,10 @@ function ensureValidPath(pathnames: string | string[], rootDir: string): void {
 
 class FsStub implements NarrowedFs {
 
-	private readonly _files: NulledFiles;
+	readonly #files: NulledFiles;
 
 	constructor(files: NulledFiles) {
-		this._files = files;
+		this.#files = files;
 	}
 
 	async mkdir(): Promise<void> {
@@ -566,7 +566,7 @@ class FsStub implements NarrowedFs {
 	async readFile(filename: string): Promise<string> {
 		await fakeAsync();
 
-		const file = getNulledFile(this._files, filename);
+		const file = getNulledFile(this.#files, filename);
 		return file.content ?? `Nulled file content for '${filename}'`;
 	}
 
@@ -574,7 +574,7 @@ class FsStub implements NarrowedFs {
 		await fakeAsync();
 
 		if (!directory.endsWith("/")) directory += "/";
-		const files = Object.keys(this._files).filter(file => file.startsWith(directory));
+		const files = Object.keys(this.#files).filter(file => file.startsWith(directory));
 		if (files.length === 0) {
 			throwNodeError(`ENOENT: nulled FileSystem not configured with any files in '${directory}'`, "ENOENT");
 		}
@@ -593,7 +593,7 @@ class FsStub implements NarrowedFs {
 	async stat(filename: string): Promise<{ mtime: Date }> {
 		await fakeAsync();
 
-		const file = getNulledFile(this._files, filename);
+		const file = getNulledFile(this.#files, filename);
 		return {
 			mtime: new Date(file.modified ?? "1 Apr 1942 00:42:42.042 UTC"),
 		};
@@ -607,43 +607,43 @@ class FsStub implements NarrowedFs {
 
 class DirentStub implements NarrowedDirent {
 
-	private readonly _parentPath: string;
-	private readonly _name: string;
-	private readonly _isFile: boolean;
+	readonly #parentPath: string;
+	readonly #name: string;
+	readonly #isFile: boolean;
 
 	constructor(file: string, isFile: boolean) {
-		this._parentPath = path.dirname(file);
-		this._name = path.basename(file);
-		this._isFile = isFile;
+		this.#parentPath = path.dirname(file);
+		this.#name = path.basename(file);
+		this.#isFile = isFile;
 	}
 
 	get parentPath(): string {
-		return this._parentPath;
+		return this.#parentPath;
 	}
 
 	get name(): string {
-		return this._name;
+		return this.#name;
 	}
 
 	isFile(): boolean {
-		return this._isFile;
+		return this.#isFile;
 	}
 
 }
 
 class RequireStub implements NarrowedRequire {
 
-	private readonly _files: NulledFiles;
+	readonly #files: NulledFiles;
 
 	constructor(files: NulledFiles) {
-		this._files = files;
+		this.#files = files;
 	}
 
 	resolve(module: string, { paths: [ basedir ] }: { paths: string[] }): string {
 		// intentionally synchronous to match real behavior
 		let resolved = path.resolve(basedir, module);
-		if (this._files[resolved] === undefined) resolved += ".js";
-		if (this._files[resolved] === undefined) {
+		if (this.#files[resolved] === undefined) resolved += ".js";
+		if (this.#files[resolved] === undefined) {
 			throwNodeError(`Cannot find module '${module}'\nrelative to '${basedir}'`, "MODULE_NOT_FOUND");
 		}
 		return resolved;
