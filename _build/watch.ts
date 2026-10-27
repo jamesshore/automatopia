@@ -52,7 +52,7 @@ async function detectWhenBuildFilesChangeAsync(fileSystem: FileSystem): Promise<
 
 async function markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem: FileSystem): Promise<void> {
 	while (true) {
-		const { changed } = (await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs))!;
+		const { changed } = await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs);
 		if (changed === FileSystem.CHANGED.TREE) fileTreeChanged = true;
 	}
 }

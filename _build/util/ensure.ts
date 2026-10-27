@@ -10,7 +10,7 @@ export const ANY_TYPE = typeChecker.ANY_TYPE;
  * @param {boolean} expression the expression to check
  * @param {string} message the exception message to throw
  */
-export function that(variable: unknown, message: string) {
+export function that(variable: unknown, message: string): asserts variable {
 	if (message === undefined) message = "Expected condition to be true";
 
 	if (variable === false) throw new EnsureError(message, that);

@@ -257,7 +257,7 @@ export default class FileSystem {
 	 *   depending on the operating system, these distinctions are somewhat unreliable. On MacOS, when a file is created
 	 *   or renamed, additional changes are considered to be `TREE` changes for some amount of time afterwards.
 	 */
-	async waitForChangeAsync(globsToCheck: string | string[] = [ "**" ]): Promise<FileChange | undefined> {
+	async waitForChangeAsync(globsToCheck: string | string[] = [ "**" ]): Promise<FileChange> {
 		ensure.signature(arguments, [[ undefined, String, Array ]]);
 		if (!Array.isArray(globsToCheck)) globsToCheck = [ globsToCheck ];
 
@@ -278,6 +278,7 @@ export default class FileSystem {
 			if ((err as ErrorWithCode).code !== "ABORT_ERR") throw err;
 		}
 
+		ensure.that(result !== undefined, "File watcher aborted without assigning result, which shouldn't be possible");
 		return result;
 	}
 
