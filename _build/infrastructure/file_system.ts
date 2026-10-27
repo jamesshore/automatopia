@@ -7,7 +7,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import EventEmitter from "node:events";
 import module from "node:module";
-import { minimatch } from "minimatch";
 
 const EVENT = "read";
 const TRACK_ACTION = {
@@ -268,7 +267,7 @@ export default class FileSystem {
 		try {
 			for await (const event of watcher) {
 				const filename = path.resolve(this.#rootDir, event.filename!);
-				if (globsToCheck.some(glob => minimatch(filename, glob))) {
+				if (globsToCheck.some(glob => path.matchesGlob(filename, glob))) {
 					result = { changed: event.eventType, filename };
 					aborter.abort();
 				}

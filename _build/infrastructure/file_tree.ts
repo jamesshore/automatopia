@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import * as ensure from "../util/ensure.ts";
-import { minimatch } from "minimatch";
+import path from "node:path";
 
 /** Represents a list of files. This is a purely in-memory representation. It's immutable and does not change when the file system changes. To keep the list up to date, use {@FileSystem#waitForChangeAsync} and look for `TREE` changes. Then create a new `FileTree` using {@FileSystem#readFileTreeAsync}. */
 export default class FileTree {
@@ -56,7 +56,7 @@ export default class FileTree {
 			const files = [ ...this.#files ];
 			const result = new Set<string>();
 			globsToInclude
-				.forEach(glob => minimatch.match(files, glob)
+				.forEach(glob => files.filter(file => path.matchesGlob(file, glob))
 					.forEach(file => result.add(file)));
 			this.#matchCache[cacheKey] = [ ...filter(result, globsToExclude) ].sort();
 		}
@@ -81,7 +81,7 @@ export default class FileTree {
 function filter(files: Set<string>, globsToExclude: string[]): Set<string> {
 	// Caution: Mutates 'files'
 	globsToExclude
-		.forEach(glob => minimatch.match([ ...files ], glob)
-			.forEach(path => files.delete(path)));
+		.forEach(glob => [ ...files ].filter(file => path.matchesGlob(file, glob))
+			.forEach(file => files.delete(file)));
 	return files;
 }

@@ -5,9 +5,6 @@ import FileSystem from "../infrastructure/file_system.ts";
 import * as analyzer from "./low_level/source_code_analyzer.ts";
 import path from "node:path";
 
-// JDLS 1 Sep 2024: Once Node 22 enters LTS, this dependency can be replaced with path.matchesGlob(), which was
-// introduced in Node 22.5.0. Node uses minimatch under the covers so it should be perfectly compatible.
-import { minimatch as matchesGlob } from "minimatch";
 
 const ERRORS = {
 	ROOT_NOT_FOUND: "File not found",
@@ -221,7 +218,7 @@ export default class DependencyTree {
 				const dependencyNotFound = notFound(filename, dependency.path, dependency.line, dependency.source);
 				const resolvedPath = await resolveModulePathAsync(this.#fileSystem, baseDir, dependency.path, dependencyNotFound);
 
-				if (this.#globsToIgnore.some(glob => matchesGlob(resolvedPath, glob))) return { ignored: true };
+				if (this.#globsToIgnore.some(glob => path.matchesGlob(resolvedPath, glob))) return { ignored: true };
 
 				dependency.path = resolvedPath;
 				return {
