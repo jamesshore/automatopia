@@ -1,4 +1,4 @@
 #!/bin/sh
 
 . _build/prebuild.sh
-node --enable-source-maps _build/run_build.ts "$@"
+node _build/run_build.ts "$@"
