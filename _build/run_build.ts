@@ -7,6 +7,6 @@ runAsync().then(result => {
 	else process.exit(1);
 });
 
-async function runAsync() {
+async function runAsync(): Promise<string | null> {
 	return await Build.create().runAsync();
 }
