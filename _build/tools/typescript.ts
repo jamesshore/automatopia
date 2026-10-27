@@ -6,13 +6,15 @@ import Shell from "../infrastructure/shell.ts";
 
 export default class TypeScript {
 
-	static create() {
+	private readonly _shell: Shell;
+
+	static create(): TypeScript {
 		ensure.signature(arguments, []);
 
 		return new TypeScript(Shell.create());
 	}
 
-	constructor(shell) {
+	constructor(shell: Shell) {
 		this._shell = shell;
 	}
 
@@ -22,7 +24,13 @@ export default class TypeScript {
 		typescriptConfigFile,
 		outputDir,
 		reporter,
-	}) {
+	}: {
+		description: string;
+		tscBinary: string;
+		typescriptConfigFile: string;
+		outputDir: string;
+		reporter: Reporter;
+	}): Promise<void> {
 		ensure.signature(arguments, [{
 			description: String,
 			tscBinary: String,
@@ -31,9 +39,8 @@ export default class TypeScript {
 			reporter: Reporter,
 		}]);
 
-
 		await reporter.startAsync(`Type-checking ${description}`, async (report) => {
-			const command = [
+			const command: [string, ...string[]] = [
 				tscBinary,
 				"-p", typescriptConfigFile,
 				"--outDir", outputDir,

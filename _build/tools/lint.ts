@@ -6,20 +6,30 @@ import TaskError from "../tasks/task_error.ts";
 import Colors from "../infrastructure/colors.ts";
 import { Linter, SourceCode } from "eslint";
 
+type Report = InstanceType<typeof Reporter.Report>;
+
 export default class Lint {
 
-	static create(fileSystem) {
+	private readonly _fileSystem: FileSystem;
+	private readonly _linter: Linter;
+
+	static create(fileSystem: FileSystem): Lint {
 		ensure.signature(arguments, [ FileSystem ]);
 
 		return new Lint(fileSystem);
 	}
 
-	constructor(fileSystem) {
+	constructor(fileSystem: FileSystem) {
 		this._fileSystem = fileSystem;
 		this._linter = new Linter();
 	}
 
-	async validateAsync({ description, files, config, reporter }) {
+	async validateAsync({ description, files, config, reporter }: {
+		description: string;
+		files: string[];
+		config: Linter.Config[];
+		reporter: Reporter;
+	}): Promise<void> {
 		ensure.signature(arguments, [{
 			description: String,
 			files: Array,
@@ -44,7 +54,7 @@ export default class Lint {
 
 	}
 
-	#validateSource(report, sourceCode, options, filename) {
+	#validateSource(report: Report, sourceCode: string, options: Linter.Config[], filename: string): boolean {
 		const messages = this._linter.verify(sourceCode, options);
 		const pass = (messages.length === 0);
 

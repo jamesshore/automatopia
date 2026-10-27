@@ -6,18 +6,24 @@ import FileSystem from "../infrastructure/file_system.ts";
 
 export default class Version {
 
-	static create(fileSystem) {
+	private readonly _fileSystem: FileSystem;
+	private _checked: boolean;
+
+	static create(fileSystem: FileSystem): Version {
 		ensure.signature(arguments, [ FileSystem ]);
 
 		return new Version(fileSystem);
 	}
 
-	constructor(fileSystem) {
+	constructor(fileSystem: FileSystem) {
 		this._fileSystem = fileSystem;
 		this._checked = false;
 	}
 
-	async checkAsync({ packageJson, reporter }) {
+	async checkAsync({ packageJson, reporter }: {
+		packageJson: string;
+		reporter: Reporter;
+	}): Promise<void> {
 		ensure.signature(arguments, [{
 			packageJson: String,
 			reporter: Reporter,

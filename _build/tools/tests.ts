@@ -4,19 +4,26 @@ import Reporter from "../tasks/reporter.ts";
 import TaskError from "../tasks/task_error.ts";
 import Colors from "../infrastructure/colors.ts";
 import FileSystem from "../infrastructure/file_system.ts";
-import DependencyTree from "../tasks/dependency_tree.ts";
-import { TestRunner } from "ergotest";
+import DependencyTree, { type DependencyError } from "../tasks/dependency_tree.ts";
+import { TestRunner, type TestSuiteResult } from "ergotest";
 import path from "node:path";
+
+type Report = InstanceType<typeof Reporter.Report>;
+type TestConfig = NonNullable<NonNullable<Parameters<TestRunner["runInChildProcessAsync"]>[1]>["config"]>;
 
 export default class Tests {
 
-	static create(fileSystem, globsToIgnore) {
+	private readonly _fileSystem: FileSystem;
+	private readonly _dependencyTree: DependencyTree;
+	private readonly _testRunner: TestRunner;
+
+	static create(fileSystem: FileSystem, globsToIgnore: string[]): Tests {
 		ensure.signature(arguments, [ FileSystem, Array ]);
 
 		return new Tests(fileSystem, globsToIgnore);
 	}
 
-	constructor(fileSystem, globsToIgnore) {
+	constructor(fileSystem: FileSystem, globsToIgnore: string[]) {
 		this._fileSystem = fileSystem;
 		this._dependencyTree = DependencyTree.create(fileSystem, globsToIgnore);
 		this._testRunner = TestRunner.create();
@@ -29,7 +36,14 @@ export default class Tests {
 		config,
 		failOnSkip = false,
 		reporter
-	}) {
+	}: {
+		description: string;
+		testFiles: string[];
+		setupFiles?: string[];
+		config: TestConfig;
+		failOnSkip?: boolean;
+		reporter: Reporter;
+	}): Promise<void> {
 		ensure.signature(arguments, [{
 			description: String,
 			testFiles: Array,
@@ -46,7 +60,7 @@ export default class Tests {
 		}
 	}
 
-	async #findTestFilesAsync(reporter, description, setupFiles, testFiles) {
+	async #findTestFilesAsync(reporter: Reporter, description: string, setupFiles: string[], testFiles: string[]): Promise<string[]> {
 		const dependencyTree = this._dependencyTree;
 		const fileSystem = this._fileSystem;
 
@@ -57,7 +71,7 @@ export default class Tests {
 			else return await findChangedFilesAsync(testFiles, report);
 		});
 
-		async function findChangedFilesAsync(filesToCheck, report) {
+		async function findChangedFilesAsync(filesToCheck: string[], report: Report): Promise<string[]> {
 			const result = await dependencyTree.findChangedFilesAsync(
 				filesToCheck,
 				"test",
@@ -75,8 +89,8 @@ export default class Tests {
 			return result.changed;
 		}
 
-		function reportErrors(fileSystem, report, errors) {
-			const errorsByFile = {};
+		function reportErrors(fileSystem: FileSystem, report: Report, errors: DependencyError[]): void {
+			const errorsByFile: Record<string, DependencyError[]> = {};
 
 			errors.forEach((error) => {
 				if (errorsByFile[error.file] === undefined) errorsByFile[error.file] = [];
@@ -86,8 +100,9 @@ export default class Tests {
 			Object.keys(errorsByFile).forEach(file => {
 				report.footer(Colors.brightRed(`\n${fileSystem.renderFilename(file)} failed`));
 
-				errorsByFile[file].forEach(({ error, file, dependency, line, source }) => {
-					if (error === DependencyTree.ERRORS.DEPENDENCY_NOT_FOUND) {
+				errorsByFile[file].forEach((entry) => {
+					if (entry.error === DependencyTree.ERRORS.DEPENDENCY_NOT_FOUND) {
+						const { error, file, dependency, line, source } = entry;
 						let failure = Colors.brightWhite.bold(`\n${line}: `) + `${source}\n  ${error}\n`;
 						if (dependency.startsWith(".")) {
 							const resolvesTo = path.resolve(path.dirname(file), dependency);
@@ -96,7 +111,7 @@ export default class Tests {
 						report.footer(failure);
 					}
 					else {
-						report.footer(`\n${error}\n`);
+						report.footer(`\n${entry.error}\n`);
 					}
 				});
 				report.footer("\n");
@@ -104,7 +119,7 @@ export default class Tests {
 		}
 	}
 
-	async #runTestsAsync(reporter, description, filesToRun, setupFiles, failOnSkip, config) {
+	async #runTestsAsync(reporter: Reporter, description: string, filesToRun: string[], setupFiles: string[], failOnSkip: boolean, config: TestConfig): Promise<void> {
 		await reporter.startAsync(`Running ${description}`, async (report) => {
 			const testResult = await this._testRunner.runInChildProcessAsync(filesToRun, {
 				setupModulePaths: setupFiles,
@@ -126,7 +141,7 @@ export default class Tests {
 		});
 	}
 
-	async #writeTimestampFilesAsync(testResult) {
+	async #writeTimestampFilesAsync(testResult: TestSuiteResult): Promise<void> {
 		await Promise.all(testResult.allPassingFiles().map(async (testFile) => {
 			await this._fileSystem.writeTimestampFileAsync(testFile, "test");
 		}));
