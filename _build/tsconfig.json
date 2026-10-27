@@ -2,8 +2,6 @@
   "extends": "../tsconfig.json",
   "include": ["./**/*.ts"],
   "compilerOptions": {
-    "target": "ESNext",
-    "rootDir": ".",
-    "baseUrl": "./"
+    "rootDir": "."
   }
 }
