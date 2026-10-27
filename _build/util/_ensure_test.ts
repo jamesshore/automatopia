@@ -27,6 +27,14 @@ export default describe(() => {
 			assertEnsureError(unreachable("foo"), /foo/);
 		});
 
+		it("checks if a variable is defined", () => {
+			const defined = wrap(ensure.defined);
+
+			assert.notError(defined(0));
+			assertEnsureError(defined(undefined), "variable was not defined");
+			assertEnsureError(defined(undefined, "name"), "name was not defined");
+		});
+
 	});
 
 	describe("signature checking", () => {

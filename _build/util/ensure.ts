@@ -30,7 +30,7 @@ export function unreachable(message?: string): never {
  * @param {any} variable the variable to check
  * @param {string} variableName the name of the variable, which will be included in the exception message
  */
-export function defined(variable: unknown, variableName: string) {
+export function defined<T>(variable: T, variableName: string): asserts variable is Exclude<T, undefined> {
 	if (variable === undefined) {
 		throw new EnsureError(`${normalize(variableName)} was not defined`, defined);
 	}

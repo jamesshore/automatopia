@@ -641,6 +641,7 @@ class RequireStub implements NarrowedRequire {
 
 	resolve(module: string, { paths: [ basedir ] }: { paths: string[] }): string {
 		// intentionally synchronous to match real behavior
+		ensure.defined(basedir, "basedir");
 		let resolved = path.resolve(basedir, module);
 		if (this.#files[resolved] === undefined) resolved += ".js";
 		if (this.#files[resolved] === undefined) {
