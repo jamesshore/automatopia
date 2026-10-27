@@ -70,14 +70,7 @@ export default class Paths {
 		];
 	}
 
-	lintJavascriptFiles(): string[] {
-		return this._files.matchingFiles([
-			"**/*.js",
-		], [
-		]);
-	}
-
-	lintTypescriptFiles(): string[] {
+	lintFiles(): string[] {
 		return this._files.matchingFiles([
 			"**/*.ts",
 		]);

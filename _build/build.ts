@@ -10,8 +10,7 @@ import Tests from "./tools/tests.ts";
 import TypeScript from "./tools/typescript.ts";
 import Paths from "./config/paths.ts";
 import testConfig from "./config/tests.conf.ts";
-import lintJavascriptConfig from "./config/eslint.javascript.config.ts";
-import lintTypescriptConfig from "./config/eslint.typescript.config.ts";
+import lintConfig from "./config/eslint.config.ts";
 import type { Linter } from "eslint";
 
 interface TaskParameters {
@@ -40,7 +39,7 @@ export default class Build {
 			clean: "Erase all generated files (resets incremental build)",
 			quick: "Perform an incremental build",
 			version: "Check Node.js version",
-			lint: "Lint JavaScript code (incremental)",
+			lint: "Lint TypeScript code (incremental)",
 			unittest: "Run unit tests (incremental)",
 			typecheck: "Type-check TypeScript and create declaration files",
 		});
@@ -104,16 +103,9 @@ export default class Build {
 			const paths = await this.#getPathsAsync(options.reporter);
 
 			await lint.validateAsync({
-				description: "JavaScript",
-				files: paths.lintJavascriptFiles(),
-				config: lintJavascriptConfig,
-				reporter: options.reporter,
-			});
-
-			await lint.validateAsync({
 				description: "TypeScript",
-				files: paths.lintTypescriptFiles(),
-				config: lintTypescriptConfig as Linter.Config[],
+				files: paths.lintFiles(),
+				config: lintConfig as Linter.Config[],
 				reporter: options.reporter,
 			});
 		});
