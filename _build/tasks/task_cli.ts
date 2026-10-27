@@ -79,7 +79,7 @@ export default class TaskCli {
 	 * Interpret command-line arguments, run the build, and display success or failure. "Failure" means the build threw
 	 * an exception. To show a prettier failure, without the exception stack trace, throw {@link TaskError} rather than
 	 * Error.
-	 * @param {tasks} tasks The message to display when all the tasks are successful.
+	 * @param {Tasks} tasks The build tasks.
 	 * @param {string} successMessage The message to display when all the tasks are successful.
 	 * @param {string} failureMessage The message to display when one of the tasks throws an exception.
 	 * @param {(taskNames, options) => Promise<void>} buildFnAsync The build to run. It’s given the task names that were
