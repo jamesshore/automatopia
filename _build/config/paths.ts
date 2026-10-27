@@ -55,18 +55,10 @@ export default class Paths {
 		];
 	}
 
-	static get universalGlobsToExclude(): string[] {
+	static get globsToExclude(): string[] {
 		return [
 			`${rootDir}/node_modules/**`,
-			`${rootDir}/src/node_modules/tests/vendor/**`,
 			`${rootDir}/generated/**`,
-		];
-	}
-
-	static get dependencyTreeGlobsToExclude(): string[] {
-		return [
-			`${rootDir}/node_modules/**`,
-			`${rootDir}/src/node_modules/tests/vendor/**`,
 		];
 	}
 
@@ -78,7 +70,6 @@ export default class Paths {
 
 	buildTestFiles(): string[] {
 		return this._files.matchingFiles([
-			`${rootDir}/_build/**/_*_test.js`,
 			`${rootDir}/_build/**/_*_test.ts`,
 		]);
 	}

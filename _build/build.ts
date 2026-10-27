@@ -62,8 +62,8 @@ export default class Build {
 		if (this._paths === undefined) {
 			this._paths = await reporter.startAsync("Scanning file tree", async (report) => {
 				report.debug(`\n  Scan ${Paths.rootDir}`);
-				report.debug(`\n  Ignore [\n    ${Paths.universalGlobsToExclude.join("\n    ")}\n  ]`);
-				const fileTree = await this._fileSystem.readFileTreeAsync(Paths.rootDir, Paths.universalGlobsToExclude);
+				report.debug(`\n  Ignore [\n    ${Paths.globsToExclude.join("\n    ")}\n  ]`);
+				const fileTree = await this._fileSystem.readFileTreeAsync(Paths.rootDir, Paths.globsToExclude);
 				return Paths.create(fileTree);
 			});
 		}
@@ -74,7 +74,7 @@ export default class Build {
 		const tasks = Tasks.create<TaskParameters>({ fileSystem: this._fileSystem, incrementalDir: Paths.tasksDir });
 		const version = Version.create(this._fileSystem);
 		const lint = Lint.create(this._fileSystem);
-		const tests = Tests.create(this._fileSystem, Paths.dependencyTreeGlobsToExclude);
+		const tests = Tests.create(this._fileSystem, Paths.globsToExclude);
 		const typescript = TypeScript.create();
 
 		tasks.defineTask("default", async(options) => {
