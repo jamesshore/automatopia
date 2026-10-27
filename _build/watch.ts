@@ -24,7 +24,7 @@ let restart = false;
 
 runAsync();
 
-async function runAsync() {
+async function runAsync(): Promise<void> {
 	const build = await Build.create();
 	const fileSystem = FileSystem.create(Paths.rootDir, Paths.timestampsBuildDir);
 
@@ -44,26 +44,26 @@ async function runAsync() {
 	process.exit(0);
 }
 
-async function detectWhenBuildFilesChangeAsync(fileSystem) {
+async function detectWhenBuildFilesChangeAsync(fileSystem: FileSystem): Promise<void> {
 	await fileSystem.waitForChangeAsync(Paths.buildRestartGlobs);
 	console.log(watchColor("*** Build files changed"));
 	restart = true;
 }
 
-async function markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem) {
+async function markTreeChangedWhenFilesAddedRemovedOrRenamed(fileSystem: FileSystem): Promise<void> {
 	while (true) {
-		const { changed } = await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs);
+		const { changed } = (await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs))!;
 		if (changed === FileSystem.CHANGED.TREE) fileTreeChanged = true;
 	}
 }
 
-async function debouncedWaitForChangeAsync(fileSystem) {
+async function debouncedWaitForChangeAsync(fileSystem: FileSystem): Promise<void> {
 	await clock.waitAsync(DEBOUNCE_MS);
 	await fileSystem.waitForChangeAsync(Paths.buildWatchGlobs);
 	console.log(watchColor("*** Change detected"));
 }
 
-async function runBuildAsync(build) {
+async function runBuildAsync(build: Build): Promise<void> {
 	console.log(watchColor(`\n\n\n\n*** BUILD> ${args.join(" ")}`));
 	const buildPromise = build.runAsync({ resetTreeCache: fileTreeChanged });
 	fileTreeChanged = false;
@@ -75,7 +75,7 @@ async function runBuildAsync(build) {
 	playBuildResultSoundAsync(buildResult);
 }
 
-async function playBuildResultSoundAsync(buildResult) {
+async function playBuildResultSoundAsync(buildResult: string | null): Promise<void> {
 	if (buildResult === null) {
 		await playSoundAsync(Paths.successSound);
 	}
@@ -87,7 +87,7 @@ async function playBuildResultSoundAsync(buildResult) {
 	}
 }
 
-async function playSoundAsync(filename) {
+async function playSoundAsync(filename: string): Promise<void> {
 	try {
 		const file = path.resolve(import.meta.dirname, filename);
 		if (process.platform === "darwin") {
