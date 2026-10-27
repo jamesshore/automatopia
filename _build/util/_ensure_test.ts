@@ -227,7 +227,7 @@ function assertEnsureError(fn: Function, expectedRegexOrExactString?: RegExp | s
 		else {
 			assert.match(typedErr.message, expectedRegexOrExactString, message);
 		}
-		assert.notIncludes(typedErr.stack, "ensure.js", "should filter stack trace");
+		assert.notIncludes(typedErr.stack, "ensure.ts", "should filter stack trace");
 		return;
 	}
 }
