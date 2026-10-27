@@ -15,7 +15,7 @@
     "@types/sinonjs__fake-timers": "^15.0.1",
     "ergotest": "^0.14.0",
     "eslint": "^10.13.0",
-    "globals": "^15.9.0",
+    "globals": "^17.13.0",
     "minimatch": "^10.0.1",
     "minimist": "^1.2.8",
     "typescript": "^6.0.3",
