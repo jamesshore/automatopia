@@ -160,8 +160,9 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *27 Oct 2026:* Speed up type-checker with incremental type checking. Deleting the output dir (typically in 'generated/') deletes the incremental cache.
 * *27 Oct 2026:* Fix linter to pass through filename so file-specific rules apply, particularly TypeScript.
-* *27 Oct 2026:* Convert to TypeScript. Includes BREAKING CHANGES:
+* *27 Oct 2026:* Convert all code to TypeScript. Includes BREAKING CHANGES:
   * DependencyTree methods exclude inappropriate values instead of returning an empty array. For example, if there are no errors, there will be no "errors" property at all, instead of an empty "errors" array.
   * FileSystem.readFileTreeAsync()'s "globsToExclude" parameter must be an array.
 * *23 Oct 2026:* Remove compile step (uses Node's built-in type stripping instead)

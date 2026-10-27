@@ -44,6 +44,8 @@ export default class TypeScript {
 				tscBinary,
 				"-p", typescriptConfigFile,
 				"--outDir", outputDir,
+				"--incremental",
+				"--tsBuildInfoFile", `${outputDir}/.tsbuildinfo`,
 				"--noEmit", "false",
 				"--declaration", "--emitDeclarationOnly",
 				"--pretty",
