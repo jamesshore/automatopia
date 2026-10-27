@@ -55,7 +55,7 @@ export default class ConsoleOutput {
 	 */
 	write(text: string | Buffer): void {
 		ensure.signature(arguments, [ [ String, Buffer ] ]);
-		if (text instanceof Buffer) text = text.toString();
+		if (typeof text !== "string") text = text.toString();
 
 		this.#stream.write(text);
 		this.#emitter.emit(WRITE_EVENT, text);
