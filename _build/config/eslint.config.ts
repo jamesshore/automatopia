@@ -105,6 +105,8 @@ const config: Config = [
 			"require-yield": ERROR,
 
 			// TypeScript
+			"prefer-rest-params": IGNORE,  // arguments preserves actual caller inputs for runtime signature checks
+			"prefer-spread": IGNORE,       // .apply() is intentional when forwarding arguments
 			"@typescript-eslint/no-unused-vars": IGNORE,
 			"no-regex-spaces": IGNORE,
 			"no-unused-private-class-members": IGNORE,

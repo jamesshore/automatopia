@@ -160,6 +160,7 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
+* *27 Oct 2026:* Fix linter to pass through filename so file-specific rules apply, particularly TypeScript.
 * *27 Oct 2026:* Convert to TypeScript. Includes BREAKING CHANGES:
   * DependencyTree methods exclude inappropriate values instead of returning an empty array. For example, if there are no errors, there will be no "errors" property at all, instead of an empty "errors" array.
   * FileSystem.readFileTreeAsync()'s "globsToExclude" parameter must be an array.

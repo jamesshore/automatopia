@@ -55,7 +55,7 @@ export default class Lint {
 	}
 
 	#validateSource(report: Report, sourceCode: string, options: Linter.Config[], filename: string): boolean {
-		const messages = this.#linter.verify(sourceCode, options);
+		const messages = this.#linter.verify(sourceCode, options, { filename });
 		const pass = (messages.length === 0);
 
 		if (pass) {
