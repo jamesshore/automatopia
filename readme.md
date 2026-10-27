@@ -32,7 +32,7 @@ To see the example build in action, run `./build.sh` or `./watch.sh quick` from 
 
 ## Examples
 
-You can find example source code in the [_build](_build) directory. Check out [watch.js](_build/watch.js) and [build.js](_build/build.js) in particular.
+You can find example source code in the [_build](_build) directory. Check out [watch.js](_build/watch.js) and [build.ts](_build/build.ts) in particular.
 
 The above examples are full-featured and derived from production builds. See below for simpler but complete examples:
 

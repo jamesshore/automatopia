@@ -1,6 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
-import Build from "./build.js";
+import Build from "./build.ts";
 
 runAsync().then(result => {
 	if (result === null) process.exit(0);

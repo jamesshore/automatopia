@@ -12,10 +12,19 @@ import Paths from "./config/paths.ts";
 import testConfig from "./config/tests.conf.ts";
 import lintJavascriptConfig from "./config/eslint.javascript.config.ts";
 import lintTypescriptConfig from "./config/eslint.typescript.config.ts";
+import type { Linter } from "eslint";
+
+interface TaskParameters {
+	reporter: Reporter;
+}
 
 export default class Build {
 
-	static create() {
+	private readonly _fileSystem: FileSystem;
+	private readonly _tasks: Tasks<TaskParameters>;
+	private _paths: Paths | undefined;
+
+	static create(): Build {
 		ensure.signature(arguments, []);
 
 		return new Build();
@@ -37,7 +46,7 @@ export default class Build {
 		});
 	}
 
-	async runAsync({ resetTreeCache = false } = {}) {
+	async runAsync({ resetTreeCache = false }: { resetTreeCache?: boolean } = {}): Promise<string | null> {
 		ensure.signature(arguments, [[ undefined, {
 			resetTreeCache: [ undefined, Boolean ],
 		}]]);
@@ -50,7 +59,7 @@ export default class Build {
 		});
 	}
 
-	async #getPathsAsync(reporter) {
+	async #getPathsAsync(reporter: Reporter): Promise<Paths> {
 		if (this._paths === undefined) {
 			this._paths = await reporter.startAsync("Scanning file tree", async (report) => {
 				report.debug(`\n  Scan ${Paths.rootDir}`);
@@ -62,8 +71,8 @@ export default class Build {
 		return this._paths;
 	}
 
-	#defineTasks() {
-		const tasks = Tasks.create({ fileSystem: this._fileSystem, incrementalDir: Paths.tasksDir });
+	#defineTasks(): Tasks<TaskParameters> {
+		const tasks = Tasks.create<TaskParameters>({ fileSystem: this._fileSystem, incrementalDir: Paths.tasksDir });
 		const version = Version.create(this._fileSystem);
 		const lint = Lint.create(this._fileSystem);
 		const tests = Tests.create(this._fileSystem, Paths.dependencyTreeGlobsToExclude);
@@ -104,7 +113,7 @@ export default class Build {
 			await lint.validateAsync({
 				description: "TypeScript",
 				files: paths.lintTypescriptFiles(),
-				config: lintTypescriptConfig,
+				config: lintTypescriptConfig as Linter.Config[],
 				reporter: options.reporter,
 			});
 		});
