@@ -988,8 +988,7 @@ export default describe(() => {
 			return true;
 		}
 		catch (err) {
-			ensure.nodeError(err);
-			if (err.code !== "ENOENT") throw err;
+			ensure.nodeErrorCode(err, "ENOENT");
 
 			return false;
 		}

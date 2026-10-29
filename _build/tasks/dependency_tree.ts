@@ -147,8 +147,7 @@ export default class DependencyTree {
 			await this.#populateDependenciesAsync(notifyFn, filename, dependencySet, errors, rootNotFound);
 		}
 		catch (err) {
-			ensure.nodeError(err);
-			if (err.code !== "ENOENT") throw err;
+			ensure.nodeErrorCode(err, "ENOENT");
 
 			errors.push(rootNotFound);
 		}
@@ -181,8 +180,7 @@ export default class DependencyTree {
 			fileChangedOrErrored = cachedFileModified !== currentFileModified;
 		}
 		catch (err) {
-			ensure.nodeError(err);
-			if (err.code !== "ENOENT") throw err;
+			ensure.nodeErrorCode(err, "ENOENT");
 
 			fileChangedOrErrored = true;
 		}
@@ -231,8 +229,7 @@ export default class DependencyTree {
 				};
 			}
 			catch (error) {
-				ensure.nodeError(error);
-				if (error.code !== "MODULE_NOT_FOUND") throw error;
+				ensure.nodeErrorCode(error, "MODULE_NOT_FOUND");
 
 				return { error: error as unknown as { message: DependencyNotFoundError } };
 			}
@@ -251,8 +248,7 @@ async function getFileModificationTimeAsync(fileSystem: FileSystem, filename: st
 		return (await fileSystem.getFileModificationTimeAsync(filename)).valueOf();
 	}
 	catch(err) {
-		ensure.nodeError(err);
-		if (err.code !== "ENOENT") throw err;
+		ensure.nodeErrorCode(err, "ENOENT");
 
 		(err as unknown as FileError).message = errorToUseIfNotFound;
 		throw err;
@@ -264,8 +260,7 @@ async function readTextFileAsync(fileSystem: FileSystem, filename: string, error
 		return await fileSystem.readTextFileAsync(filename);
 	}
 	catch(err) {
-		ensure.nodeError(err);
-		if (err.code !== "ENOENT") throw err;
+		ensure.nodeErrorCode(err, "ENOENT");
 
 		(err as unknown as FileError).message = errorToUseIfNotFound;
 		throw err;
@@ -277,8 +272,7 @@ async function resolveModulePathAsync(fileSystem: FileSystem, baseDir: string, m
 		return await fileSystem.resolveModulePathAsync(baseDir, module);
 	}
 	catch(err) {
-		ensure.nodeError(err);
-		if (err.code !== "MODULE_NOT_FOUND") throw err;
+		ensure.nodeErrorCode(err, "MODULE_NOT_FOUND");
 
 		(err as unknown as FileError).message = errorToUseIfNotFound;
 		throw err;

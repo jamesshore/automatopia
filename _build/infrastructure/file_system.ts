@@ -274,8 +274,7 @@ export default class FileSystem {
 			}
 		}
 		catch (err) {
-			ensure.nodeError(err);
-			if (err.code !== "ABORT_ERR") throw err;
+			ensure.nodeErrorCode(err, "ABORT_ERR");
 		}
 
 		ensure.that(result !== undefined, "File watcher aborted without assigning result, which shouldn't be possible");
@@ -313,8 +312,7 @@ export default class FileSystem {
 			return await this.readFileTreeAsync(directoryName, globsToExclude);
 		}
 		catch (err) {
-			ensure.nodeError(err);
-			if (err.code !== "ENOENT") throw err;
+			ensure.nodeErrorCode(err, "ENOENT");
 
 			return FileTree.create([], globsToExclude);
 		}
@@ -458,8 +456,7 @@ export default class FileSystem {
 				return { mtime, found: true };
 			}
 			catch (err) {
-				ensure.nodeError(err);
-				if (err.code !== "ENOENT") throw err;
+				ensure.nodeErrorCode(err, "ENOENT");
 
 				return { found: false };
 			}
