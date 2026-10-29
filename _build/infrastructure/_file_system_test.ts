@@ -6,10 +6,6 @@ import FileTree from "./file_tree.ts";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-interface ErrorWithCode extends Error {
-	code?: string;
-}
-
 const IRRELEVANT_FILE_CONTENTS = "irrelevant file contents";
 const IRRELEVANT_DATE = new Date(42);
 
@@ -73,8 +69,8 @@ export default describe(() => {
 				await fileSystem.readTextFileAsync(`${TEST_DIR}/no_such_file`);
 				assert.fail("should have thrown ENOENT error");
 			}
-			catch (error) {
-				const err = error as ErrorWithCode;
+			catch (err) {
+				ensure.nodeError(err);
 				assert.equal(err.message, `ENOENT: no such file or directory, open '${TEST_DIR}/no_such_file'`);
 				assert.equal(err.code, "ENOENT");
 			}
@@ -144,8 +140,8 @@ export default describe(() => {
 					await fileSystem.readTextFileAsync("/no_such_file");
 					assert.fail("should have thrown ENOENT error");
 				}
-				catch (error) {
-					const err = error as ErrorWithCode;
+				catch (err) {
+					ensure.nodeError(err);
 					assert.equal(err.message, "ENOENT: nulled FileSystem not configured with file '/no_such_file'");
 					assert.equal(err.code, "ENOENT");
 				}
@@ -238,8 +234,8 @@ export default describe(() => {
 				await fileSystem.copyAsync(`${TEST_DIR}/no_such_file`, FILENAME);
 				assert.fail("should have thrown ENOENT error");
 			}
-			catch (error) {
-				const err = error as ErrorWithCode;
+			catch (err) {
+				ensure.nodeError(err);
 				assert.equal(err.message, `ENOENT: no such file or directory, lstat '${TEST_DIR}/no_such_file'`);
 				assert.equal(err.code, "ENOENT");
 			}
@@ -484,8 +480,8 @@ export default describe(() => {
 					await fileSystem.readFileTreeAsync("/no_such_file");
 					assert.fail("should have thrown ENOENT error");
 				}
-				catch (error) {
-					const err = error as ErrorWithCode;
+				catch (err) {
+					ensure.nodeError(err);
 					assert.equal(err.message, "ENOENT: nulled FileSystem not configured with any files in '/no_such_file/'");
 					assert.equal(err.code, "ENOENT");
 				}
@@ -521,8 +517,8 @@ export default describe(() => {
 				await fileSystem.resolveModulePathAsync(TEST_DIR, "./no_such_module");
 				assert.fail("should have thrown MODULE_NOT_FOUND error");
 			}
-			catch (error) {
-				const err = error as ErrorWithCode;
+			catch (err) {
+				ensure.nodeError(err);
 				assert.match(err.message, /Cannot find module '\.\/no_such_module'/);
 				assert.equal(err.code, "MODULE_NOT_FOUND");
 			}
@@ -599,8 +595,8 @@ export default describe(() => {
 					await fileSystem.resolveModulePathAsync("/root_dir", "./no_such_module");
 					assert.fail("should have thrown MODULE_NOT_FOUND error");
 				}
-				catch (error) {
-					const err = error as ErrorWithCode;
+				catch (err) {
+					ensure.nodeError(err);
 					assert.equal(err.message, "Cannot find module './no_such_module'\nrelative to '/root_dir'");
 					assert.equal(err.code, "MODULE_NOT_FOUND");
 				}
@@ -630,8 +626,8 @@ export default describe(() => {
 				await fileSystem.getFileModificationTimeAsync(`${TEST_DIR}/no_such_file`);
 				assert.fail("should have thrown ENOENT error");
 			}
-			catch (error) {
-				const err = error as ErrorWithCode;
+			catch (err) {
+				ensure.nodeError(err);
 				assert.equal(err.message, `ENOENT: no such file or directory, stat '${TEST_DIR}/no_such_file'`);
 				assert.equal(err.code, "ENOENT");
 			}
@@ -712,8 +708,8 @@ export default describe(() => {
 					await fileSystem.getFileModificationTimeAsync("/no_such_file");
 					assert.fail("should have thrown ENOENT error");
 				}
-				catch (error) {
-					const err = error as ErrorWithCode;
+				catch (err) {
+					ensure.nodeError(err);
 					assert.equal(err.message, "ENOENT: nulled FileSystem not configured with file '/no_such_file'");
 					assert.equal(err.code, "ENOENT");
 				}
@@ -991,10 +987,11 @@ export default describe(() => {
 			await fs.stat(filename);
 			return true;
 		}
-		catch (error) {
-			const err = error as ErrorWithCode;
-			if (err.code === "ENOENT") return false;
-			else throw err;
+		catch (err) {
+			ensure.nodeError(err);
+			if (err.code !== "ENOENT") throw err;
+
+			return false;
 		}
 	}
 
