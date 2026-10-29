@@ -3,6 +3,7 @@
 import * as ensure from "../util/ensure.ts";
 import minimist from "minimist";
 import EventEmitter from "node:events";
+import * as util from "node:util";
 
 interface NarrowedProcess {
 	argv: string[];
@@ -51,6 +52,51 @@ export default class CommandLine {
 	}
 
 	/**
+	 * Parse command-line arguments into tasks and options, not including 'node' or the filename.
+	 *
+	 * @param {object} [options] An object containing the options that are allowed. Put the long name of each option in
+	 *   the key and its specification in the value. E.g., "--myOption" is specified as `{ myOption: {...} }`. The
+	 *   specification object may contain the following values:
+	 *   - "type": Use `{ type: "boolean" }` for flags or `{ type: "string" }` for options that take a value.
+	 *     Boolean options return `true` when supplied as `--option` and `false` when supplied as `--no-option`.
+	 *     String option values can be provided as `--option=value` or `--option value`.
+	 *   - "multiple": Set to `true` to allow an option to be supplied multiple times. Its values are returned in an array
+	 *     in command-line order. By default, the last supplied value is returned for a repeated option.
+	 *   - "default": The value returned when the option is not supplied.
+	 *
+	 *   If an unknown option is encountered, an error will be returned. Node also reports errors for invalid option
+	 *   values, including passing a value to a boolean option. Repeated options use Node's behavior: the last value wins
+	 *   unless `multiple` is `true`.
+	 *
+	 * @returns {{tasks: string[], options: Record<string, unknown>} | {error: string}} Tasks and options, or an error
+	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line order.
+	 */
+	parseArgs(options: util.ParseArgsOptionsConfig = {}): { tasks: string[]; options: Record<string, unknown> } | { error: string } {
+		try {
+			if (this.rawArguments.includes("--")) return { error: "Unknown option '--'" };
+
+			const { positionals, values } = util.parseArgs({
+				args: this.rawArguments,
+				allowPositionals: true,
+				allowNegative: true,
+				options,
+			});
+			return { tasks: positionals, options: { ...values } };
+		}
+		catch (err) {
+			this.#ensureNodeError(err);
+			if (!err.code.startsWith("ERR_PARSE_ARGS")) throw err;
+
+			return { error: err.message.replace(/\. To specify a positional argument.*$/, "") };
+		}
+	}
+
+	#ensureNodeError(err: unknown): asserts err is Error & { code: string } {
+		if (!(err instanceof Error)) throw err;
+		if (!("code" in err) || typeof err.code !== "string") throw err;
+	}
+
+	/**
 	 * @returns {string[]} The command-line arguments that can be interpreted as commands (that is, that don't start with
 	 *   a hyphen).
 	 */
@@ -62,7 +108,7 @@ export default class CommandLine {
 	}
 
 	/**
-	 * @returns {object>} The command-line arguments that can be interpreted as options (that is, that start with a
+	 * @returns {object} The command-line arguments that can be interpreted as options (that is, that start with a
 	 *   hyphen), along with any values for those arguments. For example, `-T` will be returned as `{ T: true }` and
 	 *   `--file=my_file` will be returned as `{ file: "my_file" }`. Performs basic type conversion on option values.
 	 */

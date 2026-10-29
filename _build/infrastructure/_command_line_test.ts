@@ -9,14 +9,15 @@ export default describe(() => {
 
 	it("provides raw and cooked command-line arguments", async function() {
 		const args = [
-			"command1", "command2", "-abc", "--option", "--no-d", "-p1", "--parm=parm2", "--", "trailing", "values"
+			"command1", "command2", "-abc", "--option", "--no-d", "-p1", "--parm=parm2", "--", "trailing", "values",
 		];
 
 		const stdout = await runModuleAsync(path.resolve(import.meta.dirname, "./_command_line_test_helper.ts"), args);
-		assert.equal(stdout,
+		assert.equal(
+			stdout,
 			`rawArguments: ${JSON.stringify(args)}\n` +
 			`commands: ${JSON.stringify([ "command1", "command2" ])}\n` +
-			`options: ${JSON.stringify({ 
+			`options: ${JSON.stringify({
 				a: true,
 				b: true,
 				c: true,
@@ -25,8 +26,187 @@ export default describe(() => {
 				p: 1,
 				parm: "parm2",
 				"--": [ "trailing", "values" ],
-			})}\n`
+			})}\n`,
 		);
+
+	});
+
+	describe("parsing", () => {
+
+		it("does nothing when the command line is empty", () => {
+			const commandLine = create([]);
+
+			assert.equal(commandLine.parseArgs(), {
+				tasks: [],
+				options: {},
+			});
+		});
+
+		it("parses tasks", () => {
+			const commandLine = create([ "task1", "task2", "task3" ]);
+
+			assert.equal(commandLine.parseArgs(), {
+				tasks: [ "task1", "task2", "task3" ],
+				options: {},
+			});
+		});
+
+		it("parses options", () => {
+			const commandLine = create([ "--option1", "--option2" ]);
+
+			assert.equal(commandLine.parseArgs({
+				option1: { type: "boolean" },
+				option2: { type: "boolean" },
+				optionNotPresent: { type: "boolean" },
+			}), {
+				tasks: [],
+				options: { option1: true, option2: true },
+			});
+		});
+
+		it("parses tasks and options together", () => {
+			const commandLine = create([ "task1", "--option1", "--option2", "task2" ]);
+
+			assert.equal(commandLine.parseArgs({
+				option1: { type: "boolean" },
+				option2: { type: "boolean" },
+			}), {
+				tasks: [ "task1", "task2" ],
+				options: { option1: true, option2: true },
+			});
+		});
+
+		it("allows tasks to be specified multiple times", () => {
+			const commandLine = create([ "task1", "task2", "task1" ]);
+
+			assert.equal(commandLine.parseArgs(), {
+				tasks: [ "task1", "task2", "task1" ],
+				options: {},
+			});
+		});
+
+		it("supports 'no' prefixes", () => {
+			const commandLine = create([ "--no-option" ]);
+
+			assert.equal(commandLine.parseArgs({ option: { type: "boolean" } }), {
+				tasks: [],
+				options: { option: false },
+			});
+		});
+
+		it("supports options with values", () => {
+			const commandLine = create([ "--option1=value1", "--option2", "value2" ]);
+
+			assert.equal(commandLine.parseArgs({
+				option1: { type: "string" },
+				option2: { type: "string" }
+			}), {
+				tasks: [],
+				options: { option1: "value1", option2: "value2" },
+			});
+		});
+
+		it("supports options with multiple values", () => {
+			const commandLine = create([ "--option=one", "--option=two" ]);
+
+			assert.equal(commandLine.parseArgs({ option: { type: "string", multiple: true } }), {
+				tasks: [],
+				options: { option: [ "one", "two" ] },
+			});
+		});
+
+		it("supports default options", () => {
+			const commandLine = create([ "--option3=myOption" ]);
+
+			assert.equal(
+				commandLine.parseArgs({
+					option1: { type: "string", default: "value" },
+					option2: { type: "boolean", default: false },
+					option3: { type: "string", default: "overridden" }
+				}),
+				{
+					tasks: [],
+					options: { option1: "value", option2: false, option3: "myOption" },
+				},
+			);
+		});
+
+		it("supports short aliases for options", () => {
+			const commandLine = create([ "-o" ]);
+
+			assert.equal(commandLine.parseArgs({ option: { type: "boolean", short: "o" } }), {
+				tasks: [],
+				options: { option: true },
+			});
+		});
+
+
+		describe("edge cases", () => {
+
+			it("only looks at last option when multiple are supplied but one is expected", () => {
+				const commandLine = create([ "--option=first", "--option=last" ]);
+
+				assert.equal(commandLine.parseArgs({ option: { type: "string" } }), {
+					tasks: [],
+					options: { option: "last" },
+				});
+			});
+
+			it("returns error when a boolean option is given an argument", () => {
+				const commandLine = create([ "--option=value" ]);
+
+				assert.equal(commandLine.parseArgs({ option: { type: "boolean" } }),
+					{ error: "Option '--option' does not take an argument" },
+				);
+			});
+			
+			it("returns error when a string option isn't given an argument", () => {
+				const commandLine = create([ "--option" ]);
+
+				assert.equal(commandLine.parseArgs({ option: { type: "string" } }),
+					{ error: "Option '--option <value>' argument missing" },
+				);
+			});
+
+			it("returns error when a string option isn't given an argument, even if there is a default", () => {
+				const commandLine = create([ "--option" ]);
+
+				assert.equal(commandLine.parseArgs({ option: { type: "string", default: "fallback" } }),
+					{ error: "Option '--option <value>' argument missing" },
+				);
+			});
+
+			it("returns error when an unspecified option is present", () => {
+				const commandLine = create([ "--option" ]);
+
+				assert.equal(commandLine.parseArgs(), {
+					error: "Unknown option '--option'",
+				});
+			});
+			
+			it("returns error when -- is present", () => {
+				const commandLine = create([ "--" ]);
+
+				assert.equal(commandLine.parseArgs(), {
+					error: "Unknown option '--'",
+				});
+			});
+
+			it("throws when option configuration is invalid", () => {
+				const commandLine = create();
+
+				assert.error(
+					() => commandLine.parseArgs({ option: { type: "boolean", short: "long" } }),
+					/short/,
+				);
+			});
+
+		});
+
+		function create(args: string[] = []): CommandLine {
+			return CommandLine.createNull({ args });
+		}
+
 	});
 
 
@@ -38,7 +218,7 @@ export default describe(() => {
 		});
 
 		it("allows arguments to be configured", function() {
-			const commandLine = CommandLine.createNull({ args: [ "one", "two" ]});
+			const commandLine = CommandLine.createNull({ args: [ "one", "two" ] });
 			assert.equal(commandLine.rawArguments, [ "one", "two" ]);
 		});
 
