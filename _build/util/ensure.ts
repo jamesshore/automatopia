@@ -36,6 +36,17 @@ export function nodeError(err: unknown): asserts err is Error & { code: string }
 }
 
 /**
+ * Runtime assertion that exceptions are Node Error objects with the specified code. Throws the original exception
+ * if its code doesn't match exactly or if it isn't a Node error.
+ * @param {unknown} err The exception to check
+ * @param {string} code The expected error code
+ */
+export function nodeErrorCode(err: unknown, code: string): asserts err is Error & { code: string } {
+	nodeError(err);
+	if (err.code !== code) throw err;
+}
+
+/**
  * Runtime assertion for variables that should be defined. Throws an exception if the variable is undefined.
  * @param {any} variable the variable to check
  * @param {string} variableName the name of the variable, which will be included in the exception message

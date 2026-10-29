@@ -44,6 +44,28 @@ export default describe(() => {
 			assertEnsureError(nodeError("not an Error object"), "not an Error object");
 		});
 
+		it("checks if a Node error has the expected code", () => {
+			const nodeErrorCode = wrap(ensure.nodeErrorCode);
+
+			assert.notError(nodeErrorCode(Object.assign(new Error("failure"), { code: "ERR_TEST" }), "ERR_TEST"));
+			assertEnsureError(nodeErrorCode(
+				Object.assign(new Error("failure"), { code: "ERR_TEST" }), "WRONG_CODE"),
+				"failure"
+			);
+		});
+
+		it("rethrows the original exception when the code doesn't match exactly", () => {
+			const original = Object.assign(new Error("failure"), { code: "ERR_TEST_EXTRA" });
+			let thrown: unknown;
+			try {
+				ensure.nodeErrorCode(original, "ERR_TEST");
+			}
+			catch (err) {
+				thrown = err;
+			}
+			assert.equal(thrown === original, true);
+		});
+
 	});
 
 	describe("signature checking", () => {
