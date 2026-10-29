@@ -84,16 +84,11 @@ export default class CommandLine {
 			return { tasks: positionals, options: { ...values } };
 		}
 		catch (err) {
-			this.#ensureNodeError(err);
+			ensure.nodeError(err);
 			if (!err.code.startsWith("ERR_PARSE_ARGS")) throw err;
 
 			return { error: err.message.replace(/\. To specify a positional argument.*$/, "") };
 		}
-	}
-
-	#ensureNodeError(err: unknown): asserts err is Error & { code: string } {
-		if (!(err instanceof Error)) throw err;
-		if (!("code" in err) || typeof err.code !== "string") throw err;
 	}
 
 	/**

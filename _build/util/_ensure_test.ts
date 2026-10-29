@@ -35,6 +35,15 @@ export default describe(() => {
 			assertEnsureError(defined(undefined, "name"), "name was not defined");
 		});
 
+		it("checks if an exception is a Node error (with string 'code' field)", () => {
+			const nodeError = wrap(ensure.nodeError);
+
+			assert.notError(nodeError(Object.assign(new Error("failure"), { code: "ERR_TEST" })));
+			assertEnsureError(nodeError(new Error("no 'code' field")), "no 'code' field");
+			assertEnsureError(nodeError(Object.assign(new Error("non-string 'code'"), { code: 1 })), "non-string 'code'");
+			assertEnsureError(nodeError("not an Error object"), "not an Error object");
+		});
+
 	});
 
 	describe("signature checking", () => {
@@ -226,6 +235,11 @@ function assertEnsureError(fn: Function, expectedRegexOrExactString?: RegExp | s
 		assert.fail("Expected exception");
 	}
 	catch (err) {
+		if (!(err instanceof Error)) {
+			assert.equal(err, expectedRegexOrExactString);
+			return;
+		}
+
 		const typedErr = err as NodeError;
 
 		if (expectedRegexOrExactString === undefined) return;
