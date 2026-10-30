@@ -147,17 +147,18 @@ export default class TaskCli {
 		this.#stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
 		const globalOptions = Object.entries(optionSpecs).map(([ name, spec ]) => {
 			const shortName = spec.short ? ` (-${spec.short})` : "";
-			return { label: `--${name}${shortName}`, description: spec.description ?? "" };
+			const value = spec.type === "string" ? "=…" : "";
+			return { label: `--${name}${value}${shortName}`, description: spec.description ?? "" };
 		});
 		const maxOptionLength = globalOptions.reduce((max, { label }) => Math.max(max, label.length), 0);
 		globalOptions.forEach(({ label, description }) => {
-			this.#stdout.write(`${Colors.white.bold(label)}${" ".repeat(maxOptionLength - label.length + 2)}${description}\n`);
+			this.#stdout.write(`${Colors.white.bold(label.padEnd(maxOptionLength))}  ${description}\n`);
 		});
 
 		this.#stdout.write(`\n${Colors.brightWhite.underline("Tasks:")}\n`);
-		const maxLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
+		const maxTaskLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
 		tasks.listTasks().forEach(({ name, description }) => {
-			this.#stdout.write(`${Colors.white.bold(name.padEnd(maxLength))}  ${description}\n`);
+			this.#stdout.write(`${Colors.white.bold(name.padEnd(maxTaskLength))}  ${description}\n`);
 		});
 		this.#stdout.write("\n");
 	}
