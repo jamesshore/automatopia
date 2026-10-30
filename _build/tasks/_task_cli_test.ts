@@ -137,8 +137,29 @@ export default describe(() => {
 			}
 		});
 
-		it("throws error if option specification is invalid");
-		it("displays error when command-line options are invalid");
+		it("throws error if option specification is invalid", async () => {
+			const { tasks, cli } = createCli({
+				globalOptions: { option: { type: "boolean", short: "invalid_short_option" } },
+			});
+
+			await assert.errorAsync(() => runAsync({ cli, tasks }), /invalid_short_option/);
+		});
+
+		it("displays error when command-line options are invalid", async () => {
+			const { tasks, cli, stdout } = createCli({ args: [ "task", "--no-such-option" ], globalOptions: {} });
+			tasks.defineTask("task", IRRELEVANT_FN);
+
+			const { taskNames, returnValue } = await runAsync({ cli, tasks, failureMessage: "my failure message" });
+
+			assert.equal(stdout, [
+				"\n" +
+				Colors.brightRed.inverse("   my failure message   ") + "\n" +
+				Colors.brightRed.bold("Unknown option '--no-such-option'") + "\n",
+			]);
+			assert.isUndefined(taskNames, "should not have run any tasks");
+			assert.equal(returnValue, TaskCli.CLI_FAILURE);
+		});
+
 		it("lists options on the help screen (put this in 'help' describe block");
 
 	});

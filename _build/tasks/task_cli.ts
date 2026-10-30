@@ -92,7 +92,11 @@ export default class TaskCli {
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
-		const { commands, options } = analyzeCommandLine(this.#commandLine, tasks);
+		const { commands, options, error } = analyzeCommandLine(this.#commandLine, tasks);
+		if (error !== undefined) {
+			writeFailure(this.#stdout, failureMessage, error);
+			return CLI_FAILURE;
+		}
 
 		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, commands, options.help || options.tasks, failureMessage);
 		if (showedHelp) return CLI_FAILURE;
@@ -159,10 +163,9 @@ function analyzeCommandLine<T, S extends CommandLineOptionsSpec>(commandLine: Co
 		tasks: { type: "boolean", short: "T" },
 		debug: { type: "boolean" },
 	});
-	if (error !== undefined) throw new Error(error);
+	if (error !== undefined) return { error };
 
 	if (commands.length === 0 && tasks.hasTask("default")) commands.push("default");
-
 	return { commands, options };
 }
 
