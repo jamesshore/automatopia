@@ -160,7 +160,7 @@ MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 ## Change History
 
-* *30 Oct 2026:* BREAKING CHANGE: command-line options have to be specified with Tasks.defineGlobalCommandLineOptions(). In exchange, they're listed in the command-line help, and the 'minimist' dependency has been removed.
+* *30 Oct 2026:* BREAKING CHANGE: custom command-line options have to be specified when creating Tasks. In exchange, they're listed in the command-line help, and the 'minimist' dependency has been removed.
 * *27 Oct 2026:* Speed up type-checker with incremental type checking. Deleting the output dir (typically in 'generated/') deletes the incremental cache.
 * *27 Oct 2026:* Fix linter to pass through filename so file-specific rules apply, particularly TypeScript.
 * *27 Oct 2026:* Convert all code to TypeScript. Includes BREAKING CHANGES:

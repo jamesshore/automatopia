@@ -3,7 +3,7 @@ import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import TaskCli from "./task_cli.ts";
 import Tasks from "./tasks.ts";
-import CommandLine from "../infrastructure/command_line.ts";
+import CommandLine, { type CommandLineOptionsSpec } from "../infrastructure/command_line.ts";
 import Colors from "../infrastructure/colors.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";
@@ -108,13 +108,13 @@ export default describe(() => {
 		it("provides options specified on the command line to the build", async () => {
 			const { tasks, cli } = createCli({
 				args: [ "task", "--option1", "--option2=my option" ],
+				globalOptions: {
+					option1: { type: "boolean" },
+					option2: { type: "string" },
+				},
 			});
 
 			tasks.defineTask("task", IRRELEVANT_FN);
-			tasks.defineGlobalCommandLineOptions({
-				option1: { type: "boolean" },
-				option2: { type: "string" },
-			});
 
 			const { taskNames, options } = await runAsync({ cli, tasks });
 			assert.equal(taskNames, [ "task" ]);
@@ -130,9 +130,8 @@ export default describe(() => {
 			await assertError("debug");
 
 			async function assertError(option: string): Promise<void> {
-				const { tasks, cli } = createCli({ args: [ "task" ] });
+				const { tasks, cli } = createCli({ args: [ "task" ], globalOptions: { [option]: { type: "boolean" } } });
 				tasks.defineTask("task", IRRELEVANT_FN);
-				tasks.defineGlobalCommandLineOptions({ [option]: { type: "boolean" } });
 
 				await assert.errorAsync(() => runAsync({ cli, tasks }), new RegExp(option), `--${option} should fail`);
 			}
@@ -361,11 +360,8 @@ export default describe(() => {
 
 function createCli({
 	args = [],
-}: { args?: string[] } = {}) {
-	ensure.signature(arguments, [[ undefined, {
-		args: [ undefined, Array ],
-	}]]);
-
+	globalOptions = {},
+}: { args?: string[]; globalOptions?: CommandLineOptionsSpec } = {}) {
 	const commandLine = CommandLine.createNull({ args });
 	const stdout = ConsoleOutput.createNull();
 	const stdoutTracker = stdout.track();
@@ -373,7 +369,7 @@ function createCli({
 	const cli = new TaskCli(commandLine, stdout, clock);
 
 	return {
-		tasks: Tasks.createNull({ clock }),
+		tasks: Tasks.createNull({ clock, globalCommandLineOptions: globalOptions }),
 		cli,
 		stdoutTracker,
 		stdout: stdoutTracker.data,

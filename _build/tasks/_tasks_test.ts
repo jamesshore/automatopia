@@ -353,13 +353,12 @@ export default describe(() => {
 	describe("command-line options", () => {
 
 		it("specifies global options", () => {
-			const { tasks } = createTasks();
 			const options = {
 				option1: { type: "boolean" },
 				option2: { type: "string" },
 			} as const;
 
-			tasks.defineGlobalCommandLineOptions(options);
+			const { tasks } = createTasks({ globalCommandLineOptions: options });
 			assert.equal(tasks.globalCommandLineOptions, options);
 		});
 
@@ -376,9 +375,10 @@ function createTasks({
 	incrementalDir = "/irrelevant/incremental/dir",
 	clock = Clock.createNull(),
 	fileSystem = FileSystem.createNull(),
+	globalCommandLineOptions = undefined,
 }: NulledTasksOptions = {}) {
 	const writeTracker = fileSystem.track();
-	const tasks = new Tasks(incrementalDir, clock, fileSystem);
+	const tasks = new Tasks(incrementalDir, clock, fileSystem, globalCommandLineOptions);
 
 	return {
 		tasks,

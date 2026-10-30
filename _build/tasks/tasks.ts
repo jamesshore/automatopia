@@ -17,6 +17,7 @@ export interface NulledTasksOptions {
 	incrementalDir?: string;
 	clock?: Clock;
 	fileSystem?: FileSystem;
+	globalCommandLineOptions?: CommandLineOptionsSpec;
 }
 
 export type TaskFunction<T_TaskParameters> = (parms: T_TaskParameters) => void | Promise<void>;
@@ -45,7 +46,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	readonly #incrementalDir: string;
 	readonly #clock: Clock;
 	readonly #fileSystem: FileSystem;
-	#globalCommandLineOptions: CommandLineOptionsSpec = {};
+	readonly #globalCommandLineOptions: CommandLineOptionsSpec;
 
 	/**
 	 * Task tracking event.
@@ -67,21 +68,25 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 * @param {string} incrementalDir Path to a directory to use for incremental tasks (see
 	 *   {@link Tasks#defineIncrementalTask}).
 	 * @param {FileSystem} fileSystem The file system that contains `incrementalDir`.
+	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications.
 	 * @returns {Tasks} The instance.
 	 */
 	static create<T_TaskParameters>({
 		incrementalDir,
 		fileSystem,
+		globalCommandLineOptions = {},
 	}: {
 		incrementalDir: string;
 		fileSystem: FileSystem;
+		globalCommandLineOptions?: CommandLineOptionsSpec;
 	}): Tasks<T_TaskParameters> {
 		ensure.signature(arguments, [{
 			incrementalDir: String,
 			fileSystem: FileSystem,
+			globalCommandLineOptions: [ undefined, Object ],
 		}]);
 
-		return new Tasks<T_TaskParameters>(incrementalDir, Clock.create(), fileSystem);
+		return new Tasks<T_TaskParameters>(incrementalDir, Clock.create(), fileSystem, globalCommandLineOptions);
 	}
 
 	/**
@@ -90,30 +95,34 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 *   {@link Tasks#defineIncrementalTask}).
 	 * @param {Clock} [clock] System clock. Defaults to a Nulled instance.
 	 * @param {FileSystem} [fileSystem] File system. Defaults to a Nulled instance.
+	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications.
 	 * @returns {Tasks} The instance.
 	 */
 	static createNull<T_TaskParameters>({
 		incrementalDir = "/nulled_incremental_dir",
 		clock = Clock.createNull(),
 		fileSystem = FileSystem.createNull(),
+		globalCommandLineOptions = {},
 	}: NulledTasksOptions = {}): Tasks<T_TaskParameters> {
 		ensure.signature(arguments, [[ undefined, {
 			incrementalDir: [ undefined, String ],
 			clock: [ undefined, Clock ],
 			fileSystem: [ undefined, FileSystem ],
+			globalCommandLineOptions: [ undefined, Object ],
 		}]]);
 
-		return new Tasks<T_TaskParameters>(incrementalDir, clock, fileSystem);
+		return new Tasks<T_TaskParameters>(incrementalDir, clock, fileSystem, globalCommandLineOptions);
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
-	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem) {
+	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem, globalCommandLineOptions: CommandLineOptionsSpec = {}) {
 		super();
 		this.#taskFns = {};
 		this.#descriptions = {};
 		this.#incrementalDir = incrementalDir;
 		this.#clock = clock;
 		this.#fileSystem = fileSystem;
+		this.#globalCommandLineOptions = globalCommandLineOptions;
 	}
 
 	/**
@@ -129,7 +138,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 
 	/**
 	 * @returns {CommandLineOptionsSpec} The global option specifications, or an empty object if none have been defined.
-	 * @see Tasks#defineGlobalCommandLineOptions
+	 * @see CommandLine#parse
 	 */
 	get globalCommandLineOptions(): CommandLineOptionsSpec {
 		return this.#globalCommandLineOptions;
@@ -192,15 +201,6 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 
 			this.#descriptions[key] = value;
 		});
-	}
-
-	/**
-	 * Define global command-line options, replacing any previously defined options.
-	 * @param {CommandLineOptionsSpec} options The option specifications.
-	 * @see CommandLine#parse
-	 */
-	defineGlobalCommandLineOptions(options: CommandLineOptionsSpec): void {
-		this.#globalCommandLineOptions = options;
 	}
 
 	/**
