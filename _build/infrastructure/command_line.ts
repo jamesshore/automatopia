@@ -8,20 +8,20 @@ interface NarrowedProcess {
 	argv: string[];
 }
 
-export type ParsedCommandLine<S extends CommandLineOptionsSpec = Record<string, never>> =
+export type ParsedCommandLine<S extends ParserOptionsSpec = Record<string, never>> =
 	{ commands: string[]; options: CommandLineOptions<S>; error?: never }
 	| { error: string; commands?: never; options?: never };
 
 // This grotesque bit of type magic is used to automatically set the type of parse()'s return value to
 // match what's supplied in the option spec.
-export type CommandLineOptions<S extends CommandLineOptionsSpec> = {
+export type CommandLineOptions<S extends ParserOptionsSpec> = {
 	[K in keyof S]: OptionValue<S[K]> | (S[K] extends { default: NonNullable<unknown> } ? never : undefined);
 };
 type OptionValue<S> = S extends { type: "boolean" } ? boolean :
 	S extends { type: "string"; multiple: true } ? string[] :
 	S extends { type: "string" } ? string : never;
 
-export interface CommandLineOptionsSpec {
+export interface ParserOptionsSpec {
 	[optionLongName: string]:
 		BooleanCommandLineOptionSpec | SingleStringCommandLineOptionSpec | MultipleStringCommandLineOptionSpec;
 }
@@ -94,7 +94,7 @@ export default class CommandLine {
 	/**
 	 * Parse command-line arguments into commands and options.
 	 *
-	 * @param {CommandLineOptionsSpec} [options] An object containing the options that are allowed. Put the long name of
+	 * @param {ParserOptionsSpec} [options] An object containing the options that are allowed. Put the long name of
 	 *   each option in the key and its specification in the value. E.g., "--myOption" is specified as `{ myOption: {...}
 	 *   }`. The specification object may contain the following values:
 	 *   - "type": Use `{ type: "boolean" }` for flags or `{ type: "string" }` for options that take a value.
@@ -114,7 +114,7 @@ export default class CommandLine {
 	 *   message if parsing fails. Options start with a hyphen; commands are everything else, returned in command-line
 	 *   order.
 	 */
-	parse<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
+	parse<S extends ParserOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
 		ensure.signature(arguments, [[ undefined, Object ]]);
 
 		try {

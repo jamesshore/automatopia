@@ -1,11 +1,11 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 import * as ensure from "../util/ensure.ts";
-import CommandLine, { type CommandLineOptions, type CommandLineOptionsSpec } from "../infrastructure/command_line.ts";
+import CommandLine, { type CommandLineOptions } from "../infrastructure/command_line.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Colors from "../infrastructure/colors.ts";
 import Clock from "../infrastructure/clock.ts";
-import Tasks, { type ErrorWithFailedTask, type TaskOutput } from "./tasks.ts";
+import Tasks, { type CommandLineOptionsSpec, type ErrorWithFailedTask, type TaskOutput } from "./tasks.ts";
 import TaskError from "./task_error.ts";
 
 const ACTION = {

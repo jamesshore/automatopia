@@ -2,8 +2,8 @@
 import { assert, describe, it } from "../util/tests.ts";
 import * as ensure from "../util/ensure.ts";
 import TaskCli from "./task_cli.ts";
-import Tasks from "./tasks.ts";
-import CommandLine, { type CommandLineOptionsSpec } from "../infrastructure/command_line.ts";
+import Tasks, { type CommandLineOptionsSpec } from "./tasks.ts";
+import CommandLine from "../infrastructure/command_line.ts";
 import Colors from "../infrastructure/colors.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Clock from "../infrastructure/clock.ts";
@@ -308,7 +308,7 @@ export default describe(() => {
 					`${Colors.brightWhite.underline("Global options:")}\n`,
 					`${Colors.white.bold("--help (-h)")}   Show help\n`,
 					`${Colors.white.bold("--tasks (-T)")}  Show help\n`,
-					`${Colors.white.bold("--debug")}       Show task details, including error stack traces\n`,
+					`${Colors.white.bold("--debug")}       Show extra details, including error stack traces\n`,
 					"\n" +
 					Colors.brightWhite.underline("Tasks:") + "\n",
 					`${Colors.white.bold("task1")}  \n`,

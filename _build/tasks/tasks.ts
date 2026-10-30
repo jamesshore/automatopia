@@ -5,7 +5,11 @@ import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 import EventEmitter from "node:events";
 import { ANY_TYPE } from "../util/ensure.ts";
-import type { CommandLineOptionsSpec } from "../infrastructure/command_line.ts";
+import type { ParserOptionsSpec } from "../infrastructure/command_line.ts";
+
+export interface CommandLineOptionsSpec {
+	[optionLongName: string]: ParserOptionsSpec[string] & { description?: string };
+}
 
 const TASK_EVENT = "task";
 const ACTION = {
@@ -68,7 +72,8 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @param {string} incrementalDir Path to a directory to use for incremental tasks (see
 	 *   {@link Tasks#defineIncrementalTask}).
 	 * @param {FileSystem} fileSystem The file system that contains `incrementalDir`.
-	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications.
+	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications. Each option
+	 *   may also include a `description` string. See {@link CommandLine#parse} for the other specification fields.
 	 * @returns {Tasks} The instance.
 	 */
 	static create<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(args: {
@@ -91,7 +96,8 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 *   {@link Tasks#defineIncrementalTask}).
 	 * @param {Clock} [clock] System clock. Defaults to a Nulled instance.
 	 * @param {FileSystem} [fileSystem] File system. Defaults to a Nulled instance.
-	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications.
+	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications. Each option
+	 *   may also include a `description` string. See {@link CommandLine#parse} for the other specification fields.
 	 * @returns {Tasks} The instance.
 	 */
 	static createNull<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(...args: CommandLineOptionsSpec extends S
