@@ -39,8 +39,8 @@ export default class Build {
 			clean: "Erase all generated files (resets incremental build)",
 			quick: "Perform an incremental build",
 			version: "Check Node.js version",
-			lint: "Lint TypeScript code (incremental)",
-			unittest: "Run unit tests (incremental)",
+			lint: "Lint TypeScript code",
+			unittest: "Run unit tests",
 			typecheck: "Type-check TypeScript and create declaration files",
 		});
 	}

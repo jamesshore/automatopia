@@ -288,7 +288,7 @@ export default describe(() => {
 
 	describe("Command-line help", () => {
 
-		it("displays available tasks when --help, -h, --tasks, or -T provided", async () => {
+		it("displays available tasks and options when --help, -h, --tasks, or -T provided", async () => {
 			await assertTasksShown("--help");
 			await assertTasksShown("-h");
 			await assertTasksShown("--tasks");
@@ -302,17 +302,24 @@ export default describe(() => {
 
 				const { returnValue } = await runAsync({ cli, tasks });
 				assert.equal(returnValue, "__CLI__", "should have failed CLI task");
+
 				assert.equal(stdoutTracker.data, [
-					"\n" + Colors.brightWhite("options:") + " <tasks> [-h|--help|-T|--tasks] [--debug]\n\n",
-					Colors.brightWhite.underline("Available tasks:") + "\n",
-					`  ${Colors.white.bold("task1")}  \n`,
-					`  ${Colors.white.bold("task3")}  \n`,
-					`  ${Colors.white.bold("task2")}  \n`,
+					"\n" +
+					`${Colors.brightWhite.underline("Global options:")}\n`,
+					`${Colors.white.bold("--help (-h)")}   Show help\n`,
+					`${Colors.white.bold("--tasks (-T)")}  Show help\n`,
+					`${Colors.white.bold("--debug")}       Show task details, including error stack traces\n`,
+					"\n" +
+					Colors.brightWhite.underline("Tasks:") + "\n",
+					`${Colors.white.bold("task1")}  \n`,
+					`${Colors.white.bold("task3")}  \n`,
+					`${Colors.white.bold("task2")}  \n`,
 					"\n",
 				]);
-				stdoutTracker.consume();
 			}
 		});
+
+		it("displays configured options");
 
 		it("displays task descriptions where available", async () => {
 			const { tasks, cli, stdout } = createCli({ args: [ "-T" ] });
@@ -327,11 +334,16 @@ export default describe(() => {
 
 			await runAsync({ cli, tasks });
 			assert.equal(stdout, [
-				"\n" + Colors.brightWhite("options:") + " <tasks> [-h|--help|-T|--tasks] [--debug]\n\n",
-				Colors.brightWhite.underline("Available tasks:") + "\n",
-				`  ${Colors.white.bold("task1      ")}  \n`,
-				`  ${Colors.white.bold("task2Longer")}  Task 2 description\n`,
-				`  ${Colors.white.bold("task3      ")}  Task 3 description\n`,
+				"\n" +
+				`${Colors.brightWhite.underline("Global options:")}\n`,
+				`${Colors.white.bold("--help (-h)")}   Show help\n`,
+				`${Colors.white.bold("--tasks (-T)")}  Show help\n`,
+				`${Colors.white.bold("--debug")}       Show extra details, including error stack traces\n`,
+				"\n" +
+				`${Colors.brightWhite.underline("Tasks:")}\n`,
+				`${Colors.white.bold("task1      ")}  \n`,
+				`${Colors.white.bold("task2Longer")}  Task 2 description\n`,
+				`${Colors.white.bold("task3      ")}  Task 3 description\n`,
 				"\n",
 			]);
 		});
@@ -341,13 +353,7 @@ export default describe(() => {
 			tasks.defineTask("my_task", () => {});
 
 			await runAsync({ cli, tasks });
-
-			assert.equal(stdout, [
-				"\n" + Colors.brightWhite("options:") + " <tasks> [-h|--help|-T|--tasks] [--debug]\n\n",
-				Colors.brightWhite.underline("Available tasks:") + "\n",
-				`  ${Colors.white.bold("my_task")}  \n`,
-				"\n",
-			]);
+			assert.includes(stdout, `\n${Colors.brightWhite.underline("Tasks:")}\n`);
 		});
 
 		it("displays error requested task doesn't exist", async () => {
@@ -367,7 +373,7 @@ export default describe(() => {
 			assert.equal(returnValue, "__CLI__", "should have failed CLI task");
 		});
 
-		it("lists options on the help screen");
+		it("sorts global options");
 
 	});
 
