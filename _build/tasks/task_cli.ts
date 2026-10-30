@@ -15,13 +15,12 @@ const ACTION = {
 
 const CLI_FAILURE = "__CLI__";
 const BUILD_FAILURE = "__BUILD__";
-const RESERVED_OPTIONS = [ "help", "tasks", "debug" ];
+const RESERVED_OPTIONS = [ "help", "debug" ];
 
 export type BuildFunction = (commands: string[], options: Record<string, unknown>) => void | Promise<void>;
 
 type CliOptions<S extends CommandLineOptionsSpec> = CommandLineOptions<S> & {
 	help?: boolean;
-	tasks?: boolean;
 	debug?: boolean
 };
 /**
@@ -93,7 +92,7 @@ export default class TaskCli {
 		tasks: Tasks<T_TaskParameters, S>,
 		successMessage: string,
 		failureMessage: string,
-		buildFnAsync: (commands: string[], options: CommandLineOptions<S> & { help?: boolean; tasks?: boolean; debug?: boolean }) => void | Promise<void>,
+		buildFnAsync: (commands: string[], options: CommandLineOptions<S> & { help?: boolean; debug?: boolean }) => void | Promise<void>,
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
@@ -117,7 +116,6 @@ export default class TaskCli {
 
 		const optionSpecs = {
 			help: { type: "boolean", short: "h", description: "Show help" },
-			tasks: { type: "boolean", short: "T", description: "Show help" },
 			debug: { type: "boolean", description: "Show extra details, including error stack traces" },
 			...tasks.globalCommandLineOptions,
 		} as const;
@@ -134,7 +132,7 @@ export default class TaskCli {
 			writeFailure(this.#stdout, failureMessage, `Unknown task(s): ${unknownTasks}`);
 			return null;
 		}
-		else if (commands.length === 0 || options.help || options.tasks) {
+		else if (commands.length === 0 || options.help) {
 			this.#showHelp(tasks, optionSpecs);
 			return null;
 		}
