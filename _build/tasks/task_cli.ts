@@ -192,12 +192,17 @@ function showHelpIfNecessary<T, S extends CommandLineOptionsSpec>(
 		return true;
 	}
 
-	stdout.write("\n" + Colors.brightWhite.underline("Global options:") + "\n");
+	stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
 	stdout.write(`${Colors.white.bold("--help (-h)")}   Show help\n`);
 	stdout.write(`${Colors.white.bold("--tasks (-T)")}  Show help\n`);
 	stdout.write(`${Colors.white.bold("--debug")}       Show extra details, including error stack traces\n`);
-	stdout.write("\n" + Colors.brightWhite.underline("Tasks:") + "\n");
+	Object.entries(tasks.globalCommandLineOptions).forEach(([ name, spec ]) => {
+		const shortName = spec.short ? ` (-${spec.short})` : "";
+		const description = spec.description ?? "";
+		stdout.write(`${Colors.white.bold(`--${name}${shortName}`)}  ${description}\n`);
+	});
 
+	stdout.write(`\n${Colors.brightWhite.underline("Tasks:")}\n`);
 	const maxLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
 	tasks.listTasks().forEach(({ name, description }) => {
 		stdout.write(`${Colors.white.bold(name.padEnd(maxLength))}  ${description}\n`);

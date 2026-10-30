@@ -295,7 +295,7 @@ export default describe(() => {
 			await assertTasksShown("-T");
 
 			async function assertTasksShown(arg: string): Promise<void> {
-				const { tasks, cli, stdoutTracker } = createCli({ args: [ arg ] });
+				const { tasks, cli, stdout } = createCli({ args: [ arg ] });
 				tasks.defineTask("task1", IRRELEVANT_FN);
 				tasks.defineTask("task3", IRRELEVANT_FN);
 				tasks.defineTask("task2", IRRELEVANT_FN);
@@ -303,7 +303,7 @@ export default describe(() => {
 				const { returnValue } = await runAsync({ cli, tasks });
 				assert.equal(returnValue, "__CLI__", "should have failed CLI task");
 
-				assert.equal(stdoutTracker.data, [
+				assert.equal(stdout, [
 					"\n" +
 					`${Colors.brightWhite.underline("Global options:")}\n`,
 					`${Colors.white.bold("--help (-h)")}   Show help\n`,
@@ -319,7 +319,29 @@ export default describe(() => {
 			}
 		});
 
-		it("displays configured options");
+		it("displays configured options", async () => {
+			const globalOptions = {
+				myOption: { type: "boolean", description: "my option" },
+				withShortName: { type: "boolean", short: "w", description: "with short name" },
+				noDescription: { type: "boolean" },
+				// stringOption: DO LATER
+				// multipleString: DO LATER
+			} as const;
+			const { cli, tasks, stdout } = createCli({ args: [ "--help" ], globalOptions });
+
+			const { returnValue } = await runAsync({ cli, tasks });
+
+			assert.equal(returnValue, TaskCli.CLI_FAILURE);
+			assert.equal(stdout.slice(0, 7), [
+				`\n${Colors.brightWhite.underline("Global options:")}\n`,
+				`${Colors.white.bold("--help (-h)")}   Show help\n`,
+				`${Colors.white.bold("--tasks (-T)")}  Show help\n`,
+				`${Colors.white.bold("--debug")}       Show extra details, including error stack traces\n`,
+				`${Colors.white.bold("--myOption")}  my option\n`,
+				`${Colors.white.bold("--withShortName (-w)")}  with short name\n`,
+				`${Colors.white.bold("--noDescription")}  \n`,
+			]);
+		});
 
 		it("displays task descriptions where available", async () => {
 			const { tasks, cli, stdout } = createCli({ args: [ "-T" ] });
