@@ -19,6 +19,11 @@ const RESERVED_OPTIONS = [ "help", "tasks", "debug" ];
 
 export type BuildFunction = (commands: string[], options: Record<string, unknown>) => void | Promise<void>;
 
+type CliOptions<S extends CommandLineOptionsSpec> = CommandLineOptions<S> & {
+	help?: boolean;
+	tasks?: boolean;
+	debug?: boolean
+};
 /**
  * A command-line interface (CLI) for running tasks.
  * @see Tasks
@@ -93,24 +98,20 @@ export default class TaskCli {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
 		const { commands, options, error } = analyzeCommandLine(this.#commandLine, tasks);
-		if (error !== undefined) {
-			writeFailure(this.#stdout, failureMessage, error);
-			return CLI_FAILURE;
-		}
+		const cliFailure = showHelpIfNecessary(this.#stdout, tasks, commands, options, error, failureMessage);
+		if (cliFailure) return CLI_FAILURE;
 
-		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, commands, options.help || options.tasks, failureMessage);
-		if (showedHelp) return CLI_FAILURE;
-
+		ensure.that(error === undefined, "commands and options should be defined at this point");
 		return await this.#executeBuildAsync(tasks, commands, options, successMessage, failureMessage, buildFnAsync);
 	}
 
 	async #executeBuildAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
 		tasks: Tasks<T_TaskParameters, S>,
 		commands: string[],
-		options: CommandLineOptions<S> & { help?: boolean; tasks?: boolean; debug?: boolean },
+		options: CliOptions<S>,
 		successMessage: string,
 		failureMessage: string,
-		buildFnAsync: (commands: string[], options: CommandLineOptions<S> & { help?: boolean; tasks?: boolean; debug?: boolean }) => void | Promise<void>,
+		buildFnAsync: (commands: string[], options: CliOptions<S>) => void | Promise<void>,
 	): Promise<string | null> {
 		const stdout = this.#stdout;
 		let timings: number[] = [];
@@ -169,19 +170,26 @@ function analyzeCommandLine<T, S extends CommandLineOptionsSpec>(commandLine: Co
 	return { commands, options };
 }
 
-function showHelpIfNecessary<T>(
+function showHelpIfNecessary<T, S extends CommandLineOptionsSpec>(
 	stdout: ConsoleOutput,
 	tasks: Tasks<T>,
-	commands: string[],
-	helpOption: unknown,
+	commands: string[] | undefined,
+	options: CliOptions<S> | undefined,
+	parseError: string | undefined,
 	failureMessage: string,
 ): boolean {
+	if (parseError !== undefined) {
+		writeFailure(stdout, failureMessage, parseError);
+		return true;
+	}
+	ensure.that(commands !== undefined && options !== undefined, "Missing parsed command line");
+
 	const unknownTasks = determineUnknownTasks(tasks, commands);
-	if (!helpOption && commands.length > 0 && unknownTasks === "") return false;
+	if (!options.help && !options.tasks && commands.length > 0 && unknownTasks === "") return false;
 
 	if (unknownTasks !== "") {
-		writeFailure(stdout, failureMessage, `Unrecognized task(s): ${unknownTasks}`);
-		stdout.write("\n");
+		writeFailure(stdout, failureMessage, `Unknown task(s): ${unknownTasks}`);
+		return true;
 	}
 
 	stdout.write("\n" + Colors.brightWhite("options:") + " <tasks> [-h|--help|-T|--tasks] [--debug]\n\n");

@@ -160,8 +160,6 @@ export default describe(() => {
 			assert.equal(returnValue, TaskCli.CLI_FAILURE);
 		});
 
-		it("lists options on the help screen (put this in 'help' describe block");
-
 	});
 
 
@@ -352,7 +350,7 @@ export default describe(() => {
 			]);
 		});
 
-		it("displays error and available tasks when requested task doesn't exist", async () => {
+		it("displays error requested task doesn't exist", async () => {
 			const { tasks, cli, stdout } = createCli({
 				args: [ "my_task", "no_task1", "no_task2" ],
 			});
@@ -363,16 +361,13 @@ export default describe(() => {
 			assert.equal(stdout, [
 				"\n" +
 				Colors.brightRed.inverse("   my failure message   ") + "\n" +
-				Colors.brightRed.bold("Unrecognized task(s): no_task1, no_task2") + "\n",
-				"\n",
-				"\n" + Colors.brightWhite("options:") + " <tasks> [-h|--help|-T|--tasks] [--debug]\n\n",
-				Colors.brightWhite.underline("Available tasks:") + "\n",
-				`  ${Colors.white.bold("my_task")}  \n`,
-				"\n",
+				Colors.brightRed.bold("Unknown task(s): no_task1, no_task2") + "\n",
 			]);
 			assert.isUndefined(taskNames, "should not have run any tasks");
 			assert.equal(returnValue, "__CLI__", "should have failed CLI task");
 		});
+
+		it("lists options on the help screen");
 
 	});
 
