@@ -145,7 +145,7 @@ export default class TaskCli {
 
 	#showHelp<T>(tasks: Tasks<T>, optionSpecs: CommandLineOptionsSpec): void {
 		this.#stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
-		const globalOptions = Object.entries(optionSpecs).map(([ name, spec ]) => {
+		const globalOptions = Object.entries(optionSpecs).sort(([ a ], [ b ]) => a.localeCompare(b)).map(([ name, spec ]) => {
 			const shortName = spec.short ? ` (-${spec.short})` : "";
 			const value = spec.type === "string" ? "=…" : "";
 			return { label: `--${name}${value}${shortName}`, description: spec.description ?? "" };

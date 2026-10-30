@@ -306,9 +306,9 @@ export default describe(() => {
 				assert.equal(stdout, [
 					"\n" +
 					`${Colors.brightWhite.underline("Global options:")}\n`,
+					`${Colors.white.bold("--debug     ")}  Show extra details, including error stack traces\n`,
 					`${Colors.white.bold("--help (-h) ")}  Show help\n`,
 					`${Colors.white.bold("--tasks (-T)")}  Show help\n`,
-					`${Colors.white.bold("--debug     ")}  Show extra details, including error stack traces\n`,
 					"\n" +
 					Colors.brightWhite.underline("Tasks:") + "\n",
 					`${Colors.white.bold("task1")}  \n`,
@@ -334,15 +334,14 @@ export default describe(() => {
 			assert.equal(returnValue, TaskCli.CLI_FAILURE);
 			assert.equal(stdout.slice(0, 9), [
 				`\n${Colors.brightWhite.underline("Global options:")}\n`,
-				`${Colors.white.bold("--help (-h)             ")}  Show help\n`,
-				`${Colors.white.bold("--tasks (-T)            ")}  Show help\n`,
 				`${Colors.white.bold("--debug                 ")}  Show extra details, including error stack traces\n`,
+				`${Colors.white.bold("--help (-h)             ")}  Show help\n`,
 				`${Colors.white.bold("--myOption              ")}  my option\n`,
-				`${Colors.white.bold("--withShortName (-w)    ")}  with short name\n`,
 				`${Colors.white.bold("--noDescription         ")}  \n`,
 				`${Colors.white.bold("--stringOption=…        ")}  \n`,
-				`${Colors.white.bold("--stringOption=…        ")}  \n`,
 				`${Colors.white.bold("--stringWithShort=… (-s)")}  \n`,
+				`${Colors.white.bold("--tasks (-T)            ")}  Show help\n`,
+				`${Colors.white.bold("--withShortName (-w)    ")}  with short name\n`,
 			]);
 		});
 
@@ -361,9 +360,9 @@ export default describe(() => {
 			assert.equal(stdout, [
 				"\n" +
 				`${Colors.brightWhite.underline("Global options:")}\n`,
+				`${Colors.white.bold("--debug     ")}  Show extra details, including error stack traces\n`,
 				`${Colors.white.bold("--help (-h) ")}  Show help\n`,
 				`${Colors.white.bold("--tasks (-T)")}  Show help\n`,
-				`${Colors.white.bold("--debug     ")}  Show extra details, including error stack traces\n`,
 				"\n" +
 				`${Colors.brightWhite.underline("Tasks:")}\n`,
 				`${Colors.white.bold("task1      ")}  \n`,
