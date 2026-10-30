@@ -13,11 +13,11 @@ const ACTION = {
 	END: "end",
 } as const;
 
-export interface NulledTasksOptions {
+export interface NulledTasksOptions<S extends CommandLineOptionsSpec = CommandLineOptionsSpec> {
 	incrementalDir?: string;
 	clock?: Clock;
 	fileSystem?: FileSystem;
-	globalCommandLineOptions?: CommandLineOptionsSpec;
+	globalCommandLineOptions?: S;
 }
 
 export type TaskFunction<T_TaskParameters> = (parms: T_TaskParameters) => void | Promise<void>;
@@ -39,14 +39,14 @@ export interface ErrorWithFailedTask extends Error {
  * A set of tasks. Each task consists of a name and an associated function. The tasks can be run programmatically or
  * from the command-line.
  */
-export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskOutput] }> {
+export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec> extends EventEmitter<{ task: [TaskOutput] }> {
 
 	readonly #taskFns: Record<string, TaskFunction<T_TaskParameters>>;
 	readonly #descriptions: Record<string, string>;
 	readonly #incrementalDir: string;
 	readonly #clock: Clock;
 	readonly #fileSystem: FileSystem;
-	readonly #globalCommandLineOptions: CommandLineOptionsSpec;
+	readonly #globalCommandLineOptions: S;
 
 	/**
 	 * Task tracking event.
@@ -71,22 +71,18 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications.
 	 * @returns {Tasks} The instance.
 	 */
-	static create<T_TaskParameters>({
-		incrementalDir,
-		fileSystem,
-		globalCommandLineOptions = {},
-	}: {
+	static create<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(args: {
 		incrementalDir: string;
 		fileSystem: FileSystem;
-		globalCommandLineOptions?: CommandLineOptionsSpec;
-	}): Tasks<T_TaskParameters> {
+	} & (CommandLineOptionsSpec extends S ? { globalCommandLineOptions?: S } : { globalCommandLineOptions: S })): Tasks<T_TaskParameters, S> {
+		const { incrementalDir, fileSystem, globalCommandLineOptions = {} as S } = args;
 		ensure.signature(arguments, [{
 			incrementalDir: String,
 			fileSystem: FileSystem,
 			globalCommandLineOptions: [ undefined, Object ],
 		}]);
 
-		return new Tasks<T_TaskParameters>(incrementalDir, Clock.create(), fileSystem, globalCommandLineOptions);
+		return new Tasks<T_TaskParameters, S>(incrementalDir, Clock.create(), fileSystem, globalCommandLineOptions);
 	}
 
 	/**
@@ -98,12 +94,15 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications.
 	 * @returns {Tasks} The instance.
 	 */
-	static createNull<T_TaskParameters>({
+	static createNull<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(...args: CommandLineOptionsSpec extends S
+		? [options?: NulledTasksOptions<S>]
+		: [options: NulledTasksOptions<S> & { globalCommandLineOptions: S }]): Tasks<T_TaskParameters, S> {
+		const {
 		incrementalDir = "/nulled_incremental_dir",
 		clock = Clock.createNull(),
 		fileSystem = FileSystem.createNull(),
-		globalCommandLineOptions = {},
-	}: NulledTasksOptions = {}): Tasks<T_TaskParameters> {
+		globalCommandLineOptions = {} as S,
+		} = args[0] ?? {};
 		ensure.signature(arguments, [[ undefined, {
 			incrementalDir: [ undefined, String ],
 			clock: [ undefined, Clock ],
@@ -111,18 +110,19 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 			globalCommandLineOptions: [ undefined, Object ],
 		}]]);
 
-		return new Tasks<T_TaskParameters>(incrementalDir, clock, fileSystem, globalCommandLineOptions);
+		return new Tasks<T_TaskParameters, S>(incrementalDir, clock, fileSystem, globalCommandLineOptions);
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
-	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem, globalCommandLineOptions: CommandLineOptionsSpec = {}) {
+	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem,
+		...args: CommandLineOptionsSpec extends S ? [options?: S] : [options: S]) {
 		super();
 		this.#taskFns = {};
 		this.#descriptions = {};
 		this.#incrementalDir = incrementalDir;
 		this.#clock = clock;
 		this.#fileSystem = fileSystem;
-		this.#globalCommandLineOptions = globalCommandLineOptions;
+		this.#globalCommandLineOptions = args[0] ?? {} as S;
 	}
 
 	/**
@@ -140,7 +140,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	 * @returns {CommandLineOptionsSpec} The global option specifications, or an empty object if none have been defined.
 	 * @see CommandLine#parse
 	 */
-	get globalCommandLineOptions(): CommandLineOptionsSpec {
+	get globalCommandLineOptions(): S {
 		return this.#globalCommandLineOptions;
 	}
 

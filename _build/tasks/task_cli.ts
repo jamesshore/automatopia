@@ -84,11 +84,11 @@ export default class TaskCli {
 	 *   Returns {@link TaskCli.CLI_FAILURE} when no tasks are run, such as when help is requested or an invalid task is
 	 *   specified. Returns {@link TaskCli.BUILD_FAILURE} when the build throws an exception outside of a task.
 	 */
-	async runAsync<T_TaskParameters>(
-		tasks: Tasks<T_TaskParameters>,
+	async runAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
+		tasks: Tasks<T_TaskParameters, S>,
 		successMessage: string,
 		failureMessage: string,
-		buildFnAsync: BuildFunction,
+		buildFnAsync: (commands: string[], options: CommandLineOptions<S> & { help?: boolean; tasks?: boolean; debug?: boolean }) => void | Promise<void>,
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
@@ -100,13 +100,13 @@ export default class TaskCli {
 		return await this.#executeBuildAsync(tasks, commands, options, successMessage, failureMessage, buildFnAsync);
 	}
 
-	async #executeBuildAsync<T_TaskParameters>(
-		tasks: Tasks<T_TaskParameters>,
+	async #executeBuildAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
+		tasks: Tasks<T_TaskParameters, S>,
 		commands: string[],
-		options: Record<string, unknown>,
+		options: CommandLineOptions<S> & { help?: boolean; tasks?: boolean; debug?: boolean },
 		successMessage: string,
 		failureMessage: string,
-		buildFnAsync: BuildFunction,
+		buildFnAsync: (commands: string[], options: CommandLineOptions<S> & { help?: boolean; tasks?: boolean; debug?: boolean }) => void | Promise<void>,
 	): Promise<string | null> {
 		const stdout = this.#stdout;
 		let timings: number[] = [];
@@ -148,10 +148,7 @@ export default class TaskCli {
 	}
 }
 
-function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): {
-	commands: string[];
-	options: CommandLineOptions<CommandLineOptionsSpec> & { help?: boolean; tasks?: boolean; debug?: boolean };
-} {
+function analyzeCommandLine<T, S extends CommandLineOptionsSpec>(commandLine: CommandLine, tasks: Tasks<T, S>) {
 	Object.keys(tasks.globalCommandLineOptions).forEach((option) => {
 		if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
 	});
