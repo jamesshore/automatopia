@@ -5,6 +5,7 @@ import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 import EventEmitter from "node:events";
 import { ANY_TYPE } from "../util/ensure.ts";
+import type { CommandLineOptionsSpec } from "../infrastructure/command_line.ts";
 
 const TASK_EVENT = "task";
 const ACTION = {
@@ -44,6 +45,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	readonly #incrementalDir: string;
 	readonly #clock: Clock;
 	readonly #fileSystem: FileSystem;
+	#globalCommandLineOptions: CommandLineOptionsSpec = {};
 
 	/**
 	 * Task tracking event.
@@ -126,6 +128,14 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	}
 
 	/**
+	 * @returns {CommandLineOptionsSpec} The global option specifications, or an empty object if none have been defined.
+	 * @see Tasks#defineGlobalCommandLineOptions
+	 */
+	get globalCommandLineOptions(): CommandLineOptionsSpec {
+		return this.#globalCommandLineOptions;
+	}
+
+	/**
 	 * Add a task.
 	 * @param {string} name The name of the task.
 	 * @param {() => void} fn The function to run when the task executes.
@@ -182,6 +192,15 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 
 			this.#descriptions[key] = value;
 		});
+	}
+
+	/**
+	 * Define global command-line options, replacing any previously defined options.
+	 * @param {CommandLineOptionsSpec} options The option specifications.
+	 * @see CommandLine#parseArgs
+	 */
+	defineGlobalCommandLineOptions(options: CommandLineOptionsSpec): void {
+		this.#globalCommandLineOptions = options;
 	}
 
 	/**

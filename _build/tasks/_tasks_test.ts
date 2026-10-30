@@ -350,6 +350,25 @@ export default describe(() => {
 	});
 
 
+	describe("command-line options", () => {
+
+		it("specifies global options", () => {
+			const { tasks } = createTasks();
+			const options = {
+				option1: { type: "boolean" },
+				option2: { type: "string" },
+			} as const;
+
+			tasks.defineGlobalCommandLineOptions(options);
+			assert.equal(tasks.globalCommandLineOptions, options);
+		});
+
+		it("defaults to having no global options", () => {
+			const { tasks } = createTasks();
+			assert.equal(tasks.globalCommandLineOptions, {});
+		});
+
+	});
 });
 
 
