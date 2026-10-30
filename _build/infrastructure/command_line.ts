@@ -9,6 +9,10 @@ interface NarrowedProcess {
 	argv: string[];
 }
 
+export type ParsedCommandLine<S extends CommandLineOptionsSpec = Record<string, never>> =
+	{ tasks: string[]; options: CommandLineOptions<S>; error?: never }
+	| { error: string; tasks?: never; options?: never };
+
 // This grotesque bit of type magic is used to automatically set the type of parseArgs()'s return value to
 // match what's supplied in the option spec.
 export type CommandLineOptions<S extends CommandLineOptionsSpec> = {
@@ -17,10 +21,6 @@ export type CommandLineOptions<S extends CommandLineOptionsSpec> = {
 type OptionValue<S> = S extends { type: "boolean" } ? boolean :
 	S extends { type: "string"; multiple: true } ? string[] :
 	S extends { type: "string" } ? string : never;
-
-export interface CommandLineError {
-	error: string;
-}
 
 export interface CommandLineOptionsSpec {
 	[optionLongName: string]:
@@ -115,7 +115,7 @@ export default class CommandLine {
 	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line
 	 *   order.
 	 */
-	parseArgs<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): { tasks: string[]; options: CommandLineOptions<S> } | CommandLineError {
+	parseArgs<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
 		ensure.signature(arguments, [[ undefined, Object ]]);
 
 		try {
