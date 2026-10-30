@@ -26,12 +26,20 @@ export function unreachable(message?: string): never {
 }
 
 /**
+ * Runtime assertion that exceptions are Error objects. Throws the original value if it isn't an Error.
+ * @param {unknown} err The exception to check
+ */
+export function error(err: unknown): asserts err is Error {
+	if (!(err instanceof Error)) throw err;
+}
+
+/**
  * Runtime assertion that exceptions are Node Error objects with a string 'code' field. Throws the exception if it's
  * not.
  * @param {unknown} err The exception to check
  */
 export function nodeError(err: unknown): asserts err is Error & { code: string } {
-	if (!(err instanceof Error)) throw err;
+	error(err);
 	if (!("code" in err) || typeof err.code !== "string") throw err;
 }
 

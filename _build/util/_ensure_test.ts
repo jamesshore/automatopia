@@ -35,16 +35,23 @@ export default describe(() => {
 			assertEnsureError(defined(undefined, "name"), "name was not defined");
 		});
 
-		it("checks if an exception is a Node error (with string 'code' field)", () => {
+		it("checks if an exception is an Error object", () => {
+			const error = wrap(ensure.error);
+
+			assert.notError(error(new Error("failure")));
+			assert.notError(error(new TypeError("failure")));
+			assertEnsureError(error("not an Error object"), "not an Error object");
+		});
+
+		it("checks if an exception is a Node Error object (with string 'code' field)", () => {
 			const nodeError = wrap(ensure.nodeError);
 
 			assert.notError(nodeError(Object.assign(new Error("failure"), { code: "ERR_TEST" })));
 			assertEnsureError(nodeError(new Error("no 'code' field")), "no 'code' field");
 			assertEnsureError(nodeError(Object.assign(new Error("non-string 'code'"), { code: 1 })), "non-string 'code'");
-			assertEnsureError(nodeError("not an Error object"), "not an Error object");
 		});
 
-		it("checks if a Node error has the expected code", () => {
+		it("checks if a Node Error has the expected code", () => {
 			const nodeErrorCode = wrap(ensure.nodeErrorCode);
 
 			assert.notError(nodeErrorCode(Object.assign(new Error("failure"), { code: "ERR_TEST" }), "ERR_TEST"));
