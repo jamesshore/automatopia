@@ -15,14 +15,13 @@ const ACTION = {
 
 const CLI_FAILURE = "__CLI__";
 const BUILD_FAILURE = "__BUILD__";
+const RESERVED_OPTIONS = [ "help", "tasks", "debug" ];
 
 export type BuildFunction = (taskNames: string[], options: Record<string, unknown>) => void | Promise<void>;
 
 interface AnalyzedCommandLine {
 	taskNames: string[];
 	options: Record<string, unknown>;
-	helpOption: unknown;
-	debugOption: unknown;
 }
 
 /**
@@ -100,33 +99,46 @@ export default class TaskCli {
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
-		const { taskNames, options, helpOption, debugOption } = analyzeCommandLine(this.#commandLine, tasks);
+		const { taskNames, options } = analyzeCommandLine(this.#commandLine, tasks);
 
-		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, taskNames, helpOption, failureMessage);
+		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, taskNames, options.help || options.tasks, failureMessage);
 		if (showedHelp) return CLI_FAILURE;
 
+		return await this.#executeBuildAsync(tasks, taskNames, options, successMessage, failureMessage, buildFnAsync);
+	}
+
+	async #executeBuildAsync<T_TaskParameters>(
+		tasks: Tasks<T_TaskParameters>,
+		taskNames: string[],
+		options: Record<string, unknown>,
+		successMessage: string,
+		failureMessage: string,
+		buildFnAsync: BuildFunction,
+	): Promise<string | null> {
 		const stdout = this.#stdout;
 		let timings: number[] = [];
-		if (debugOption) tasks.on(Tasks.TASK_EVENT, writeTaskEvent);
+		tasks.on(Tasks.TASK_EVENT, writeTaskEvent);
 
 		try {
 			const startTime = this.#clock.now();
 			await buildFnAsync(taskNames, options);
-			writeSuccess(this.#stdout, successMessage, this.#clock.millisecondsSince(startTime) / 1000);
+			writeSuccess(stdout, successMessage, this.#clock.millisecondsSince(startTime) / 1000);
 			return null;
 		}
 		catch (err) {
 			ensure.error(err);
 
-			const showStack = debugOption || !(err instanceof TaskError);
-			writeFailure(this.#stdout, failureMessage, showStack ? err.stack! : err.message);
+			const showStack = options.debug || !(err instanceof TaskError);
+			writeFailure(stdout, failureMessage, showStack ? err.stack! : err.message);
 			return (err as ErrorWithFailedTask).failedTask ?? BUILD_FAILURE;
 		}
 		finally {
-			if (debugOption) tasks.off(Tasks.TASK_EVENT, writeTaskEvent);
+			tasks.off(Tasks.TASK_EVENT, writeTaskEvent);
 		}
 
 		function writeTaskEvent({ task, action, timestamp }: TaskOutput): void {
+			if (!options.debug) return;
+
 			if (action === Tasks.ACTION.START) {
 				timings.push(timestamp);
 				stdout.write(Colors.white.inverse(`start: ${task}\n`));
@@ -143,27 +155,27 @@ export default class TaskCli {
 	}
 }
 
-function analyzeCommandLine<T_TaskParameters>(commandLine: CommandLine, tasks: Tasks<T_TaskParameters>): AnalyzedCommandLine {
-	let taskNames = commandLine.commands;
-	let options = commandLine.options;
-	if (Object.keys(tasks.globalCommandLineOptions).length > 0) {
-		const { tasks: parsedTasks, options: parsedOptions, error } = commandLine.parseArgs(tasks.globalCommandLineOptions);
-		if (error !== undefined) throw new Error(error);
-		taskNames = parsedTasks;
-		options = parsedOptions;
-	}
+function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): AnalyzedCommandLine {
+	Object.keys(tasks.globalCommandLineOptions).forEach((option) => {
+		if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
+	});
+
+	const { tasks: taskNames, options, error } = commandLine.parseArgs({
+		...tasks.globalCommandLineOptions,
+		help: { type: "boolean", short: "h" },
+		tasks: { type: "boolean", short: "T" },
+		debug: { type: "boolean" },
+	});
+	if (error !== undefined) throw new Error(error);
 
 	if (taskNames.length === 0 && tasks.hasTask("default")) taskNames.push("default");
 
-	const helpOption = options.help || options.h || options.tasks || options.T;
-	const debugOption = options.debug;
-
-	return { taskNames, options, helpOption, debugOption };
+	return { taskNames, options };
 }
 
-function showHelpIfNecessary<T_TaskParameters>(
+function showHelpIfNecessary<T>(
 	stdout: ConsoleOutput,
-	tasks: Tasks<T_TaskParameters>,
+	tasks: Tasks<T>,
 	taskNames: string[],
 	helpOption: unknown,
 	failureMessage: string,

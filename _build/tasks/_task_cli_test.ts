@@ -124,7 +124,20 @@ export default describe(() => {
 			});
 		});
 
-		it("throws error if tasks specify --help, --tasks, or --debug options");
+		it("throws error if tasks specify --help, --tasks, or --debug options", async () => {
+			await assertError("help");
+			await assertError("tasks");
+			await assertError("debug");
+
+			async function assertError(option: string): Promise<void> {
+				const { tasks, cli } = createCli({ args: [ "task" ] });
+				tasks.defineTask("task", IRRELEVANT_FN);
+				tasks.defineGlobalCommandLineOptions({ [option]: { type: "boolean" } });
+
+				await assert.errorAsync(() => runAsync({ cli, tasks }), new RegExp(option), `--${option} should fail`);
+			}
+		});
+
 		it("throws error if option specification is invalid");
 		it("displays error when command-line options are invalid");
 
@@ -260,7 +273,7 @@ export default describe(() => {
 			await assertTasksShown("--help");
 			await assertTasksShown("-h");
 			await assertTasksShown("--tasks");
-			await assertTasksShown("--T");
+			await assertTasksShown("-T");
 
 			async function assertTasksShown(arg: string): Promise<void> {
 				const { tasks, cli, stdoutTracker } = createCli({ args: [ arg ] });
