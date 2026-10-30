@@ -9,6 +9,42 @@ interface NarrowedProcess {
 	argv: string[];
 }
 
+export interface CommandLineOptions {
+	[optionLongName: string]: boolean | string | string[] | undefined;
+}
+
+export interface CommandLineError {
+	error: string;
+}
+
+export interface CommandLineOptionsSpec {
+	[optionLongName: string]:
+		BooleanCommandLineOptionSpec | SingleStringCommandLineOptionSpec | MultipleStringCommandLineOptionSpec;
+}
+
+interface CommandLineOption {
+	short?: string;
+}
+
+export interface BooleanCommandLineOptionSpec extends CommandLineOption {
+	type: "boolean";
+	default?: boolean;
+}
+
+interface StringCommandLineOptionSpec extends CommandLineOption {
+	type: "string";
+}
+
+export interface SingleStringCommandLineOptionSpec extends StringCommandLineOptionSpec {
+	multiple?: false;
+	default?: string;
+}
+
+export interface MultipleStringCommandLineOptionSpec extends StringCommandLineOptionSpec {
+	multiple: true;
+	default?: string[];
+}
+
 export type NulledCommandLineOptions = { args?: string[] };
 
 /** Wrapper for command-line parameters. */
@@ -54,24 +90,29 @@ export default class CommandLine {
 	/**
 	 * Parse command-line arguments into tasks and options, not including 'node' or the filename.
 	 *
-	 * @param {object} [options] An object containing the options that are allowed. Put the long name of each option in
-	 *   the key and its specification in the value. E.g., "--myOption" is specified as `{ myOption: {...} }`. The
-	 *   specification object may contain the following values:
+	 * @param {CommandLineOptionsSpec} [options] An object containing the options that are allowed. Put the long name of
+	 *   each option in the key and its specification in the value. E.g., "--myOption" is specified as `{ myOption: {...}
+	 *   }`. The specification object may contain the following values:
 	 *   - "type": Use `{ type: "boolean" }` for flags or `{ type: "string" }` for options that take a value.
 	 *     Boolean options return `true` when supplied as `--option` and `false` when supplied as `--no-option`.
 	 *     String option values can be provided as `--option=value` or `--option value`.
-	 *   - "multiple": Set to `true` to allow an option to be supplied multiple times. Its values are returned in an array
-	 *     in command-line order. By default, the last supplied value is returned for a repeated option.
+	 *   - "short": The one-character version of this option.
+	 *   - "multiple": For string options only. Set to `true` to allow an option to be supplied multiple times. Its
+	 *     values are returned in an array in command-line order. If false, the last supplied value is returned for a
+	 *     repeated option. Defaults to false.
 	 *   - "default": The value returned when the option is not supplied.
 	 *
 	 *   If an unknown option is encountered, an error will be returned. Node also reports errors for invalid option
 	 *   values, including passing a value to a boolean option. Repeated options use Node's behavior: the last value wins
 	 *   unless `multiple` is `true`.
 	 *
-	 * @returns {{tasks: string[], options: Record<string, unknown>} | {error: string}} Tasks and options, or an error
-	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line order.
+	 * @returns {{tasks: string[], options: CommandLineOptions} | CommandLineError} Tasks and options, or an error
+	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line
+	 *   order.
 	 */
-	parseArgs(options: util.ParseArgsOptionsConfig = {}): { tasks: string[]; options: Record<string, unknown> } | { error: string } {
+	parseArgs(options: CommandLineOptionsSpec = {}): { tasks: string[]; options: CommandLineOptions } | CommandLineError {
+		ensure.signature(arguments, [[ undefined, Object ]]);
+
 		try {
 			if (this.rawArguments.includes("--")) return { error: "Unknown option '--'" };
 

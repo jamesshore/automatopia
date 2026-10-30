@@ -115,6 +115,15 @@ export default describe(() => {
 			});
 		});
 
+		it("only looks at last option when multiple are supplied but one is expected", () => {
+			const commandLine = create([ "--option=first", "--option=last" ]);
+
+			assert.equal(commandLine.parseArgs({ option: { type: "string" } }), {
+				tasks: [],
+				options: { option: "last" },
+			});
+		});
+
 		it("supports default options", () => {
 			const commandLine = create([ "--option3=myOption" ]);
 
@@ -141,16 +150,7 @@ export default describe(() => {
 		});
 
 
-		describe("edge cases", () => {
-
-			it("only looks at last option when multiple are supplied but one is expected", () => {
-				const commandLine = create([ "--option=first", "--option=last" ]);
-
-				assert.equal(commandLine.parseArgs({ option: { type: "string" } }), {
-					tasks: [],
-					options: { option: "last" },
-				});
-			});
+		describe("errors", () => {
 
 			it("returns error when a boolean option is given an argument", () => {
 				const commandLine = create([ "--option=value" ]);
