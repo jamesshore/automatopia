@@ -140,6 +140,7 @@ export default describe(() => {
 
 		it("throws error if option specification is invalid");
 		it("displays error when command-line options are invalid");
+		it("lists options on the help screen (put this in 'help' describe block");
 
 	});
 

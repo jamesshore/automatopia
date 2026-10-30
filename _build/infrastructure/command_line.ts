@@ -1,7 +1,6 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 import * as ensure from "../util/ensure.ts";
-import minimist from "minimist";
 import EventEmitter from "node:events";
 import * as util from "node:util";
 
@@ -139,9 +138,6 @@ export default class CommandLine {
 
 }
 
-function parseArgs(args: string[]): minimist.ParsedArgs {
-	return minimist(args, { "--": true });
-}
 
 
 
