@@ -227,6 +227,8 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 				this.emit(TASK_EVENT, { task, action: ACTION.END, timestamp: this.#clock.now() });
 			}
 			catch (err) {
+				ensure.error(err);
+
 				if ((err as ErrorWithFailedTask).failedTask === undefined) (err as ErrorWithFailedTask).failedTask = task;
 				throw err;
 			}

@@ -115,8 +115,10 @@ export default class TaskCli {
 			return null;
 		}
 		catch (err) {
+			ensure.error(err);
+
 			const showStack = debugOption || !(err instanceof TaskError);
-			writeFailure(this.#stdout, failureMessage, showStack ? (err as ErrorWithFailedTask).stack! : (err as ErrorWithFailedTask).message);
+			writeFailure(this.#stdout, failureMessage, showStack ? err.stack! : err.message);
 			return (err as ErrorWithFailedTask).failedTask ?? BUILD_FAILURE;
 		}
 		finally {

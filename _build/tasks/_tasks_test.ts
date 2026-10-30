@@ -1,6 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 import { assert, describe, it } from "../util/tests.ts";
 import Tasks, { type ErrorWithFailedTask, type NulledTasksOptions, type TaskOutput } from "./tasks.ts";
+import * as ensure from "../util/ensure.ts";
 import Clock from "../infrastructure/clock.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 
@@ -232,7 +233,9 @@ export default describe(() => {
 				assert.fail("expected exception");
 			}
 			catch(err) {
-				assert.equal((err as ErrorWithFailedTask).message, "my task failure", "exception's message");
+				ensure.error(err);
+
+				assert.equal(err.message, "my task failure", "exception's message");
 				assert.equal((err as ErrorWithFailedTask).failedTask, "my_task", "exception's failed task");
 			}
 		});
@@ -252,7 +255,9 @@ export default describe(() => {
 				assert.fail("expected exception");
 			}
 			catch(err) {
-				assert.equal((err as ErrorWithFailedTask).message, "child task failure", "exception's message");
+				ensure.error(err);
+
+				assert.equal(err.message, "child task failure", "exception's message");
 				assert.equal((err as ErrorWithFailedTask).failedTask, "child_task", "exception's failed task");
 			}
 		});
