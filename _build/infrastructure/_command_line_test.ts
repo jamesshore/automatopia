@@ -109,13 +109,16 @@ export default describe(() => {
 		it("supports options with multiple values", () => {
 			const commandLine = create([ "--option=one", "--option=two" ]);
 
-			assert.equal(commandLine.parseArgs({ option: { type: "string", multiple: true } }), {
+			assert.equal(commandLine.parseArgs({
+				option: { type: "string", multiple: true },
+				notPresent: { type: "string", multiple: true },
+			}), {
 				tasks: [],
 				options: { option: [ "one", "two" ] },
 			});
 		});
 
-		it("only looks at last option when multiple are supplied but one is expected", () => {
+		it("only looks at last option when multiple are supplied but only one is expected", () => {
 			const commandLine = create([ "--option=first", "--option=last" ]);
 
 			assert.equal(commandLine.parseArgs({ option: { type: "string" } }), {

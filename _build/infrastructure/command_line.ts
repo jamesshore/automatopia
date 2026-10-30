@@ -9,9 +9,14 @@ interface NarrowedProcess {
 	argv: string[];
 }
 
-export interface CommandLineOptions {
-	[optionLongName: string]: boolean | string | string[] | undefined;
-}
+// This grotesque bit of type magic is used to automatically set the type of parseArgs()'s return value to
+// match what's supplied in the option spec.
+export type CommandLineOptions<S extends CommandLineOptionsSpec> = {
+	[K in keyof S]: OptionValue<S[K]> | (S[K] extends { default: NonNullable<unknown> } ? never : undefined);
+};
+type OptionValue<S> = S extends { type: "boolean" } ? boolean :
+	S extends { type: "string"; multiple: true } ? string[] :
+	S extends { type: "string" } ? string : never;
 
 export interface CommandLineError {
 	error: string;
@@ -88,7 +93,7 @@ export default class CommandLine {
 	}
 
 	/**
-	 * Parse command-line arguments into tasks and options, not including 'node' or the filename.
+	 * Parse command-line arguments into tasks and options.
 	 *
 	 * @param {CommandLineOptionsSpec} [options] An object containing the options that are allowed. Put the long name of
 	 *   each option in the key and its specification in the value. E.g., "--myOption" is specified as `{ myOption: {...}
@@ -110,7 +115,7 @@ export default class CommandLine {
 	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line
 	 *   order.
 	 */
-	parseArgs(options: CommandLineOptionsSpec = {}): { tasks: string[]; options: CommandLineOptions } | CommandLineError {
+	parseArgs<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): { tasks: string[]; options: CommandLineOptions<S> } | CommandLineError {
 		ensure.signature(arguments, [[ undefined, Object ]]);
 
 		try {
@@ -122,7 +127,7 @@ export default class CommandLine {
 				allowNegative: true,
 				options,
 			});
-			return { tasks: positionals, options: { ...values } };
+			return { tasks: positionals, options: { ...values } as unknown as CommandLineOptions<S> };
 		}
 		catch (err) {
 			ensure.nodeError(err);
