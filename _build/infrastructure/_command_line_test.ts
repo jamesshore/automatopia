@@ -26,7 +26,7 @@ export default describe(() => {
 			const commandLine = create([]);
 
 			assert.equal(commandLine.parse(), {
-				tasks: [],
+				commands: [],
 				options: {},
 			});
 		});
@@ -35,7 +35,7 @@ export default describe(() => {
 			const commandLine = create([ "task1", "task2", "task3" ]);
 
 			assert.equal(commandLine.parse(), {
-				tasks: [ "task1", "task2", "task3" ],
+				commands: [ "task1", "task2", "task3" ],
 				options: {},
 			});
 		});
@@ -48,7 +48,7 @@ export default describe(() => {
 				option2: { type: "boolean" },
 				optionNotPresent: { type: "boolean" },
 			}), {
-				tasks: [],
+				commands: [],
 				options: { option1: true, option2: true },
 			});
 		});
@@ -60,7 +60,7 @@ export default describe(() => {
 				option1: { type: "boolean" },
 				option2: { type: "boolean" },
 			}), {
-				tasks: [ "task1", "task2" ],
+				commands: [ "task1", "task2" ],
 				options: { option1: true, option2: true },
 			});
 		});
@@ -69,7 +69,7 @@ export default describe(() => {
 			const commandLine = create([ "task1", "task2", "task1" ]);
 
 			assert.equal(commandLine.parse(), {
-				tasks: [ "task1", "task2", "task1" ],
+				commands: [ "task1", "task2", "task1" ],
 				options: {},
 			});
 		});
@@ -78,7 +78,7 @@ export default describe(() => {
 			const commandLine = create([ "--no-option" ]);
 
 			assert.equal(commandLine.parse({ option: { type: "boolean" } }), {
-				tasks: [],
+				commands: [],
 				options: { option: false },
 			});
 		});
@@ -90,7 +90,7 @@ export default describe(() => {
 				option1: { type: "string" },
 				option2: { type: "string" }
 			}), {
-				tasks: [],
+				commands: [],
 				options: { option1: "value1", option2: "value2" },
 			});
 		});
@@ -102,7 +102,7 @@ export default describe(() => {
 				option: { type: "string", multiple: true },
 				notPresent: { type: "string", multiple: true },
 			}), {
-				tasks: [],
+				commands: [],
 				options: { option: [ "one", "two" ] },
 			});
 		});
@@ -111,7 +111,7 @@ export default describe(() => {
 			const commandLine = create([ "--option=first", "--option=last" ]);
 
 			assert.equal(commandLine.parse({ option: { type: "string" } }), {
-				tasks: [],
+				commands: [],
 				options: { option: "last" },
 			});
 		});
@@ -126,7 +126,7 @@ export default describe(() => {
 					option3: { type: "string", default: "overridden" }
 				}),
 				{
-					tasks: [],
+					commands: [],
 					options: { option1: "value", option2: false, option3: "myOption" },
 				},
 			);
@@ -136,7 +136,7 @@ export default describe(() => {
 			const commandLine = create([ "-o" ]);
 
 			assert.equal(commandLine.parse({ option: { type: "boolean", short: "o" } }), {
-				tasks: [],
+				commands: [],
 				options: { option: true },
 			});
 		});

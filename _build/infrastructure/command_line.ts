@@ -10,10 +10,10 @@ interface NarrowedProcess {
 }
 
 export type ParsedCommandLine<S extends CommandLineOptionsSpec = Record<string, never>> =
-	{ tasks: string[]; options: CommandLineOptions<S>; error?: never }
-	| { error: string; tasks?: never; options?: never };
+	{ commands: string[]; options: CommandLineOptions<S>; error?: never }
+	| { error: string; commands?: never; options?: never };
 
-// This grotesque bit of type magic is used to automatically set the type of parseArgs()'s return value to
+// This grotesque bit of type magic is used to automatically set the type of parse()'s return value to
 // match what's supplied in the option spec.
 export type CommandLineOptions<S extends CommandLineOptionsSpec> = {
 	[K in keyof S]: OptionValue<S[K]> | (S[K] extends { default: NonNullable<unknown> } ? never : undefined);
@@ -93,7 +93,7 @@ export default class CommandLine {
 	}
 
 	/**
-	 * Parse command-line arguments into tasks and options.
+	 * Parse command-line arguments into commands and options.
 	 *
 	 * @param {CommandLineOptionsSpec} [options] An object containing the options that are allowed. Put the long name of
 	 *   each option in the key and its specification in the value. E.g., "--myOption" is specified as `{ myOption: {...}
@@ -111,8 +111,8 @@ export default class CommandLine {
 	 *   values, including passing a value to a boolean option. Repeated options use Node's behavior: the last value wins
 	 *   unless `multiple` is `true`.
 	 *
-	 * @returns {{tasks: string[], options: CommandLineOptions} | CommandLineError} Tasks and options, or an error
-	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line
+	 * @returns {{commands: string[], options: CommandLineOptions} | CommandLineError} Commands and options, or an error
+	 *   message if parsing fails. Options start with a hyphen; commands are everything else, returned in command-line
 	 *   order.
 	 */
 	parse<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
@@ -127,7 +127,7 @@ export default class CommandLine {
 				allowNegative: true,
 				options,
 			});
-			return { tasks: positionals, options: { ...values } as unknown as CommandLineOptions<S> };
+			return { commands: positionals, options: { ...values } as unknown as CommandLineOptions<S> };
 		}
 		catch (err) {
 			ensure.nodeError(err);

@@ -17,10 +17,10 @@ const CLI_FAILURE = "__CLI__";
 const BUILD_FAILURE = "__BUILD__";
 const RESERVED_OPTIONS = [ "help", "tasks", "debug" ];
 
-export type BuildFunction = (taskNames: string[], options: Record<string, unknown>) => void | Promise<void>;
+export type BuildFunction = (commands: string[], options: Record<string, unknown>) => void | Promise<void>;
 
 interface AnalyzedCommandLine {
-	taskNames: string[];
+	commands: string[];
 	options: Record<string, unknown>;
 }
 
@@ -82,14 +82,12 @@ export default class TaskCli {
 	 * @param {Tasks} tasks The build tasks.
 	 * @param {string} successMessage The message to display when all the tasks are successful.
 	 * @param {string} failureMessage The message to display when one of the tasks throws an exception.
-	 * @param {(taskNames, options) => Promise<void>} buildFnAsync The build to run. It’s given the task names that were
-	 *   provided on the command line and the command-line arguments that can be interpreted as options (that is, that
-	 *   start with a hyphen), along with any values for those arguments. For example, `-T` will be returned as `{ T:
-	 *   true }` and `--file=my_file` will be returned as `{ file: "my_file" }`. Performs basic type conversion on option
-	 *   values.
+	 * @param {(commands, options) => void | Promise<void>} buildFnAsync The build to run. It receives the task names and
+	 *   parsed command-line options. If no task names are supplied and a `default` task exists, it receives that task.
+	 *   See {@link CommandLine#parse} for option parsing.
 	 * @returns {Promise<null|string>} The name of the task that failed, or null if the tasks were all successful.
 	 *   Returns {@link TaskCli.CLI_FAILURE} when no tasks are run, such as when help is requested or an invalid task is
-	 *  specified. Returns {@link TaskCli.BUILD_FAILURE} when the build throws an exception outside of a task.
+	 *   specified. Returns {@link TaskCli.BUILD_FAILURE} when the build throws an exception outside of a task.
 	 */
 	async runAsync<T_TaskParameters>(
 		tasks: Tasks<T_TaskParameters>,
@@ -99,17 +97,17 @@ export default class TaskCli {
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
-		const { taskNames, options } = analyzeCommandLine(this.#commandLine, tasks);
+		const { commands, options } = analyzeCommandLine(this.#commandLine, tasks);
 
-		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, taskNames, options.help || options.tasks, failureMessage);
+		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, commands, options.help || options.tasks, failureMessage);
 		if (showedHelp) return CLI_FAILURE;
 
-		return await this.#executeBuildAsync(tasks, taskNames, options, successMessage, failureMessage, buildFnAsync);
+		return await this.#executeBuildAsync(tasks, commands, options, successMessage, failureMessage, buildFnAsync);
 	}
 
 	async #executeBuildAsync<T_TaskParameters>(
 		tasks: Tasks<T_TaskParameters>,
-		taskNames: string[],
+		commands: string[],
 		options: Record<string, unknown>,
 		successMessage: string,
 		failureMessage: string,
@@ -121,7 +119,7 @@ export default class TaskCli {
 
 		try {
 			const startTime = this.#clock.now();
-			await buildFnAsync(taskNames, options);
+			await buildFnAsync(commands, options);
 			writeSuccess(stdout, successMessage, this.#clock.millisecondsSince(startTime) / 1000);
 			return null;
 		}
@@ -160,7 +158,7 @@ function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): Analy
 		if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
 	});
 
-	const { tasks: taskNames, options, error } = commandLine.parse({
+	const { commands, options, error } = commandLine.parse({
 		...tasks.globalCommandLineOptions,
 		help: { type: "boolean", short: "h" },
 		tasks: { type: "boolean", short: "T" },
@@ -168,20 +166,20 @@ function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): Analy
 	});
 	if (error !== undefined) throw new Error(error);
 
-	if (taskNames.length === 0 && tasks.hasTask("default")) taskNames.push("default");
+	if (commands.length === 0 && tasks.hasTask("default")) commands.push("default");
 
-	return { taskNames, options };
+	return { commands, options };
 }
 
 function showHelpIfNecessary<T>(
 	stdout: ConsoleOutput,
 	tasks: Tasks<T>,
-	taskNames: string[],
+	commands: string[],
 	helpOption: unknown,
 	failureMessage: string,
 ): boolean {
-	const unknownTasks = determineUnknownTasks(tasks, taskNames);
-	if (!helpOption && taskNames.length > 0 && unknownTasks === "") return false;
+	const unknownTasks = determineUnknownTasks(tasks, commands);
+	if (!helpOption && commands.length > 0 && unknownTasks === "") return false;
 
 	if (unknownTasks !== "") {
 		writeFailure(stdout, failureMessage, `Unrecognized task(s): ${unknownTasks}`);
