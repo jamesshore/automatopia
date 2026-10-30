@@ -3,8 +3,4 @@ import CommandLine from "./command_line.ts";
 
 const commandLine = CommandLine.create();
 
-process.stdout.write(
-	`rawArguments: ${JSON.stringify(commandLine.rawArguments)}\n` +
-	`commands: ${JSON.stringify(commandLine.commands)}\n` +
-	`options: ${JSON.stringify(commandLine.options)}\n`
-);
+process.stdout.write(`rawArguments: ${JSON.stringify(commandLine.rawArguments)}\n`);

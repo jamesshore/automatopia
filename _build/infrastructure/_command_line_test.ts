@@ -7,7 +7,7 @@ import CommandLine from "./command_line.ts";
 
 export default describe(() => {
 
-	it("provides raw and cooked command-line arguments", async function() {
+	it("provides raw command-line arguments", async function() {
 		const args = [
 			"command1", "command2", "-abc", "--option", "--no-d", "-p1", "--parm=parm2", "--", "trailing", "values",
 		];
@@ -15,18 +15,7 @@ export default describe(() => {
 		const stdout = await runModuleAsync(path.resolve(import.meta.dirname, "./_command_line_test_helper.ts"), args);
 		assert.equal(
 			stdout,
-			`rawArguments: ${JSON.stringify(args)}\n` +
-			`commands: ${JSON.stringify([ "command1", "command2" ])}\n` +
-			`options: ${JSON.stringify({
-				a: true,
-				b: true,
-				c: true,
-				option: true,
-				d: false,
-				p: 1,
-				parm: "parm2",
-				"--": [ "trailing", "values" ],
-			})}\n`,
+			`rawArguments: ${JSON.stringify(args)}\n`,
 		);
 
 	});
@@ -36,7 +25,7 @@ export default describe(() => {
 		it("does nothing when the command line is empty", () => {
 			const commandLine = create([]);
 
-			assert.equal(commandLine.parseArgs(), {
+			assert.equal(commandLine.parse(), {
 				tasks: [],
 				options: {},
 			});
@@ -45,7 +34,7 @@ export default describe(() => {
 		it("parses tasks", () => {
 			const commandLine = create([ "task1", "task2", "task3" ]);
 
-			assert.equal(commandLine.parseArgs(), {
+			assert.equal(commandLine.parse(), {
 				tasks: [ "task1", "task2", "task3" ],
 				options: {},
 			});
@@ -54,7 +43,7 @@ export default describe(() => {
 		it("parses options", () => {
 			const commandLine = create([ "--option1", "--option2" ]);
 
-			assert.equal(commandLine.parseArgs({
+			assert.equal(commandLine.parse({
 				option1: { type: "boolean" },
 				option2: { type: "boolean" },
 				optionNotPresent: { type: "boolean" },
@@ -67,7 +56,7 @@ export default describe(() => {
 		it("parses tasks and options together", () => {
 			const commandLine = create([ "task1", "--option1", "--option2", "task2" ]);
 
-			assert.equal(commandLine.parseArgs({
+			assert.equal(commandLine.parse({
 				option1: { type: "boolean" },
 				option2: { type: "boolean" },
 			}), {
@@ -79,7 +68,7 @@ export default describe(() => {
 		it("allows tasks to be specified multiple times", () => {
 			const commandLine = create([ "task1", "task2", "task1" ]);
 
-			assert.equal(commandLine.parseArgs(), {
+			assert.equal(commandLine.parse(), {
 				tasks: [ "task1", "task2", "task1" ],
 				options: {},
 			});
@@ -88,7 +77,7 @@ export default describe(() => {
 		it("supports 'no' prefixes", () => {
 			const commandLine = create([ "--no-option" ]);
 
-			assert.equal(commandLine.parseArgs({ option: { type: "boolean" } }), {
+			assert.equal(commandLine.parse({ option: { type: "boolean" } }), {
 				tasks: [],
 				options: { option: false },
 			});
@@ -97,7 +86,7 @@ export default describe(() => {
 		it("supports options with values", () => {
 			const commandLine = create([ "--option1=value1", "--option2", "value2" ]);
 
-			assert.equal(commandLine.parseArgs({
+			assert.equal(commandLine.parse({
 				option1: { type: "string" },
 				option2: { type: "string" }
 			}), {
@@ -109,7 +98,7 @@ export default describe(() => {
 		it("supports options with multiple values", () => {
 			const commandLine = create([ "--option=one", "--option=two" ]);
 
-			assert.equal(commandLine.parseArgs({
+			assert.equal(commandLine.parse({
 				option: { type: "string", multiple: true },
 				notPresent: { type: "string", multiple: true },
 			}), {
@@ -121,7 +110,7 @@ export default describe(() => {
 		it("only looks at last option when multiple are supplied but only one is expected", () => {
 			const commandLine = create([ "--option=first", "--option=last" ]);
 
-			assert.equal(commandLine.parseArgs({ option: { type: "string" } }), {
+			assert.equal(commandLine.parse({ option: { type: "string" } }), {
 				tasks: [],
 				options: { option: "last" },
 			});
@@ -131,7 +120,7 @@ export default describe(() => {
 			const commandLine = create([ "--option3=myOption" ]);
 
 			assert.equal(
-				commandLine.parseArgs({
+				commandLine.parse({
 					option1: { type: "string", default: "value" },
 					option2: { type: "boolean", default: false },
 					option3: { type: "string", default: "overridden" }
@@ -146,7 +135,7 @@ export default describe(() => {
 		it("supports short aliases for options", () => {
 			const commandLine = create([ "-o" ]);
 
-			assert.equal(commandLine.parseArgs({ option: { type: "boolean", short: "o" } }), {
+			assert.equal(commandLine.parse({ option: { type: "boolean", short: "o" } }), {
 				tasks: [],
 				options: { option: true },
 			});
@@ -158,7 +147,7 @@ export default describe(() => {
 			it("returns error when a boolean option is given an argument", () => {
 				const commandLine = create([ "--option=value" ]);
 
-				assert.equal(commandLine.parseArgs({ option: { type: "boolean" } }),
+				assert.equal(commandLine.parse({ option: { type: "boolean" } }),
 					{ error: "Option '--option' does not take an argument" },
 				);
 			});
@@ -166,7 +155,7 @@ export default describe(() => {
 			it("returns error when a string option isn't given an argument", () => {
 				const commandLine = create([ "--option" ]);
 
-				assert.equal(commandLine.parseArgs({ option: { type: "string" } }),
+				assert.equal(commandLine.parse({ option: { type: "string" } }),
 					{ error: "Option '--option <value>' argument missing" },
 				);
 			});
@@ -174,7 +163,7 @@ export default describe(() => {
 			it("returns error when a string option isn't given an argument, even if there is a default", () => {
 				const commandLine = create([ "--option" ]);
 
-				assert.equal(commandLine.parseArgs({ option: { type: "string", default: "fallback" } }),
+				assert.equal(commandLine.parse({ option: { type: "string", default: "fallback" } }),
 					{ error: "Option '--option <value>' argument missing" },
 				);
 			});
@@ -182,7 +171,7 @@ export default describe(() => {
 			it("returns error when an unspecified option is present", () => {
 				const commandLine = create([ "--option" ]);
 
-				assert.equal(commandLine.parseArgs(), {
+				assert.equal(commandLine.parse(), {
 					error: "Unknown option '--option'",
 				});
 			});
@@ -190,7 +179,7 @@ export default describe(() => {
 			it("returns error when -- is present", () => {
 				const commandLine = create([ "--" ]);
 
-				assert.equal(commandLine.parseArgs(), {
+				assert.equal(commandLine.parse(), {
 					error: "Unknown option '--'",
 				});
 			});
@@ -199,7 +188,7 @@ export default describe(() => {
 				const commandLine = create();
 
 				assert.error(
-					() => commandLine.parseArgs({ option: { type: "boolean", short: "long" } }),
+					() => commandLine.parse({ option: { type: "boolean", short: "long" } }),
 					/short/,
 				);
 			});

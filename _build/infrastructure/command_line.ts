@@ -115,7 +115,7 @@ export default class CommandLine {
 	 *   message if parsing fails. Options start with a hyphen; tasks are everything else, returned in command-line
 	 *   order.
 	 */
-	parseArgs<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
+	parse<S extends CommandLineOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
 		ensure.signature(arguments, [[ undefined, Object ]]);
 
 		try {
@@ -135,30 +135,6 @@ export default class CommandLine {
 
 			return { error: err.message.replace(/\. To specify a positional argument.*$/, "") };
 		}
-	}
-
-	/**
-	 * @returns {string[]} The command-line arguments that can be interpreted as commands (that is, that don't start with
-	 *   a hyphen).
-	 */
-	get commands(): string[] {
-		ensure.signature(arguments, []);
-
-		const parsedArgs = parseArgs(this.rawArguments);
-		return parsedArgs._;
-	}
-
-	/**
-	 * @returns {object} The command-line arguments that can be interpreted as options (that is, that start with a
-	 *   hyphen), along with any values for those arguments. For example, `-T` will be returned as `{ T: true }` and
-	 *   `--file=my_file` will be returned as `{ file: "my_file" }`. Performs basic type conversion on option values.
-	 */
-	get options(): Record<string, unknown> {
-		ensure.signature(arguments, []);
-
-		const parsedArgs: Record<string, unknown> = parseArgs(this.rawArguments);
-		delete parsedArgs._;
-		return parsedArgs;
 	}
 
 }

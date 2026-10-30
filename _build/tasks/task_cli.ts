@@ -160,7 +160,7 @@ function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): Analy
 		if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
 	});
 
-	const { tasks: taskNames, options, error } = commandLine.parseArgs({
+	const { tasks: taskNames, options, error } = commandLine.parse({
 		...tasks.globalCommandLineOptions,
 		help: { type: "boolean", short: "h" },
 		tasks: { type: "boolean", short: "T" },

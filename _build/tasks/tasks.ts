@@ -197,7 +197,7 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	/**
 	 * Define global command-line options, replacing any previously defined options.
 	 * @param {CommandLineOptionsSpec} options The option specifications.
-	 * @see CommandLine#parseArgs
+	 * @see CommandLine#parse
 	 */
 	defineGlobalCommandLineOptions(options: CommandLineOptionsSpec): void {
 		this.#globalCommandLineOptions = options;
