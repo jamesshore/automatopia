@@ -1,7 +1,7 @@
 // Copyright Titanium I.T. LLC. License granted under terms of "The MIT License."
 
 import * as ensure from "../util/ensure.ts";
-import CommandLine from "../infrastructure/command_line.ts";
+import CommandLine, { type CommandLineOptions, type CommandLineOptionsSpec } from "../infrastructure/command_line.ts";
 import ConsoleOutput from "../infrastructure/console_output.ts";
 import Colors from "../infrastructure/colors.ts";
 import Clock from "../infrastructure/clock.ts";
@@ -18,11 +18,6 @@ const BUILD_FAILURE = "__BUILD__";
 const RESERVED_OPTIONS = [ "help", "tasks", "debug" ];
 
 export type BuildFunction = (commands: string[], options: Record<string, unknown>) => void | Promise<void>;
-
-interface AnalyzedCommandLine {
-	commands: string[];
-	options: Record<string, unknown>;
-}
 
 /**
  * A command-line interface (CLI) for running tasks.
@@ -153,7 +148,10 @@ export default class TaskCli {
 	}
 }
 
-function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): AnalyzedCommandLine {
+function analyzeCommandLine<T>(commandLine: CommandLine, tasks: Tasks<T>): {
+	commands: string[];
+	options: CommandLineOptions<CommandLineOptionsSpec> & { help?: boolean; tasks?: boolean; debug?: boolean };
+} {
 	Object.keys(tasks.globalCommandLineOptions).forEach((option) => {
 		if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
 	});
