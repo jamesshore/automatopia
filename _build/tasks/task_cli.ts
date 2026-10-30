@@ -97,12 +97,69 @@ export default class TaskCli {
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
-		const { commands, options, error } = analyzeCommandLine(this.#commandLine, tasks);
-		const cliFailure = showHelpIfNecessary(this.#stdout, tasks, commands, options, error, failureMessage);
-		if (cliFailure) return CLI_FAILURE;
+		const result = this.#analyzeCommandLine(tasks, failureMessage);
+		if (result === null) return CLI_FAILURE;
 
-		ensure.that(error === undefined, "commands and options should be defined at this point");
-		return await this.#executeBuildAsync(tasks, commands, options, successMessage, failureMessage, buildFnAsync);
+		return await this.#executeBuildAsync(
+			tasks,
+			result.commands,
+			result.options,
+			successMessage,
+			failureMessage,
+			buildFnAsync,
+		);
+	}
+
+	#analyzeCommandLine<T, S extends CommandLineOptionsSpec>(tasks: Tasks<T, S>, failureMessage: string) {
+		Object.keys(tasks.globalCommandLineOptions).forEach((option) => {
+			if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
+		});
+
+		const optionSpecs = {
+			help: { type: "boolean", short: "h", description: "Show help" },
+			tasks: { type: "boolean", short: "T", description: "Show help" },
+			debug: { type: "boolean", description: "Show extra details, including error stack traces" },
+			...tasks.globalCommandLineOptions,
+		} as const;
+		const { commands, options, error } = this.#commandLine.parse(optionSpecs);
+		if (error !== undefined) {
+			writeFailure(this.#stdout, failureMessage, error);
+			return null;
+		}
+
+		if (commands.length === 0 && tasks.hasTask("default")) commands.push("default");
+		const unknownTasks = determineUnknownTasks(tasks, commands);
+
+		if (unknownTasks !== "") {
+			writeFailure(this.#stdout, failureMessage, `Unknown task(s): ${unknownTasks}`);
+			return null;
+		}
+		else if (commands.length === 0 || options.help || options.tasks) {
+			this.#showHelp(tasks, optionSpecs);
+			return null;
+		}
+		else {
+			return { commands, options };
+		}
+	}
+
+	#showHelp<T>(tasks: Tasks<T>, optionSpecs: CommandLineOptionsSpec): void {
+		this.#stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
+		const globalOptions = Object.entries(optionSpecs).map(([ name, spec ]) => {
+			const shortName = spec.short ? ` (-${spec.short})` : "";
+			return { label: `--${name}${shortName}`, description: spec.description ?? "" };
+		});
+		const maxOptionLength = globalOptions.reduce((max, { label }) => Math.max(max, label.length), 0);
+		globalOptions.forEach(({ label, description }) => {
+			this.#stdout.write(`${Colors.white.bold(label)}${" ".repeat(maxOptionLength - label.length + 2)}${description}\n`);
+		});
+
+		this.#stdout.write(`\n${Colors.brightWhite.underline("Tasks:")}\n`);
+		const maxLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
+		tasks.listTasks().forEach(({ name, description }) => {
+			this.#stdout.write(`${Colors.white.bold(name.padEnd(maxLength))}  ${description}\n`);
+		});
+		this.#stdout.write("\n");
 	}
 
 	async #executeBuildAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
@@ -153,64 +210,6 @@ export default class TaskCli {
 	}
 }
 
-function analyzeCommandLine<T, S extends CommandLineOptionsSpec>(commandLine: CommandLine, tasks: Tasks<T, S>) {
-	Object.keys(tasks.globalCommandLineOptions).forEach((option) => {
-		if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
-	});
-
-	const { commands, options, error } = commandLine.parse({
-		...tasks.globalCommandLineOptions,
-		help: { type: "boolean", short: "h" },
-		tasks: { type: "boolean", short: "T" },
-		debug: { type: "boolean" },
-	});
-	if (error !== undefined) return { error };
-
-	if (commands.length === 0 && tasks.hasTask("default")) commands.push("default");
-	return { commands, options };
-}
-
-function showHelpIfNecessary<T, S extends CommandLineOptionsSpec>(
-	stdout: ConsoleOutput,
-	tasks: Tasks<T>,
-	commands: string[] | undefined,
-	options: CliOptions<S> | undefined,
-	parseError: string | undefined,
-	failureMessage: string,
-): boolean {
-	if (parseError !== undefined) {
-		writeFailure(stdout, failureMessage, parseError);
-		return true;
-	}
-	ensure.that(commands !== undefined && options !== undefined, "Missing parsed command line");
-
-	const unknownTasks = determineUnknownTasks(tasks, commands);
-	if (!options.help && !options.tasks && commands.length > 0 && unknownTasks === "") return false;
-
-	if (unknownTasks !== "") {
-		writeFailure(stdout, failureMessage, `Unknown task(s): ${unknownTasks}`);
-		return true;
-	}
-
-	stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
-	stdout.write(`${Colors.white.bold("--help (-h)")}   Show help\n`);
-	stdout.write(`${Colors.white.bold("--tasks (-T)")}  Show help\n`);
-	stdout.write(`${Colors.white.bold("--debug")}       Show extra details, including error stack traces\n`);
-	Object.entries(tasks.globalCommandLineOptions).forEach(([ name, spec ]) => {
-		const shortName = spec.short ? ` (-${spec.short})` : "";
-		const description = spec.description ?? "";
-		stdout.write(`${Colors.white.bold(`--${name}${shortName}`)}  ${description}\n`);
-	});
-
-	stdout.write(`\n${Colors.brightWhite.underline("Tasks:")}\n`);
-	const maxLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
-	tasks.listTasks().forEach(({ name, description }) => {
-		stdout.write(`${Colors.white.bold(name.padEnd(maxLength))}  ${description}\n`);
-	});
-	stdout.write("\n");
-
-	return true;
-}
 
 function writeSuccess(stdout: ConsoleOutput, successMessage: string, elapsedSeconds: number): void {
 	stdout.write(
