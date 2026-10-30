@@ -16,25 +16,20 @@ export default describe(() => {
 
 	describe("running tasks", () => {
 
-		it("runs build and provides tasks and options specified on command line", async () => {
+		it("provides build with the tasks specified on command line", async () => {
 			const { tasks, cli } = createCli({
-				args: [ "task1", "task3", "--option1", "--option2=my option" ],
+				args: [ "task1", "task3" ],
 			});
 
 			tasks.defineTask("task1", IRRELEVANT_FN);
 			tasks.defineTask("task2", IRRELEVANT_FN);
 			tasks.defineTask("task3", IRRELEVANT_FN);
 
-			const { taskNames, options } = await runAsync({ cli, tasks });
+			const { taskNames } = await runAsync({ cli, tasks });
 			assert.equal(taskNames, [ "task1", "task3" ]);
-			assert.equal(options, {
-				option1: true,
-				option2: "my option",
-				"--": [],
-			});
 		});
 
-		it("runs 'default' task if it exists and no arguments provided", async () => {
+		it("provides 'default' task if it exists and no tasks provided", async () => {
 			const { tasks, cli } = createCli({
 				args: [],
 			});
@@ -45,7 +40,7 @@ export default describe(() => {
 			assert.equal(taskNames, [ "default" ]);
 		});
 
-		it("does not run 'default' task if it exists but arguments are provided", async () => {
+		it("does not provide 'default' task if tasks are provided", async () => {
 			const { tasks, cli } = createCli({
 				args: [ "my_task" ],
 			});
@@ -57,7 +52,7 @@ export default describe(() => {
 			assert.equal(taskNames, [ "my_task" ]);
 		});
 
-		it("doesn't run build if no arguments are provided and 'default' task doesn't exist", async () => {
+		it("doesn't run build function if no arguments are provided and 'default' task doesn't exist", async () => {
 			const { tasks, cli } = createCli({
 				args: [],
 			});
@@ -104,6 +99,34 @@ export default describe(() => {
 
 			assert.equal(returnValue, "my_task");
 		});
+
+	});
+
+
+	describe("command-line options", () => {
+
+		it("provides options specified on the command line to the build", async () => {
+			const { tasks, cli } = createCli({
+				args: [ "task", "--option1", "--option2=my option" ],
+			});
+
+			tasks.defineTask("task", IRRELEVANT_FN);
+			tasks.defineGlobalCommandLineOptions({
+				option1: { type: "boolean" },
+				option2: { type: "string" },
+			});
+
+			const { taskNames, options } = await runAsync({ cli, tasks });
+			assert.equal(taskNames, [ "task" ]);
+			assert.equal(options, {
+				option1: true,
+				option2: "my option",
+			});
+		});
+
+		it("throws error if tasks specify --help, --tasks, or --debug options");
+		it("throws error if option specification is invalid");
+		it("displays error when command-line options are invalid");
 
 	});
 

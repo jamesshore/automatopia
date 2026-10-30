@@ -20,6 +20,7 @@ export type BuildFunction = (taskNames: string[], options: Record<string, unknow
 
 interface AnalyzedCommandLine {
 	taskNames: string[];
+	options: Record<string, unknown>;
 	helpOption: unknown;
 	debugOption: unknown;
 }
@@ -99,7 +100,7 @@ export default class TaskCli {
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
-		const { taskNames, helpOption, debugOption } = analyzeCommandLine(this.#commandLine, tasks);
+		const { taskNames, options, helpOption, debugOption } = analyzeCommandLine(this.#commandLine, tasks);
 
 		const showedHelp = showHelpIfNecessary(this.#stdout, tasks, taskNames, helpOption, failureMessage);
 		if (showedHelp) return CLI_FAILURE;
@@ -110,7 +111,7 @@ export default class TaskCli {
 
 		try {
 			const startTime = this.#clock.now();
-			await buildFnAsync(taskNames, this.#commandLine.options);
+			await buildFnAsync(taskNames, options);
 			writeSuccess(this.#stdout, successMessage, this.#clock.millisecondsSince(startTime) / 1000);
 			return null;
 		}
@@ -143,14 +144,21 @@ export default class TaskCli {
 }
 
 function analyzeCommandLine<T_TaskParameters>(commandLine: CommandLine, tasks: Tasks<T_TaskParameters>): AnalyzedCommandLine {
-	const taskNames = commandLine.commands;
+	let taskNames = commandLine.commands;
+	let options = commandLine.options;
+	if (Object.keys(tasks.globalCommandLineOptions).length > 0) {
+		const { tasks: parsedTasks, options: parsedOptions, error } = commandLine.parseArgs(tasks.globalCommandLineOptions);
+		if (error !== undefined) throw new Error(error);
+		taskNames = parsedTasks;
+		options = parsedOptions;
+	}
+
 	if (taskNames.length === 0 && tasks.hasTask("default")) taskNames.push("default");
 
-	const options = commandLine.options;
 	const helpOption = options.help || options.h || options.tasks || options.T;
 	const debugOption = options.debug;
 
-	return { taskNames, helpOption, debugOption };
+	return { taskNames, options, helpOption, debugOption };
 }
 
 function showHelpIfNecessary<T_TaskParameters>(
