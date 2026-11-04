@@ -158,6 +158,11 @@ async function main(): Promise<void> {
 MIT License. See [LICENSE.TXT](LICENSE.TXT).
 
 
+## AI Disclosure
+
+Starting 23 Oct 2026, this codebase has been developed with the assistance of LLMs under close supervision.
+
+
 ## Change History
 
 * *30 Oct 2026:* BREAKING CHANGE: `--tasks` and `-T` options have been removed (use `--help` or `-h` instead).
