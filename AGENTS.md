@@ -12,6 +12,4 @@ Tests are documentation. Each test tells a story: we have a system like this; th
 
 # Documentation
 
-The top-level `readme.md` describes the overall project. Public-facing classes and methods have JSDoc comments.
-
-Other than mechanical changes, such as updating parameter names, types, filenames, etc., don't write documentation unless explicitly asked to do so. However, *do* inform me when a documentation change is needed. Draw my attention to it using the 📕emoji.
+The top-level `readme.md` describes the overall project. Public-facing classes and methods have JSDoc comments. Do not write or update documentation unless explicitly asked to do so, except for mechanical changes such as updating parameter names, types, filenames, etc. Instead, inform me when a documentation change is needed, and draw my attention to it using the 📕emoji.
