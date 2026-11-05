@@ -118,7 +118,7 @@ export default class TaskCli {
 			});
 			const globalOptions = {
 				...RESERVED_OPTIONS,
-				...tasks.getGlobalOptionsSpec(),
+				...tasks.globalOptionsSpec,
 			} as const;
 			return globalOptions;
 		}

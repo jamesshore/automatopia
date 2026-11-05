@@ -356,7 +356,7 @@ export default describe(() => {
 			const { tasks } = createTasks();
 			tasks.defineTask("task1", () => {});
 
-			assert.equal(tasks.getGlobalOptionsSpec(), {}, "global options");
+			assert.equal(tasks.globalOptionsSpec, {}, "global options");
 			assert.equal(tasks.listTasks(), [
 				{ name: "task1", description: "", options: {} },
 			], "task options");
@@ -371,21 +371,7 @@ export default describe(() => {
 			const { tasks } = createTasks();
 			tasks.setCommandLineOptions(options);
 
-			assert.equal(tasks.getGlobalOptionsSpec(), options);
-		});
-
-		it("merges reserved options into global options", () => {
-			const { tasks } = createTasks();
-			tasks.setCommandLineOptions({ myOption: { type: "string" } });
-
-			const reservedOptions = {
-				reserved: { type: "boolean" },
-			} as const;
-
-			assert.equal(tasks.getGlobalOptionsSpec(reservedOptions), {
-				reserved: { type: "boolean" },
-				myOption: { type: "string" },
-			});
+			assert.equal(tasks.globalOptionsSpec, options);
 		});
 
 		it("has task-specific options", () => {
@@ -447,6 +433,31 @@ export default describe(() => {
 				specific: { type: "string", multiple: true },
 			});
 		});
+
+		it("merges reserved command-line options to create a new Tasks object that contains both", () => {
+			const { tasks } = createTasks();
+			tasks.defineTask("myTask", () => {});
+			tasks.setDescriptions({ myTask: "my description" });
+			tasks.setCommandLineOptions({ myOption: { type: "string" } });
+
+			const reservedOptions = {
+				reserved: { type: "boolean" },
+			} as const;
+
+			const mergedTasks = tasks.withReservedOptions(reservedOptions);
+
+			assert.equal(mergedTasks.globalOptionsSpec, {
+				myOption: { type: "string" },
+				reserved: { type: "boolean" },
+			}, "merged options");
+			assert.equal(mergedTasks.listTasks(), [
+				{ name: "myTask", description: "my description", options: {} },
+			], "new instance tasks and descriptions");
+			assert.equal(tasks.globalOptionsSpec, {
+				myOption: { type: "string" }
+			}, "original options");
+		});
+
 		
 		it("fails fast if multiple options specify the same short name", () => {
 			const { tasks } = createTasks();
@@ -476,7 +487,7 @@ export default describe(() => {
 			tasks.setCommandLineOptions({ myOption: { type: "string" } });
 
 			assert.error(
-				() => tasks.getGlobalOptionsSpec({ myOption: { type: "boolean" } }),
+				() => tasks.withReservedOptions({ myOption: { type: "boolean" } }),
 				"The '--myOption' option is reserved",
 			);
 		});
@@ -486,10 +497,13 @@ export default describe(() => {
 			tasks.setCommandLineOptions({ myOption: { type: "string", short: "a" } });
 
 			assert.error(
-				() => tasks.getGlobalOptionsSpec({ reserved: { type: "boolean", short: "a" } }),
+				() => tasks.withReservedOptions({ reserved: { type: "boolean", short: "a" } }),
 				"The '-a' short option is reserved",
 			);
 		});
+
+		it("fails fast if reserved options collide with task option names");
+		it("fails fast if reserved options collide with task option short names");
 
 	});
 });

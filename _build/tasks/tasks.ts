@@ -5,7 +5,7 @@ import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 import EventEmitter from "node:events";
 import { ANY_TYPE } from "../util/ensure.ts";
-import type { ParserOptionsSpec } from "../infrastructure/command_line.ts";
+import type { CommandLineOptions, ParserOptionsSpec } from "../infrastructure/command_line.ts";
 
 export interface CommandLineOptionsSpec {
 	[optionLongName: string]: ParserOptionsSpec[string] & {
@@ -116,10 +116,16 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
-	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem) {
+	constructor(
+		incrementalDir: string,
+		clock: Clock,
+		fileSystem: FileSystem,
+		taskFns: Record<string, TaskFunction<T_TaskParameters>> = {},
+		descriptions: Record<string, string> = {},
+	) {
 		super();
-		this.#taskFns = {};
-		this.#descriptions = {};
+		this.#taskFns = taskFns;
+		this.#descriptions = descriptions;
 		this.#incrementalDir = incrementalDir;
 		this.#clock = clock;
 		this.#fileSystem = fileSystem;
@@ -134,6 +140,16 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 		ensure.signature(arguments, []);
 
 		return new OutputTracker<TaskOutput>(this, TASK_EVENT);
+	}
+
+	/**
+	 * @returns {CommandLineOptionsSpec} The global option specifications, or an empty object if none have been defined.
+	 */
+	get globalOptionsSpec(): S {
+		const globalOptions = Object.fromEntries(
+			Object.entries(this.#options).filter(([ , spec ]) => spec.tasks === undefined),
+		);
+		return globalOptions as S;
 	}
 
 	/**
@@ -282,27 +298,33 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	}
 
 	/**
-	 * @param {CommandLineOptionsSpec} [reservedOptions] Additional global options to incorporate.
-	 * @returns {CommandLineOptionsSpec} The combined global option specifications, or an empty object if none have
-	 *   been defined.
+	 * Creates a new Tasks instance with the current and reserved command-line options, keeping everything else the same.
+	 * @param {CommandLineOptionsSpec} reservedOptions Options to add to the new instance.
+	 * @returns {Tasks} The new instance.
 	 * @throws {Error} Throws an error if reserved options collide with existing options.
 	 */
-	getGlobalOptionsSpec(reservedOptions: CommandLineOptionsSpec = {}): S {
-		const globalOptions = Object.fromEntries(
-			Object.entries(this.#options).filter(([ , spec ]) => spec.tasks === undefined),
-		);
-		const reservedShortNames = new Set(
-			Object.values(reservedOptions).map(spec => spec.short).filter(short => short !== undefined)
-		);
+	withReservedOptions(reservedOptions: CommandLineOptionsSpec): Tasks<T_TaskParameters, S> {
+		ensureNoCollisions(reservedOptions, this.#options);
 
-		Object.entries(globalOptions).forEach(([ name, spec ]) => {
-			if (Object.hasOwn(reservedOptions, name)) throw new Error(`The '--${name}' option is reserved`);
-			if (spec.short !== undefined && reservedShortNames.has(spec.short)) {
-				throw new Error(`The '-${spec.short}' short option is reserved`);
-			}
-		});
+		const tasks = new Tasks<T_TaskParameters, S>(
+			this.#incrementalDir, this.#clock, this.#fileSystem, { ...this.#taskFns }, { ...this.#descriptions },
+		);
+		tasks.#options = { ...this.#options, ...reservedOptions };
+		return tasks;
 
-		return { ...reservedOptions, ...globalOptions } as S;
+		function ensureNoCollisions(reservedOptions: CommandLineOptionsSpec, options: CommandLineOptionsSpec) {
+			const reservedNames = new Set(Object.keys(reservedOptions));
+			const reservedShortNames = new Set(
+				Object.values(reservedOptions).map(spec => spec.short).filter(short => short !== undefined),
+			);
+
+			Object.entries(options).forEach(([ name, spec ]) => {
+				if (reservedNames.has(name)) throw new Error(`The '--${name}' option is reserved`);
+				if (spec.short !== undefined && reservedShortNames.has(spec.short)) {
+					throw new Error(`The '-${spec.short}' short option is reserved`);
+				}
+			});
+		}
 	}
 
 }
