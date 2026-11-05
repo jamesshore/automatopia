@@ -6,7 +6,7 @@ This is an incremental build that only re-runs tests when files have changed or 
 
 # Design
 
-When working on a file, look at several nearby files for examples of expected design style. Before starting work, summarize your understanding of my design principles and ask for corrections.
+The first time you work on a file, look at several nearby files for examples of expected design style. Summarize what you learn about my design principles and wait for me to make corrections before making any changes to that file.
 
 When writing tests, do not use loops or conditionals. It's better to make repeated calls to helper functions than to  
 
