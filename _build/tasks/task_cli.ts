@@ -110,7 +110,7 @@ export default class TaskCli {
 	}
 
 	#analyzeCommandLine<T, S extends CommandLineOptionsSpec>(tasks: Tasks<T, S>, failureMessage: string) {
-		Object.keys(tasks.globalCommandLineOptions).forEach((option) => {
+		Object.keys(tasks.parserOptionsSpec).forEach((option) => {
 			if (RESERVED_OPTIONS.includes(option)) throw new Error(`The '--${option}' option is reserved`);
 		});
 
@@ -119,7 +119,8 @@ export default class TaskCli {
 			debug: { type: "boolean", description: "Show extra details, including error stack traces" },
 			...tasks.globalCommandLineOptions,
 		} as const;
-		const { commands, options, error } = this.#commandLine.parse(optionSpecs);
+		const parserOptions = { help: optionSpecs.help, debug: optionSpecs.debug, ...tasks.parserOptionsSpec };
+		const { commands, options, error } = this.#commandLine.parse(parserOptions as S & typeof parserOptions);
 		if (error !== undefined) {
 			writeFailure(this.#stdout, failureMessage, error);
 			return null;
