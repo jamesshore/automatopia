@@ -2,6 +2,8 @@
 
 To validate code changes, run `./build.sh quick`. To also validate types, run `./build.sh quick typecheck`.
 
+This is an incremental build that only re-runs tests when files have changed or the tests have failed. I often run a watch script on my machine, so it may run the tests before you do. In that case, tests that pass in my build won't run in your build. You can take that as evidence that they passed.
+
 # Design
 
 When working on a file, look at several nearby files for examples of expected design style.
