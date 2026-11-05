@@ -256,6 +256,9 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @throws Error Throws an error if options have duplicate short names.
 	 */
 	setCommandLineOptions(options: CommandLineOptionsSpec): void {
+		ensure.signature(arguments, [ Object ]);
+		ensureValidCommandLineOptionsSpec(options);
+
 		const shortNames = new Set<string>();
 		Object.values(options).forEach(({ short, tasks }) => {
 			if (short !== undefined) {
@@ -277,6 +280,8 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @returns {{name: string, description: string}[]} Each task in the order it was added.
 	 */
 	listTasks(): TaskDescription[] {
+		ensure.signature(arguments, []);
+
 		return Object.keys(this.#taskFns).map(taskName => {
 			const description = this.#descriptions[taskName] ?? "";
 			const options: CommandLineOptionsSpec = {};
@@ -294,6 +299,8 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @returns {boolean} True if the task has been defined.
 	 */
 	hasTask(name: string): boolean {
+		ensure.signature(arguments, [ String ]);
+
 		return this.#taskFns[name] !== undefined;
 	}
 
@@ -304,6 +311,8 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @throws {Error} Throws an error if reserved options collide with existing options.
 	 */
 	withReservedOptions(reservedOptions: CommandLineOptionsSpec): Tasks<T_TaskParameters, S> {
+		ensure.signature(arguments, [ Object ]);
+		ensureValidCommandLineOptionsSpec(reservedOptions);
 		ensureNoCollisions(reservedOptions, this.#options);
 
 		const tasks = new Tasks<T_TaskParameters, S>(
@@ -331,4 +340,35 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 
 function determineUnknownTasks(taskFns: Record<string, unknown>, tasksToRun: string[]): string {
 	return tasksToRun.filter((task) => taskFns[task] === undefined).join(", ");
+}
+
+function ensureValidCommandLineOptionsSpec(spec: CommandLineOptionsSpec): void {
+	Object.entries(spec).forEach(([ name, option ]) => {
+		ensure.type(option, {
+			type: String,
+			short: [ undefined, String ],
+			description: [ undefined, String ],
+			tasks: [ undefined, Array ],
+			default: [ undefined, Boolean, Array, String ],
+		}, `options["${name}"]`);
+		ensure.that(option.type === "boolean" || option.type === "string", "Option type must be 'boolean' or 'string'");
+		option.tasks?.forEach((task, i) => ensure.type(task, String, `options["${name}"].tasks[${i}]`));
+
+		if (option.type === "boolean") {
+			ensure.type(option.default, [ undefined, Boolean ], `options["${name}"].default`);
+		}
+		else if (option.type === "string") {
+			ensure.type(option.multiple, [ undefined, Boolean ], `options["${name}"].multiple`);
+			if (option.multiple) {
+				ensure.type(option.default, [ undefined, Array ], `options["${name}"].default`);
+				option.default?.forEach((value, i) => ensure.type(value, String, `options["${name}"].default[${i}]`));
+			}
+			else {
+				ensure.type(option.default, [ undefined, String ], `options["${name}"].default`);
+			}
+		}
+		else {
+			ensure.unreachable("We already checked that option.type must be 'boolean' or 'string'");
+		}
+	});
 }

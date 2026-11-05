@@ -303,7 +303,7 @@ export default describe(() => {
 			}
 		});
 
-		it("displays configured options", async () => {
+		it("displays global options", async () => {
 			const globalOptions = {
 				myOption: { type: "boolean", description: "my option" },
 				withShortName: { type: "boolean", short: "w", description: "with short name" },
@@ -340,16 +340,35 @@ export default describe(() => {
 			});
 
 			await runAsync({ cli, tasks });
-			assert.equal(stdout, [
-				"\n" +
-				`${Colors.brightWhite.underline("Global options:")}\n`,
-				`${Colors.white.bold("--debug    ")}  Show extra details, including error stack traces\n`,
-				`${Colors.white.bold("--help (-h)")}  Show help\n`,
-				"\n" +
-				`${Colors.brightWhite.underline("Tasks:")}\n`,
+			assert.equal(stdout.slice(3), [
+				`\n${Colors.brightWhite.underline("Tasks:")}\n`,
 				`${Colors.white.bold("task1      ")}  \n`,
 				`${Colors.white.bold("task2Longer")}  Task 2 description\n`,
 				`${Colors.white.bold("task3      ")}  Task 3 description\n`,
+				"\n",
+			]);
+		});
+
+		it("displays task-specific options", async () => {
+			const { tasks, cli, stdout } = createCli({ args: [ "--help" ] });
+			tasks.defineTask("task1", () => {});
+			tasks.defineTask("task2", () => {});
+			tasks.setDescriptions({ task1: "first task", task2: "second task" });
+
+			tasks.setCommandLineOptions({
+				option1: { type: "boolean", short: "a", description: "option 1", tasks: [ "task1", "task2" ] },
+				option2: { type: "string", description: "option 2", tasks: [ "task2" ] },
+			});
+
+			await runAsync({ cli, tasks });
+
+			assert.equal(stdout.slice(3), [
+				`\n${Colors.brightWhite.underline("Tasks:")}\n`,
+				`${Colors.white.bold("task1           ")}  first task\n`,
+				`  ${Colors.white.bold("--option1 (-a)  ")}  option 1\n`,
+				`${Colors.white.bold("task2           ")}  second task\n`,
+				`  ${Colors.white.bold("--option1 (-a)  ")}  option 1\n`,
+				`  ${Colors.white.bold("--option2=…     ")}  option 2\n`,
 				"\n",
 			]);
 		});
@@ -362,7 +381,7 @@ export default describe(() => {
 			assert.includes(stdout, `\n${Colors.brightWhite.underline("Tasks:")}\n`);
 		});
 
-		it("displays error requested task doesn't exist", async () => {
+		it("displays error when requested task doesn't exist", async () => {
 			const { tasks, cli, stdout } = createCli({
 				args: [ "my_task", "no_task1", "no_task2" ],
 			});

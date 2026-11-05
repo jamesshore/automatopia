@@ -147,24 +147,32 @@ export default class TaskCli {
 		this.#stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
 		const globalOptions = Object.entries(tasks.globalOptionsSpec)
 			.sort(([ name1 ], [ name2 ]) => name1.localeCompare(name2))
-			.map(([ name, spec ]) => {
-				const shortName = spec.short ? ` (-${spec.short})` : "";
-				const value = spec.type === "string" ? "=…" : "";
-				return { label: `--${name}${value}${shortName}`, description: spec.description ?? "" };
-			});
+			.map(([ name, spec ]) => optionRow(name, spec));
 
-		const maxOptionLength = globalOptions.reduce((max, { label }) => Math.max(max, label.length), 0);
-		globalOptions.forEach(({ label, description }) => {
-			this.#stdout.write(`${Colors.white.bold(label.padEnd(maxOptionLength))}  ${description}\n`);
-		});
+		const width = maxLabelLength(globalOptions);
+		globalOptions.forEach(row => this.#writeHelpRow(row, width));
 	}
 
 	#showTasks<T>(tasks: Tasks<T>) {
 		this.#stdout.write(`\n${Colors.brightWhite.underline("Tasks:")}\n`);
-		const maxTaskLength = tasks.listTasks().reduce((memo, { name }) => Math.max(name.length, memo), 0);
-		tasks.listTasks().forEach(({ name, description }) => {
-			this.#stdout.write(`${Colors.white.bold(name.padEnd(maxTaskLength))}  ${description}\n`);
+		const rows = tasks.listTasks().map(({ name, description, options }) => ({
+			name,
+			description,
+			options: Object.entries(options ?? {}).map(([ optionName, spec ]) => optionRow(optionName, spec)),
+		}));
+		const maxTaskLength = rows.reduce((max, row) => Math.max(max, row.name.length), 0);
+		const maxOptionLength = maxLabelLength(rows.flatMap(row => row.options));
+
+		rows.forEach(({ name, description, options }) => {
+			const taskWidth = Math.max(maxTaskLength, maxOptionLength === 0 ? 0 : maxOptionLength + 2);
+			this.#writeHelpRow({ label: name, description }, taskWidth);
+			options.forEach(option => this.#writeHelpRow(option, maxOptionLength + 2, "  "));
 		});
+	}
+
+	#writeHelpRow(row: HelpRow, width: number, indent = ""): void {
+		const label = Colors.white.bold(row.label.padEnd(width));
+		this.#stdout.write(`${indent}${label}  ${row.description}\n`);
 	}
 
 	async #executeBuildAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
@@ -215,6 +223,18 @@ export default class TaskCli {
 	}
 }
 
+
+type HelpRow = { label: string; description: string };
+
+function optionRow(name: string, spec: CommandLineOptionsSpec[string]): HelpRow {
+	const value = spec.type === "string" ? "=…" : "";
+	const shortName = spec.short ? ` (-${spec.short})` : "";
+	return { label: `--${name}${value}${shortName}`, description: spec.description ?? "" };
+}
+
+function maxLabelLength(rows: HelpRow[]): number {
+	return rows.reduce((max, row) => Math.max(max, row.label.length), 0);
+}
 
 function writeSuccess(stdout: ConsoleOutput, successMessage: string, elapsedSeconds: number): void {
 	stdout.write(
