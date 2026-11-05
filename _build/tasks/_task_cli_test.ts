@@ -124,18 +124,6 @@ export default describe(() => {
 			});
 		});
 
-		it("throws error if tasks specify --help or --debug options", async () => {
-			await assertError("help");
-			await assertError("debug");
-
-			async function assertError(option: string): Promise<void> {
-				const { tasks, cli } = createCli({ args: [ "task" ], options: { [option]: { type: "boolean" } } });
-				tasks.defineTask("task", IRRELEVANT_FN);
-
-				await assert.errorAsync(() => runAsync({ cli, tasks }), new RegExp(option), `--${option} should fail`);
-			}
-		});
-
 		it("throws error if option specification is invalid", async () => {
 			const { tasks, cli } = createCli({
 				options: { option: { type: "boolean", short: "invalid_short_option" } },

@@ -118,12 +118,12 @@ export default class TaskCli {
 			});
 			const globalOptions = {
 				...RESERVED_OPTIONS,
-				...tasks.globalCommandLineOptions,
+				...tasks.getGlobalOptionsSpec(),
 			} as const;
 			return globalOptions;
 		}
 
-		const globalOptions = getGlobalOptions(tasks.parserOptionsSpec);
+		const globalOptions = getGlobalOptions();
 
 		const parserOptions = { ...RESERVED_OPTIONS, ...tasks.parserOptionsSpec };
 		const { commands, options, error } = this.#commandLine.parse(parserOptions as S & typeof parserOptions);

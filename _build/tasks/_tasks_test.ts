@@ -356,7 +356,7 @@ export default describe(() => {
 			const { tasks } = createTasks();
 			tasks.defineTask("task1", () => {});
 
-			assert.equal(tasks.globalCommandLineOptions, {}, "global options");
+			assert.equal(tasks.getGlobalOptionsSpec(), {}, "global options");
 			assert.equal(tasks.listTasks(), [
 				{ name: "task1", description: "", options: {} },
 			], "task options");
@@ -371,7 +371,21 @@ export default describe(() => {
 			const { tasks } = createTasks();
 			tasks.setCommandLineOptions(options);
 
-			assert.equal(tasks.globalCommandLineOptions, options);
+			assert.equal(tasks.getGlobalOptionsSpec(), options);
+		});
+
+		it("merges reserved options into global options", () => {
+			const { tasks } = createTasks();
+			tasks.setCommandLineOptions({ myOption: { type: "string" } });
+
+			const reservedOptions = {
+				reserved: { type: "boolean" },
+			} as const;
+
+			assert.equal(tasks.getGlobalOptionsSpec(reservedOptions), {
+				reserved: { type: "boolean" },
+				myOption: { type: "string" },
+			});
 		});
 
 		it("has task-specific options", () => {
@@ -451,9 +465,29 @@ export default describe(() => {
 
 			assert.error(
 				() => tasks.setCommandLineOptions({
-					option: { type: "boolean", tasks: [ "missing_task" ] },
+					myOption: { type: "boolean", tasks: [ "missing_task" ] },
 				}),
 				"Unrecognized task: missing_task",
+			);
+		});
+
+		it("fails fast if reserved options collide with global option names", () => {
+			const { tasks } = createTasks();
+			tasks.setCommandLineOptions({ myOption: { type: "string" } });
+
+			assert.error(
+				() => tasks.getGlobalOptionsSpec({ myOption: { type: "boolean" } }),
+				"The '--myOption' option is reserved",
+			);
+		});
+
+		it("fails fast if reserved options collide with global option short names", () => {
+			const { tasks } = createTasks();
+			tasks.setCommandLineOptions({ myOption: { type: "string", short: "a" } });
+
+			assert.error(
+				() => tasks.getGlobalOptionsSpec({ reserved: { type: "boolean", short: "a" } }),
+				"The '-a' short option is reserved",
 			);
 		});
 

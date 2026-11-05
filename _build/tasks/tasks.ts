@@ -137,23 +137,42 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	}
 
 	/**
-	 * @returns {CommandLineOptionsSpec} The global option specifications, or an empty object if none have been defined.
-	 * @see CommandLine#parse
-	 */
-	get globalCommandLineOptions(): S {
-		const options = Object.fromEntries(
-			Object.entries(this.#options).filter(([ , spec ]) => spec.tasks === undefined),
-		);
-		return options as S;
-	}
-
-	/**
 	 * @returns {ParserOptionsSpec} A command-line option specification suitable for {@link CommandLine#parse}.
 	 */
 	get parserOptionsSpec(): ParserOptionsSpec {
 		return Object.fromEntries(
 			Object.entries(this.#options).map(([ name, { tasks, description, ...spec } ]) => [ name, spec ]),
 		);
+	}
+
+	/**
+	 * Runs the requested tasks. Each task is run one at a time in the order provided.
+	 * @param {string[]} tasksToRun The names of the tasks to run.
+	 * @param {parms} parms An arbitrary object to provide to tasks when they run.
+	 * @returns {Promise<void>}
+	 * @throws Error Throws an error, without running any tasks, if any of the task names haven't been defined.
+	 */
+	async runTasksAsync(tasksToRun: string[], parms: T_TaskParameters): Promise<void> {
+		ensure.signature(arguments, [ Array, ANY_TYPE ]);
+
+		const unknownTasks = determineUnknownTasks(this.#taskFns, tasksToRun);
+		if (unknownTasks !== "") {
+			throw new Error(`Unrecognized task(s): ${unknownTasks}`);
+		}
+
+		for (const task of tasksToRun) {
+			try {
+				this.emit(TASK_EVENT, { task, action: ACTION.START, timestamp: this.#clock.now() });
+				await this.#taskFns[task](parms);
+				this.emit(TASK_EVENT, { task, action: ACTION.END, timestamp: this.#clock.now() });
+			}
+			catch (err) {
+				ensure.error(err);
+
+				if ((err as ErrorWithFailedTask).failedTask === undefined) (err as ErrorWithFailedTask).failedTask = task;
+				throw err;
+			}
+		}
 	}
 
 	/**
@@ -263,33 +282,27 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	}
 
 	/**
-	 * Runs the requested tasks. Each task is run one at a time in the order provided.
-	 * @param {string[]} tasksToRun The names of the tasks to run.
-	 * @param {parms} parms An arbitrary object to provide to tasks when they run.
-	 * @returns {Promise<void>}
-	 * @throws Error Throws an error, without running any tasks, if any of the task names haven't been defined.
+	 * @param {CommandLineOptionsSpec} [reservedOptions] Additional global options to incorporate.
+	 * @returns {CommandLineOptionsSpec} The combined global option specifications, or an empty object if none have
+	 *   been defined.
+	 * @throws {Error} Throws an error if reserved options collide with existing options.
 	 */
-	async runTasksAsync(tasksToRun: string[], parms: T_TaskParameters): Promise<void> {
-		ensure.signature(arguments, [ Array, ANY_TYPE ]);
+	getGlobalOptionsSpec(reservedOptions: CommandLineOptionsSpec = {}): S {
+		const globalOptions = Object.fromEntries(
+			Object.entries(this.#options).filter(([ , spec ]) => spec.tasks === undefined),
+		);
+		const reservedShortNames = new Set(
+			Object.values(reservedOptions).map(spec => spec.short).filter(short => short !== undefined)
+		);
 
-		const unknownTasks = determineUnknownTasks(this.#taskFns, tasksToRun);
-		if (unknownTasks !== "") {
-			throw new Error(`Unrecognized task(s): ${unknownTasks}`);
-		}
-
-		for (const task of tasksToRun) {
-			try {
-				this.emit(TASK_EVENT, { task, action: ACTION.START, timestamp: this.#clock.now() });
-				await this.#taskFns[task](parms);
-				this.emit(TASK_EVENT, { task, action: ACTION.END, timestamp: this.#clock.now() });
+		Object.entries(globalOptions).forEach(([ name, spec ]) => {
+			if (Object.hasOwn(reservedOptions, name)) throw new Error(`The '--${name}' option is reserved`);
+			if (spec.short !== undefined && reservedShortNames.has(spec.short)) {
+				throw new Error(`The '-${spec.short}' short option is reserved`);
 			}
-			catch (err) {
-				ensure.error(err);
+		});
 
-				if ((err as ErrorWithFailedTask).failedTask === undefined) (err as ErrorWithFailedTask).failedTask = task;
-				throw err;
-			}
-		}
+		return { ...reservedOptions, ...globalOptions } as S;
 	}
 
 }
