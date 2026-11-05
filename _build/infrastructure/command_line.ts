@@ -55,7 +55,6 @@ export type NulledCommandLineOptions = { args?: string[] };
 export default class CommandLine {
 
 	readonly #process: NarrowedProcess;
-	readonly #emitter: EventEmitter;
 
 	/**
 	 * Factory method. Wraps the process's command-line arguments.
@@ -80,7 +79,6 @@ export default class CommandLine {
 	/** For internal use only. (Use a factory method instead.) */
 	constructor(proc: NarrowedProcess) {
 		this.#process = proc;
-		this.#emitter = new EventEmitter();
 	}
 
 	/**
