@@ -165,6 +165,7 @@ Starting 23 Oct 2026, this codebase has been developed with the assistance of LL
 
 ## Change History
 
+* *5 Nov 2026:* BREAKING CHANGE: Command-line option specification has moved from Tasks.create() to Tasks.setCommandLineOptions(). Task-specific options are now supported and are listed in the command-line help.
 * *30 Oct 2026:* BREAKING CHANGE: `--tasks` and `-T` options have been removed (use `--help` or `-h` instead).
 * *30 Oct 2026:* BREAKING CHANGE: custom command-line options have to be specified when creating Tasks. In exchange, they're listed in the command-line help, and the 'minimist' dependency has been removed.
 * *27 Oct 2026:* Speed up type-checker with incremental type checking. Deleting the output dir (typically in 'generated/') deletes the incremental cache.
