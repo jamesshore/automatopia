@@ -112,21 +112,10 @@ export default class TaskCli {
 	}
 
 	#analyzeCommandLine<T, S extends CommandLineOptionsSpec>(tasks: Tasks<T, S>, failureMessage: string) {
-		function getGlobalOptions() {
-			Object.keys(tasks.parserOptionsSpec).forEach((option) => {
-				if (Object.hasOwn(RESERVED_OPTIONS, option)) throw new Error(`The '--${option}' option is reserved`);
-			});
-			const globalOptions = {
-				...RESERVED_OPTIONS,
-				...tasks.globalOptionsSpec,
-			} as const;
-			return globalOptions;
-		}
+		tasks = tasks.withReservedOptions(RESERVED_OPTIONS);
 
-		const globalOptions = getGlobalOptions();
-
-		const parserOptions = { ...RESERVED_OPTIONS, ...tasks.parserOptionsSpec };
-		const { commands, options, error } = this.#commandLine.parse(parserOptions as S & typeof parserOptions);
+		const parserOptions = tasks.parserOptionsSpec;
+		const { commands, options, error } = this.#commandLine.parse(parserOptions as S & typeof RESERVED_OPTIONS);
 		if (error !== undefined) {
 			writeFailure(this.#stdout, failureMessage, error);
 			return null;
@@ -140,7 +129,7 @@ export default class TaskCli {
 			return null;
 		}
 		else if (commands.length === 0 || options.help) {
-			this.#showHelp(tasks, globalOptions);
+			this.#showHelp(tasks);
 			return null;
 		}
 		else {
@@ -148,20 +137,22 @@ export default class TaskCli {
 		}
 	}
 
-	#showHelp<T>(tasks: Tasks<T>, optionSpecs: CommandLineOptionsSpec): void {
-		this.#showGlobalOptions(optionSpecs);
+	#showHelp<T>(tasks: Tasks<T>): void {
+		this.#showGlobalOptions(tasks);
 		this.#showTasks(tasks);
 		this.#stdout.write("\n");
 	}
 
-	#showGlobalOptions(optionSpecs: CommandLineOptionsSpec) {
+	#showGlobalOptions<T>(tasks: Tasks<T>) {
 		this.#stdout.write(`\n${Colors.brightWhite.underline("Global options:")}\n`);
-		const globalOptions = Object.entries(optionSpecs).sort(([ a ], [ b ]) => a.localeCompare(b))
+		const globalOptions = Object.entries(tasks.globalOptionsSpec)
+			.sort(([ name1 ], [ name2 ]) => name1.localeCompare(name2))
 			.map(([ name, spec ]) => {
 				const shortName = spec.short ? ` (-${spec.short})` : "";
 				const value = spec.type === "string" ? "=…" : "";
 				return { label: `--${name}${value}${shortName}`, description: spec.description ?? "" };
 			});
+
 		const maxOptionLength = globalOptions.reduce((max, { label }) => Math.max(max, label.length), 0);
 		globalOptions.forEach(({ label, description }) => {
 			this.#stdout.write(`${Colors.white.bold(label.padEnd(maxOptionLength))}  ${description}\n`);
