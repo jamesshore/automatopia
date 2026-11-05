@@ -8,43 +8,36 @@ interface NarrowedProcess {
 	argv: string[];
 }
 
-export type ParsedCommandLine<S extends ParserOptionsSpec = Record<string, never>> =
-	{ commands: string[]; options: CommandLineOptions<S>; error?: never }
-	| { error: string; commands?: never; options?: never };
+export type CommandLineOptions = Record<string, boolean | string | string[] | undefined>;
 
-// This grotesque bit of type magic is used to automatically set the type of parse()'s return value to
-// match what's supplied in the option spec.
-export type CommandLineOptions<S extends ParserOptionsSpec> = {
-	[K in keyof S]: OptionValue<S[K]> | (S[K] extends { default: NonNullable<unknown> } ? never : undefined);
-};
-type OptionValue<S> = S extends { type: "boolean" } ? boolean :
-	S extends { type: "string"; multiple: true } ? string[] :
-	S extends { type: "string" } ? string : never;
+export type ParsedCommandLine =
+	{ commands: string[]; options: CommandLineOptions; error?: never }
+	| { error: string; commands?: never; options?: never };
 
 export interface ParserOptionsSpec {
 	[optionLongName: string]:
 		BooleanCommandLineOptionSpec | SingleStringCommandLineOptionSpec | MultipleStringCommandLineOptionSpec;
 }
 
-interface CommandLineOption {
+interface BaseCommandLineOptionSpec {
 	short?: string;
 }
 
-export interface BooleanCommandLineOptionSpec extends CommandLineOption {
+interface BaseStringCommandLineOptionSpec extends BaseCommandLineOptionSpec {
+	type: "string";
+}
+
+export interface BooleanCommandLineOptionSpec extends BaseCommandLineOptionSpec {
 	type: "boolean";
 	default?: boolean;
 }
 
-interface StringCommandLineOptionSpec extends CommandLineOption {
-	type: "string";
-}
-
-export interface SingleStringCommandLineOptionSpec extends StringCommandLineOptionSpec {
+export interface SingleStringCommandLineOptionSpec extends BaseStringCommandLineOptionSpec {
 	multiple?: false;
 	default?: string;
 }
 
-export interface MultipleStringCommandLineOptionSpec extends StringCommandLineOptionSpec {
+export interface MultipleStringCommandLineOptionSpec extends BaseStringCommandLineOptionSpec {
 	multiple: true;
 	default?: string[];
 }
@@ -112,7 +105,7 @@ export default class CommandLine {
 	 *   message if parsing fails. Options start with a hyphen; commands are everything else, returned in command-line
 	 *   order.
 	 */
-	parse<S extends ParserOptionsSpec = Record<string, never>>(options: S = {} as S): ParsedCommandLine<S> {
+	parse(options: ParserOptionsSpec = {}): ParsedCommandLine {
 		ensure.signature(arguments, [[ undefined, Object ]]);
 
 		try {
@@ -124,7 +117,7 @@ export default class CommandLine {
 				allowNegative: true,
 				options,
 			});
-			return { commands: positionals, options: { ...values } as unknown as CommandLineOptions<S> };
+			return { commands: positionals, options: { ...values } };
 		}
 		catch (err) {
 			ensure.nodeError(err);

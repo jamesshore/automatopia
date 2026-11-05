@@ -6,13 +6,13 @@ This is an incremental build that only re-runs tests when files have changed or 
 
 # Design
 
-The first time you work on a file, look at several nearby files for examples of expected design style. Summarize what you learn about my design principles and wait for me to make corrections before making any changes to that file.
-
-When writing tests, do not use loops or conditionals. It's better to make repeated calls to helper functions than to  
+The first time you work on a file, look at several nearby files for examples of expected design style. Summarize any new lessons about my design principles and wait for me to make corrections before making any changes to that file.
 
 Within functions, use blank lines to clarify intent. Organize functions and methods with more-general and more-central concepts first and special cases coming later, and related functions/methods placed next to each other.
 
-Tests follow the same principle. Central, happy-path usage comes first, edge cases come later.
+Tests follow the same principle. Central, happy-path usage comes first, edge cases come later. We generally don't write tests for types or runtime assertions meant to catch programmer mistakes.
+
+Do not use loops or conditionals in tests. If needed, those go in helper functions.  
 
 # Documentation
 

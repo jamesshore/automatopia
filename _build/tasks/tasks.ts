@@ -5,7 +5,7 @@ import OutputTracker from "../infrastructure/low_level/output_tracker.ts";
 import FileSystem from "../infrastructure/file_system.ts";
 import EventEmitter from "node:events";
 import { ANY_TYPE } from "../util/ensure.ts";
-import type { CommandLineOptions, ParserOptionsSpec } from "../infrastructure/command_line.ts";
+import type { ParserOptionsSpec } from "../infrastructure/command_line.ts";
 
 export interface CommandLineOptionsSpec {
 	[optionLongName: string]: ParserOptionsSpec[string] & {
@@ -35,7 +35,7 @@ export type TaskOutput =
 export interface TaskDescription {
 	name: string;
 	description: string;
-	options?: Record<string, ParserOptionsSpec[string] & {
+	options: Record<string, ParserOptionsSpec[string] & {
 		description?: string;
 	}>;
 }
@@ -48,7 +48,7 @@ export interface ErrorWithFailedTask extends Error {
  * A set of tasks. Each task consists of a name and an associated function. The tasks can be run programmatically or
  * from the command-line.
  */
-export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec> extends EventEmitter<{ task: [TaskOutput] }> {
+export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskOutput] }> {
 
 	readonly #taskFns: Record<string, TaskFunction<T_TaskParameters>>;
 	readonly #descriptions: Record<string, string>;
@@ -79,17 +79,17 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @param {FileSystem} fileSystem The file system that contains `incrementalDir`.
 	 * @returns {Tasks} The instance.
 	 */
-	static create<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(args: {
+	static create<T_TaskParameters>(args: {
 		incrementalDir: string;
 		fileSystem: FileSystem;
-	}): Tasks<T_TaskParameters, S> {
+	}): Tasks<T_TaskParameters> {
 		const { incrementalDir, fileSystem } = args;
 		ensure.signature(arguments, [{
 			incrementalDir: String,
 			fileSystem: FileSystem,
 		}]);
 
-		return new Tasks<T_TaskParameters, S>(incrementalDir, Clock.create(), fileSystem);
+		return new Tasks<T_TaskParameters>(incrementalDir, Clock.create(), fileSystem);
 	}
 
 	/**
@@ -100,7 +100,7 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @param {FileSystem} [fileSystem] File system. Defaults to a Nulled instance.
 	 * @returns {Tasks} The instance.
 	 */
-	static createNull<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(options?: NulledTasksOptions): Tasks<T_TaskParameters, S> {
+	static createNull<T_TaskParameters>(options?: NulledTasksOptions): Tasks<T_TaskParameters> {
 		const {
 		incrementalDir = "/nulled_incremental_dir",
 		clock = Clock.createNull(),
@@ -112,7 +112,7 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 			fileSystem: [ undefined, FileSystem ],
 		}]]);
 
-		return new Tasks<T_TaskParameters, S>(incrementalDir, clock, fileSystem);
+		return new Tasks<T_TaskParameters>(incrementalDir, clock, fileSystem);
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
@@ -145,11 +145,11 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	/**
 	 * @returns {CommandLineOptionsSpec} The global option specifications, or an empty object if none have been defined.
 	 */
-	get globalOptionsSpec(): S {
+	get globalOptionsSpec(): CommandLineOptionsSpec {
 		const globalOptions = Object.fromEntries(
 			Object.entries(this.#options).filter(([ , spec ]) => spec.tasks === undefined),
 		);
-		return globalOptions as S;
+		return globalOptions;
 	}
 
 	/**
@@ -310,12 +310,12 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @returns {Tasks} The new instance.
 	 * @throws {Error} Throws an error if reserved options collide with existing options.
 	 */
-	withReservedOptions(reservedOptions: CommandLineOptionsSpec): Tasks<T_TaskParameters, S> {
+	withReservedOptions(reservedOptions: CommandLineOptionsSpec): Tasks<T_TaskParameters> {
 		ensure.signature(arguments, [ Object ]);
 		ensureValidCommandLineOptionsSpec(reservedOptions);
 		ensureNoCollisions(reservedOptions, this.#options);
 
-		const tasks = new Tasks<T_TaskParameters, S>(
+		const tasks = new Tasks<T_TaskParameters>(
 			this.#incrementalDir, this.#clock, this.#fileSystem, { ...this.#taskFns }, { ...this.#descriptions },
 		);
 		tasks.#options = { ...this.#options, ...reservedOptions };
@@ -350,12 +350,14 @@ function ensureValidCommandLineOptionsSpec(spec: CommandLineOptionsSpec): void {
 			description: [ undefined, String ],
 			tasks: [ undefined, Array ],
 			default: [ undefined, Boolean, Array, String ],
+			multiple: [ undefined, Boolean ],
 		}, `options["${name}"]`);
 		ensure.that(option.type === "boolean" || option.type === "string", "Option type must be 'boolean' or 'string'");
 		option.tasks?.forEach((task, i) => ensure.type(task, String, `options["${name}"].tasks[${i}]`));
 
 		if (option.type === "boolean") {
 			ensure.type(option.default, [ undefined, Boolean ], `options["${name}"].default`);
+			if ("multiple" in option) ensure.type(option.multiple, undefined, `options["${name}"].multiple`);
 		}
 		else if (option.type === "string") {
 			ensure.type(option.multiple, [ undefined, Boolean ], `options["${name}"].multiple`);

@@ -20,11 +20,6 @@ const RESERVED_OPTIONS = {
 	debug: { type: "boolean", description: "Show extra details, including error stack traces" },
 } as const;
 
-type CliOptions<S extends CommandLineOptionsSpec> = CommandLineOptions<S> & {
-	help?: boolean;
-	debug?: boolean
-};
-
 /**
  * A command-line interface (CLI) for running tasks.
  * @see Tasks
@@ -90,11 +85,11 @@ export default class TaskCli {
 	 *   Returns {@link TaskCli.CLI_FAILURE} when no tasks are run, such as when help is requested or an invalid task is
 	 *   specified. Returns {@link TaskCli.BUILD_FAILURE} when the build throws an exception outside of a task.
 	 */
-	async runAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
-		tasks: Tasks<T_TaskParameters, S>,
+	async runAsync<T_TaskParameters>(
+		tasks: Tasks<T_TaskParameters>,
 		successMessage: string,
 		failureMessage: string,
-		buildFnAsync: (commands: string[], options: CommandLineOptions<S> & { help?: boolean; debug?: boolean }) => void | Promise<void>,
+		buildFnAsync: (commands: string[], options: CommandLineOptions) => void | Promise<void>,
 	): Promise<string | null> {
 		ensure.signature(arguments, [ Tasks, String, String, Function ]);
 
@@ -111,11 +106,11 @@ export default class TaskCli {
 		);
 	}
 
-	#analyzeCommandLine<T, S extends CommandLineOptionsSpec>(tasks: Tasks<T, S>, failureMessage: string) {
+	#analyzeCommandLine<T>(tasks: Tasks<T>, failureMessage: string) {
 		tasks = tasks.withReservedOptions(RESERVED_OPTIONS);
 
 		const parserOptions = tasks.parserOptionsSpec;
-		const { commands, options, error } = this.#commandLine.parse(parserOptions as S & typeof RESERVED_OPTIONS);
+		const { commands, options, error } = this.#commandLine.parse(parserOptions);
 		if (error !== undefined) {
 			writeFailure(this.#stdout, failureMessage, error);
 			return null;
@@ -128,7 +123,7 @@ export default class TaskCli {
 			writeFailure(this.#stdout, failureMessage, `Unknown task(s): ${unknownTasks}`);
 			return null;
 		}
-		else if (commands.length === 0 || options.help) {
+		else if (commands.length === 0 || options.help === true) {
 			this.#showHelp(tasks);
 			return null;
 		}
@@ -175,13 +170,13 @@ export default class TaskCli {
 		this.#stdout.write(`${indent}${label}  ${row.description}\n`);
 	}
 
-	async #executeBuildAsync<T_TaskParameters, S extends CommandLineOptionsSpec>(
-		tasks: Tasks<T_TaskParameters, S>,
+	async #executeBuildAsync<T_TaskParameters>(
+		tasks: Tasks<T_TaskParameters>,
 		commands: string[],
-		options: CliOptions<S>,
+		options: CommandLineOptions,
 		successMessage: string,
 		failureMessage: string,
-		buildFnAsync: (commands: string[], options: CliOptions<S>) => void | Promise<void>,
+		buildFnAsync: (commands: string[], options: CommandLineOptions) => void | Promise<void>,
 	): Promise<string | null> {
 		const stdout = this.#stdout;
 		let timings: number[] = [];
@@ -196,7 +191,7 @@ export default class TaskCli {
 		catch (err) {
 			ensure.error(err);
 
-			const showStack = options.debug || !(err instanceof TaskError);
+			const showStack = options.debug === true || !(err instanceof TaskError);
 			writeFailure(stdout, failureMessage, showStack ? err.stack! : err.message);
 			return (err as ErrorWithFailedTask).failedTask ?? BUILD_FAILURE;
 		}
@@ -205,7 +200,7 @@ export default class TaskCli {
 		}
 
 		function writeTaskEvent({ task, action, timestamp }: TaskOutput): void {
-			if (!options.debug) return;
+			if (options.debug !== true) return;
 
 			if (action === Tasks.ACTION.START) {
 				timings.push(timestamp);
