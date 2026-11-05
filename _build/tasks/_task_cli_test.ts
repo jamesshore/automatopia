@@ -108,7 +108,7 @@ export default describe(() => {
 		it("provides options specified on the command line to the build", async () => {
 			const { tasks, cli } = createCli({
 				args: [ "task", "--option1", "--option2=my option" ],
-				globalOptions: {
+				options: {
 					option1: { type: "boolean" },
 					option2: { type: "string" },
 				},
@@ -129,7 +129,7 @@ export default describe(() => {
 			await assertError("debug");
 
 			async function assertError(option: string): Promise<void> {
-				const { tasks, cli } = createCli({ args: [ "task" ], globalOptions: { [option]: { type: "boolean" } } });
+				const { tasks, cli } = createCli({ args: [ "task" ], options: { [option]: { type: "boolean" } } });
 				tasks.defineTask("task", IRRELEVANT_FN);
 
 				await assert.errorAsync(() => runAsync({ cli, tasks }), new RegExp(option), `--${option} should fail`);
@@ -138,14 +138,14 @@ export default describe(() => {
 
 		it("throws error if option specification is invalid", async () => {
 			const { tasks, cli } = createCli({
-				globalOptions: { option: { type: "boolean", short: "invalid_short_option" } },
+				options: { option: { type: "boolean", short: "invalid_short_option" } },
 			});
 
 			await assert.errorAsync(() => runAsync({ cli, tasks }), /invalid_short_option/);
 		});
 
 		it("displays error when command-line options are invalid", async () => {
-			const { tasks, cli, stdout } = createCli({ args: [ "task", "--no-such-option" ], globalOptions: {} });
+			const { tasks, cli, stdout } = createCli({ args: [ "task", "--no-such-option" ], options: {} });
 			tasks.defineTask("task", IRRELEVANT_FN);
 
 			const { taskNames, returnValue } = await runAsync({ cli, tasks, failureMessage: "my failure message" });
@@ -323,7 +323,7 @@ export default describe(() => {
 				stringOption: { type: "string" },
 				stringWithShort: { type: "string", short: "s" },
 			} as const;
-			const { cli, tasks, stdout } = createCli({ args: [ "--help" ], globalOptions });
+			const { cli, tasks, stdout } = createCli({ args: [ "--help" ], options: globalOptions });
 
 			const { returnValue } = await runAsync({ cli, tasks });
 
@@ -398,16 +398,18 @@ export default describe(() => {
 
 function createCli({
 	args = [],
-	globalOptions = {},
-}: { args?: string[]; globalOptions?: CommandLineOptionsSpec } = {}) {
+	options = {},
+}: { args?: string[]; options?: CommandLineOptionsSpec } = {}) {
 	const commandLine = CommandLine.createNull({ args });
 	const stdout = ConsoleOutput.createNull();
 	const stdoutTracker = stdout.track();
 	const clock = Clock.createNull();
 	const cli = new TaskCli(commandLine, stdout, clock);
+	const tasks = Tasks.createNull({ clock });
+	tasks.setCommandLineOptions(options);
 
 	return {
-		tasks: Tasks.createNull({ clock, globalCommandLineOptions: globalOptions }),
+		tasks,
 		cli,
 		stdoutTracker,
 		stdout: stdoutTracker.data,

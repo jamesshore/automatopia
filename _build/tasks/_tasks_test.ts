@@ -284,9 +284,9 @@ export default describe(() => {
 			tasks.defineTask("task3", () => {});
 
 			assert.equal(tasks.listTasks(), [
-				{ name: "task1", description: "" },
-				{ name: "task2", description: "" },
-				{ name: "task3", description: "" },
+				{ name: "task1", description: "", options: {} },
+				{ name: "task2", description: "", options: {} },
+				{ name: "task3", description: "", options: {} },
 			]);
 		});
 
@@ -303,9 +303,9 @@ export default describe(() => {
 			});
 
 			assert.equal(tasks.listTasks(), [
-				{ name: "task1", description: "description 1" },
-				{ name: "task2", description: "" },
-				{ name: "task3", description: "description 3" },
+				{ name: "task1", description: "description 1", options: {} },
+				{ name: "task2", description: "", options: {} },
+				{ name: "task3", description: "description 3", options: {} },
 			]);
 		});
 
@@ -320,9 +320,9 @@ export default describe(() => {
 			tasks.setDescriptions({ task3: "description 3" });
 
 			assert.equal(tasks.listTasks(), [
-				{ name: "task1", description: "description 1" },
-				{ name: "task2", description: "" },
-				{ name: "task3", description: "description 3" },
+				{ name: "task1", description: "description 1", options: {} },
+				{ name: "task2", description: "", options: {} },
+				{ name: "task3", description: "description 3", options: {} },
 			]);
 
 		});
@@ -352,19 +352,95 @@ export default describe(() => {
 
 	describe("command-line options", () => {
 
+		it("defaults to having no options", () => {
+			const { tasks } = createTasks();
+			tasks.defineTask("task1", () => {});
+
+			assert.equal(tasks.globalCommandLineOptions, {}, "global options");
+			assert.equal(tasks.listTasks(), [
+				{ name: "task1", description: "", options: {} },
+			], "task options");
+		});
+
 		it("specifies global options", () => {
 			const options = {
 				option1: { type: "boolean" },
 				option2: { type: "string" },
 			} as const;
 
-			const { tasks } = createTasks({ globalCommandLineOptions: options });
+			const { tasks } = createTasks();
+			tasks.setCommandLineOptions(options);
+
 			assert.equal(tasks.globalCommandLineOptions, options);
 		});
 
-		it("defaults to having no global options", () => {
+		it("specifies task-specific options", () => {
 			const { tasks } = createTasks();
-			assert.equal(tasks.globalCommandLineOptions, {});
+			tasks.defineTask("task1", () => {});
+			tasks.defineTask("task2", () => {});
+
+			const options = {
+				option1a: { type: "boolean", short: "a", description: "description 1a", tasks: [ "task1" ] },
+				option1b: { type: "string", tasks: [ "task1" ] },
+				option2: { type: "boolean", tasks: [ "task2" ] },
+			} as const;
+			tasks.setCommandLineOptions(options);
+
+			assert.equal(tasks.listTasks(), [
+				{
+					name: "task1",
+					description: "",
+					options: {
+						option1a: { type: "boolean", short: "a", description: "description 1a" },
+						option1b: { type: "string" },
+					},
+				},
+				{
+					name: "task2",
+					description: "",
+					options: { option2: { type: "boolean" } },
+				},
+			]);
+		});
+
+		it("supports multiple tasks per option", () => {
+			const { tasks } = createTasks();
+			tasks.defineTask("task1", () => {});
+			tasks.defineTask("task2", () => {});
+			tasks.defineTask("task3", () => {});
+
+			tasks.setCommandLineOptions({
+				shared: { type: "boolean", tasks: [ "task1", "task2" ] },
+			});
+
+			assert.equal(tasks.listTasks(), [
+				{ name: "task1", description: "", options: { shared: { type: "boolean" } } },
+				{ name: "task2", description: "", options: { shared: { type: "boolean" } } },
+				{ name: "task3", description: "", options: {} },
+			]);
+		});
+		
+		it("fails fast if multiple options specify the same short name", () => {
+			const { tasks } = createTasks();
+
+			assert.error(
+				() => tasks.setCommandLineOptions({
+					option1: { type: "boolean", short: "a" },
+					option2: { type: "string", short: "a" },
+				}),
+				"Duplicate short option: a",
+			);
+		});
+
+		it("fails fast if an option specifies a task that doesn't exist", () => {
+			const { tasks } = createTasks();
+
+			assert.error(
+				() => tasks.setCommandLineOptions({
+					option: { type: "boolean", tasks: [ "missing_task" ] },
+				}),
+				"Unrecognized task: missing_task",
+			);
 		});
 
 	});
@@ -375,10 +451,9 @@ function createTasks({
 	incrementalDir = "/irrelevant/incremental/dir",
 	clock = Clock.createNull(),
 	fileSystem = FileSystem.createNull(),
-	globalCommandLineOptions = undefined,
 }: NulledTasksOptions = {}) {
 	const writeTracker = fileSystem.track();
-	const tasks = new Tasks(incrementalDir, clock, fileSystem, globalCommandLineOptions);
+	const tasks = new Tasks(incrementalDir, clock, fileSystem);
 
 	return {
 		tasks,

@@ -8,7 +8,10 @@ import { ANY_TYPE } from "../util/ensure.ts";
 import type { ParserOptionsSpec } from "../infrastructure/command_line.ts";
 
 export interface CommandLineOptionsSpec {
-	[optionLongName: string]: ParserOptionsSpec[string] & { description?: string };
+	[optionLongName: string]: ParserOptionsSpec[string] & {
+		description?: string;
+		tasks?: readonly string[];
+	};
 }
 
 const TASK_EVENT = "task";
@@ -17,11 +20,10 @@ const ACTION = {
 	END: "end",
 } as const;
 
-export interface NulledTasksOptions<S extends CommandLineOptionsSpec = CommandLineOptionsSpec> {
+export interface NulledTasksOptions {
 	incrementalDir?: string;
 	clock?: Clock;
 	fileSystem?: FileSystem;
-	globalCommandLineOptions?: S;
 }
 
 export type TaskFunction<T_TaskParameters> = (parms: T_TaskParameters) => void | Promise<void>;
@@ -33,6 +35,9 @@ export type TaskOutput =
 export interface TaskDescription {
 	name: string;
 	description: string;
+	options?: Record<string, ParserOptionsSpec[string] & {
+		description?: string;
+	}>;
 }
 
 export interface ErrorWithFailedTask extends Error {
@@ -47,10 +52,10 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 
 	readonly #taskFns: Record<string, TaskFunction<T_TaskParameters>>;
 	readonly #descriptions: Record<string, string>;
+	#options: CommandLineOptionsSpec = {};
 	readonly #incrementalDir: string;
 	readonly #clock: Clock;
 	readonly #fileSystem: FileSystem;
-	readonly #globalCommandLineOptions: S;
 
 	/**
 	 * Task tracking event.
@@ -72,22 +77,19 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @param {string} incrementalDir Path to a directory to use for incremental tasks (see
 	 *   {@link Tasks#defineIncrementalTask}).
 	 * @param {FileSystem} fileSystem The file system that contains `incrementalDir`.
-	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications. Each option
-	 *   may also include a `description` string. See {@link CommandLine#parse} for the other specification fields.
 	 * @returns {Tasks} The instance.
 	 */
 	static create<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(args: {
 		incrementalDir: string;
 		fileSystem: FileSystem;
-	} & (CommandLineOptionsSpec extends S ? { globalCommandLineOptions?: S } : { globalCommandLineOptions: S })): Tasks<T_TaskParameters, S> {
-		const { incrementalDir, fileSystem, globalCommandLineOptions = {} as S } = args;
+	}): Tasks<T_TaskParameters, S> {
+		const { incrementalDir, fileSystem } = args;
 		ensure.signature(arguments, [{
 			incrementalDir: String,
 			fileSystem: FileSystem,
-			globalCommandLineOptions: [ undefined, Object ],
 		}]);
 
-		return new Tasks<T_TaskParameters, S>(incrementalDir, Clock.create(), fileSystem, globalCommandLineOptions);
+		return new Tasks<T_TaskParameters, S>(incrementalDir, Clock.create(), fileSystem);
 	}
 
 	/**
@@ -96,39 +98,31 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 *   {@link Tasks#defineIncrementalTask}).
 	 * @param {Clock} [clock] System clock. Defaults to a Nulled instance.
 	 * @param {FileSystem} [fileSystem] File system. Defaults to a Nulled instance.
-	 * @param {CommandLineOptionsSpec} [globalCommandLineOptions] Global command-line option specifications. Each option
-	 *   may also include a `description` string. See {@link CommandLine#parse} for the other specification fields.
 	 * @returns {Tasks} The instance.
 	 */
-	static createNull<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(...args: CommandLineOptionsSpec extends S
-		? [options?: NulledTasksOptions<S>]
-		: [options: NulledTasksOptions<S> & { globalCommandLineOptions: S }]): Tasks<T_TaskParameters, S> {
+	static createNull<T_TaskParameters, S extends CommandLineOptionsSpec = CommandLineOptionsSpec>(options?: NulledTasksOptions): Tasks<T_TaskParameters, S> {
 		const {
 		incrementalDir = "/nulled_incremental_dir",
 		clock = Clock.createNull(),
 		fileSystem = FileSystem.createNull(),
-		globalCommandLineOptions = {} as S,
-		} = args[0] ?? {};
+		} = options ?? {};
 		ensure.signature(arguments, [[ undefined, {
 			incrementalDir: [ undefined, String ],
 			clock: [ undefined, Clock ],
 			fileSystem: [ undefined, FileSystem ],
-			globalCommandLineOptions: [ undefined, Object ],
 		}]]);
 
-		return new Tasks<T_TaskParameters, S>(incrementalDir, clock, fileSystem, globalCommandLineOptions);
+		return new Tasks<T_TaskParameters, S>(incrementalDir, clock, fileSystem);
 	}
 
 	/** Only for use by tests. (Use a factory method instead.) */
-	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem,
-		...args: CommandLineOptionsSpec extends S ? [options?: S] : [options: S]) {
+	constructor(incrementalDir: string, clock: Clock, fileSystem: FileSystem) {
 		super();
 		this.#taskFns = {};
 		this.#descriptions = {};
 		this.#incrementalDir = incrementalDir;
 		this.#clock = clock;
 		this.#fileSystem = fileSystem;
-		this.#globalCommandLineOptions = args[0] ?? {} as S;
 	}
 
 	/**
@@ -147,7 +141,10 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	 * @see CommandLine#parse
 	 */
 	get globalCommandLineOptions(): S {
-		return this.#globalCommandLineOptions;
+		const options = Object.fromEntries(
+			Object.entries(this.#options).filter(([ , spec ]) => spec.tasks === undefined),
+		);
+		return options as S;
 	}
 
 	/**
@@ -210,14 +207,40 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	}
 
 	/**
+	 * Add command-line options to the tasks.
+	 * @param {CommandLineOptionsSpec} options The command-line option specifications.
+	 * @throws Error Throws an error if options have duplicate short names.
+	 */
+	setCommandLineOptions(options: CommandLineOptionsSpec): void {
+		const shortNames = new Set<string>();
+		Object.values(options).forEach(({ short, tasks }) => {
+			if (short !== undefined) {
+				if (shortNames.has(short)) throw new Error(`Duplicate short option: ${short}`);
+				shortNames.add(short);
+			}
+
+			tasks?.forEach(task => {
+				if (!this.hasTask(task)) throw new Error(`Unrecognized task: ${task}`);
+			});
+		});
+
+		this.#options = options;
+	}
+
+	/**
 	 * Provides a list of all the tasks that have been added, along with their descriptions, if any. (Tasks without
 	 * descriptions default to an empty string.)
 	 * @returns {{name: string, description: string}[]} Each task in the order it was added.
 	 */
 	listTasks(): TaskDescription[] {
-		return Object.keys(this.#taskFns).map(name => {
-			const description = this.#descriptions[name] ?? "";
-			return { name, description };
+		return Object.keys(this.#taskFns).map(taskName => {
+			const description = this.#descriptions[taskName] ?? "";
+			const options: CommandLineOptionsSpec = {};
+			Object.entries(this.#options).forEach(([ optionName, { tasks, ...spec } ]) => {
+				if (tasks?.includes(taskName)) options[optionName] = spec;
+			});
+
+			return { name: taskName, description, options };
 		});
 	}
 
