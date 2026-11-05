@@ -6,11 +6,13 @@ This is an incremental build that only re-runs tests when files have changed or 
 
 # Design
 
-When working on a file, look at several nearby files for examples of expected design style.
+When working on a file, look at several nearby files for examples of expected design style. Before starting work, summarize your understanding of my design principles and ask for corrections.
 
-Ease of understanding and modification is our top design priority. Use blank lines to clarify intent. Organize functions and methods within a file so they can be skimmed from top to bottom, with more-general and more-central concepts first and special cases coming later.
+When writing tests, do not use loops or conditionals. It's better to make repeated calls to helper functions than to  
 
-Tests are documentation. Each test tells a story: we have a system like this; then this happens; and this is the result. Use helper functions to make that story clear. If the helper is only relevant to one test, it can be nested at the bottom of the test. The collection of tests together also tell a story; the reader should be able to skim test names from top to bottom to understand how the system under tests work, with the most central and important behavior coming first and edge cases coming later.
+Within functions, use blank lines to clarify intent. Organize functions and methods with more-general and more-central concepts first and special cases coming later, and related functions/methods placed next to each other.
+
+Tests follow the same principle. Central, happy-path usage comes first, edge cases come later.
 
 # Documentation
 
