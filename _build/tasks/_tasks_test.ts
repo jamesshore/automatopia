@@ -502,8 +502,27 @@ export default describe(() => {
 			);
 		});
 
-		it("fails fast if reserved options collide with task option names");
-		it("fails fast if reserved options collide with task option short names");
+		it("fails fast if reserved options collide with task option names", () => {
+			const { tasks } = createTasks();
+			tasks.defineTask("myTask", () => {});
+			tasks.setCommandLineOptions({ myOption: { type: "string", tasks: [ "myTask" ] } });
+
+			assert.error(
+				() => tasks.withReservedOptions({ myOption: { type: "boolean" } }),
+				"The '--myOption' option is reserved",
+			);
+		});
+
+		it("fails fast if reserved options collide with task option short names", () => {
+			const { tasks } = createTasks();
+			tasks.defineTask("myTask", () => {});
+			tasks.setCommandLineOptions({ myOption: { type: "string", short: "a", tasks: [ "myTask" ] } });
+
+			assert.error(
+				() => tasks.withReservedOptions({ reserved: { type: "boolean", short: "a" } }),
+				"The '-a' short option is reserved",
+			);
+		});
 
 	});
 });
