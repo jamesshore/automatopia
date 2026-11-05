@@ -251,9 +251,10 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	}
 
 	/**
-	 * Add command-line options to the tasks.
-	 * @param {CommandLineOptionsSpec} options The command-line option specifications.
-	 * @throws Error Throws an error if options have duplicate short names.
+	 * Set command-line options. An option without a `tasks` field is global; otherwise it applies to the named tasks.
+	 * @param {CommandLineOptionsSpec} options Option specifications. Each may include a `description` and a `tasks`
+	 *   array of previously defined task names. See {@link CommandLine#parse} for the parser fields.
+	 * @throws Error Throws an error if options have duplicate short names or name an undefined task.
 	 */
 	setCommandLineOptions(options: CommandLineOptionsSpec): void {
 		ensure.signature(arguments, [ Object ]);
@@ -275,9 +276,10 @@ export default class Tasks<T_TaskParameters> extends EventEmitter<{ task: [TaskO
 	}
 
 	/**
-	 * Provides a list of all the tasks that have been added, along with their descriptions, if any. (Tasks without
-	 * descriptions default to an empty string.)
-	 * @returns {{name: string, description: string}[]} Each task in the order it was added.
+	 * Provides a list of all defined tasks with their descriptions and task-specific options. Tasks without a
+	 * description or options have an empty string or object, respectively. Global options are available from
+	 * {@link Tasks#globalOptionsSpec}.
+	 * @returns {TaskDescription[]} Each task in the order it was added.
 	 */
 	listTasks(): TaskDescription[] {
 		ensure.signature(arguments, []);
