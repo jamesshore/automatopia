@@ -148,6 +148,15 @@ export default class Tasks<T_TaskParameters, S extends CommandLineOptionsSpec = 
 	}
 
 	/**
+	 * @returns {ParserOptionsSpec} A command-line option specification suitable for {@link CommandLine#parse}.
+	 */
+	get parserOptionsSpec(): ParserOptionsSpec {
+		return Object.fromEntries(
+			Object.entries(this.#options).map(([ name, { tasks, description, ...spec } ]) => [ name, spec ]),
+		);
+	}
+
+	/**
 	 * Add a task.
 	 * @param {string} name The name of the task.
 	 * @param {() => void} fn The function to run when the task executes.

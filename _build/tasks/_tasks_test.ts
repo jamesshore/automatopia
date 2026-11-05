@@ -362,7 +362,7 @@ export default describe(() => {
 			], "task options");
 		});
 
-		it("specifies global options", () => {
+		it("has global options", () => {
 			const options = {
 				option1: { type: "boolean" },
 				option2: { type: "string" },
@@ -374,7 +374,7 @@ export default describe(() => {
 			assert.equal(tasks.globalCommandLineOptions, options);
 		});
 
-		it("specifies task-specific options", () => {
+		it("has task-specific options", () => {
 			const { tasks } = createTasks();
 			tasks.defineTask("task1", () => {});
 			tasks.defineTask("task2", () => {});
@@ -418,6 +418,20 @@ export default describe(() => {
 				{ name: "task2", description: "", options: { shared: { type: "boolean" } } },
 				{ name: "task3", description: "", options: {} },
 			]);
+		});
+
+		it("provides command-line option specification", () => {
+			const { tasks } = createTasks();
+			tasks.defineTask("task1", () => {});
+			tasks.setCommandLineOptions({
+				global: { type: "boolean", short: "g", description: "global option" },
+				specific: { type: "string", multiple: true, tasks: [ "task1" ], description: "task option" },
+			});
+
+			assert.equal(tasks.parserOptionsSpec, {
+				global: { type: "boolean", short: "g" },
+				specific: { type: "string", multiple: true },
+			});
 		});
 		
 		it("fails fast if multiple options specify the same short name", () => {
